@@ -9,3 +9,6 @@ coverage/
 
 # APS session baseline (ephemeral)
 .claude/.aps-session-baseline
+
+# Repo-local agent context (internal pilot details)
+AGENTS.md

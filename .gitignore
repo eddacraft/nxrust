@@ -2,6 +2,7 @@ node_modules/
 dist/
 coverage/
 .nx/
+.worktrees/
 *.tsbuildinfo
 .DS_Store
 .env

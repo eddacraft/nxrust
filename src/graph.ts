@@ -46,26 +46,75 @@ interface GraphComputation {
 /**
  * Cache `cargo metadata` per workspace root — Nx calls `createNodesV2` once per
  * matched Cargo.toml, and would otherwise spawn cargo N times per graph
- * recompute. Invalidated by Cargo.lock mtime so edits to the workspace still
- * get picked up.
+ * recompute.
+ *
+ * The cache key is a fingerprint over every manifest that affects the result:
+ * `Cargo.lock`, the root `Cargo.toml`, and each workspace member's
+ * `Cargo.toml` known from the prior metadata snapshot. Lockfile mtime alone
+ * is not sufficient — manifest edits (member adds, target/feature changes,
+ * package renames) can shift the graph without touching the lockfile, and
+ * fresh workspaces have no lockfile at all. Under the Nx daemon a stale cache
+ * survives across invocations, so missing those signals corrupts
+ * `nx affected`.
  */
-const metadataCache = new Map<string, { mtime: number; result: GraphComputation }>();
+const metadataCache = new Map<
+  string,
+  { fingerprint: string; result: GraphComputation }
+>();
+
+function fileFingerprint(path: string): string {
+  try {
+    return `${path}:${statSync(path).mtimeMs}`;
+  } catch {
+    return `${path}:missing`;
+  }
+}
+
+function workspaceFingerprint(
+  workspaceRoot: string,
+  knownManifests: readonly string[],
+): string {
+  const parts = [
+    fileFingerprint(join(workspaceRoot, 'Cargo.lock')),
+    fileFingerprint(join(workspaceRoot, 'Cargo.toml')),
+  ];
+  for (const manifest of knownManifests) {
+    parts.push(fileFingerprint(manifest));
+  }
+  return parts.join('|');
+}
+
+function workspaceManifests(
+  metadata: CargoMetadata | null,
+  workspaceRoot: string,
+): string[] {
+  if (!metadata) return [];
+  return metadata.packages
+    .filter((p) => !isExternal(p, workspaceRoot))
+    .map((p) => p.manifest_path);
+}
 
 function computeCached(workspaceRoot: string): GraphComputation {
-  let currentMtime = 0;
-  try {
-    currentMtime = statSync(join(workspaceRoot, 'Cargo.lock')).mtimeMs;
-  } catch {
-    // No lockfile (e.g. fresh workspace) — fall through with mtime 0.
-  }
-
   const cached = metadataCache.get(workspaceRoot);
-  if (cached && cached.mtime === currentMtime) {
+  const knownManifests = cached
+    ? workspaceManifests(cached.result.metadata, workspaceRoot)
+    : [];
+  const current = workspaceFingerprint(workspaceRoot, knownManifests);
+  if (cached && cached.fingerprint === current) {
     return cached.result;
   }
 
   const result = computeGraph(workspaceRoot);
-  metadataCache.set(workspaceRoot, { mtime: currentMtime, result });
+  // Re-fingerprint with the freshly discovered manifests so subsequent
+  // calls invalidate when *any* of them changes.
+  const nextFingerprint = workspaceFingerprint(
+    workspaceRoot,
+    workspaceManifests(result.metadata, workspaceRoot),
+  );
+  metadataCache.set(workspaceRoot, {
+    fingerprint: nextFingerprint,
+    result,
+  });
   return result;
 }
 
@@ -117,6 +166,10 @@ export const createDependencies: CreateDependencies = (
   const out: RawProjectGraphDependency[] = [];
 
   for (const pkg of metadata.packages) {
+    // Skip registry/git/out-of-tree packages so a transitive crate that
+    // happens to share a workspace member's name cannot inject false edges
+    // into the workspace project's dependency list.
+    if (isExternal(pkg, workspaceRoot)) continue;
     // Nx re-keys projects by `name` after `createNodesV2` emits them keyed by
     // root; the lookup below relies on that transform.
     if (!projects[pkg.name]) continue;

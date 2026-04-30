@@ -13,6 +13,12 @@ vi.mock('./utils/cargo', async () => {
   };
 });
 
+// Mock `node:fs` statSync so cache-fingerprint tests can drive mtime values
+// without touching the real filesystem.
+vi.mock('node:fs', () => ({
+  statSync: vi.fn(),
+}));
+
 async function load() {
   const graph = await import('./graph');
   graph.__resetGraphCacheForTests();
@@ -22,6 +28,22 @@ async function load() {
 async function setMetadata(metadata: CargoMetadata | null) {
   const cargo = await import('./utils/cargo');
   (cargo.cargoMetadata as ReturnType<typeof vi.fn>).mockReturnValue(metadata);
+}
+
+async function cargoMetadataMock() {
+  const cargo = await import('./utils/cargo');
+  return cargo.cargoMetadata as ReturnType<typeof vi.fn>;
+}
+
+async function setStatMtimes(mtimes: Record<string, number | 'missing'>) {
+  const fs = await import('node:fs');
+  (fs.statSync as ReturnType<typeof vi.fn>).mockImplementation((path: string) => {
+    const value = mtimes[path];
+    if (value === undefined || value === 'missing') {
+      throw Object.assign(new Error('ENOENT'), { code: 'ENOENT' });
+    }
+    return { mtimeMs: value } as ReturnType<typeof import('node:fs').statSync>;
+  });
 }
 
 const ws = '/ws';
@@ -55,6 +77,10 @@ describe('createDependencies', () => {
   beforeEach(async () => {
     const { __resetGraphCacheForTests } = await load();
     __resetGraphCacheForTests();
+    await setStatMtimes({
+      '/ws/Cargo.lock': 1,
+      '/ws/Cargo.toml': 1,
+    });
   });
 
   afterEach(() => {
@@ -193,5 +219,159 @@ describe('createDependencies', () => {
       nxJsonConfiguration: {},
     };
     expect(createDependencies({}, ctx)).toEqual([]);
+  });
+
+  it('does not emit edges from a registry package that shares a workspace name', async () => {
+    // Workspace `lib` (path) + a registry crate also called `lib`, with a
+    // dep on `serde`. Without the workspace-membership filter the registry
+    // package's deps would be attributed to the workspace `lib` project.
+    await setMetadata(
+      md([
+        pkg({ name: 'lib' }),
+        {
+          name: 'lib',
+          version: '9.9.9',
+          id: 'lib 9.9.9 (registry)',
+          source: 'registry+https://crates.io',
+          manifest_path: '/home/cache/lib-9.9.9/Cargo.toml',
+          features: {},
+          targets: [
+            { kind: ['lib'], crate_types: ['lib'], name: 'lib', src_path: '' },
+          ],
+          dependencies: [
+            {
+              name: 'serde',
+              req: '^1',
+              source: 'registry+https://crates.io',
+              optional: false,
+              uses_default_features: true,
+              features: [],
+              kind: null,
+            },
+          ],
+        },
+      ]),
+    );
+    const { createDependencies } = await load();
+
+    const ctx: CreateDependenciesContext = {
+      workspaceRoot: ws,
+      projects: { lib: { root: 'crates/lib', name: 'lib' } } as never,
+      externalNodes: {
+        'cargo:serde': {
+          type: 'cargo' as never,
+          name: 'cargo:serde' as never,
+          data: { packageName: 'serde', version: '1.0.0' },
+        },
+      },
+      fileMap: { projectFileMap: {}, nonProjectFiles: [] },
+      filesToProcess: { projectFileMap: {}, nonProjectFiles: [] },
+      nxJsonConfiguration: {},
+    };
+
+    expect(createDependencies({}, ctx)).toHaveLength(0);
+  });
+});
+
+describe('graph cache invalidation', () => {
+  beforeEach(async () => {
+    const { __resetGraphCacheForTests } = await load();
+    __resetGraphCacheForTests();
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  async function runCreateNodes(graph: Awaited<ReturnType<typeof load>>) {
+    const { createNodesV2 } = graph;
+    const fn = createNodesV2[1] as (
+      paths: readonly string[],
+      opts: unknown,
+      ctx: { workspaceRoot: string; nxJsonConfiguration: object },
+    ) => Promise<unknown>;
+    await fn(['crates/foo/Cargo.toml'], {}, {
+      workspaceRoot: ws,
+      nxJsonConfiguration: {},
+    });
+  }
+
+  it('reuses the cargo metadata cache when no manifest changes', async () => {
+    await setStatMtimes({
+      '/ws/Cargo.lock': 1,
+      '/ws/Cargo.toml': 1,
+      '/ws/crates/foo/Cargo.toml': 1,
+    });
+    await setMetadata(md([pkg({ name: 'foo' })]));
+    const cargoFn = await cargoMetadataMock();
+    const graph = await load();
+
+    await runCreateNodes(graph);
+    await runCreateNodes(graph);
+
+    expect(cargoFn).toHaveBeenCalledTimes(1);
+  });
+
+  it('invalidates when the root Cargo.toml changes without a lockfile bump', async () => {
+    await setStatMtimes({
+      '/ws/Cargo.lock': 1,
+      '/ws/Cargo.toml': 1,
+      '/ws/crates/foo/Cargo.toml': 1,
+    });
+    await setMetadata(md([pkg({ name: 'foo' })]));
+    const cargoFn = await cargoMetadataMock();
+    const graph = await load();
+
+    await runCreateNodes(graph);
+    await setStatMtimes({
+      '/ws/Cargo.lock': 1,
+      '/ws/Cargo.toml': 2, // workspace member added — lockfile not yet refreshed
+      '/ws/crates/foo/Cargo.toml': 1,
+    });
+    await runCreateNodes(graph);
+
+    expect(cargoFn).toHaveBeenCalledTimes(2);
+  });
+
+  it("invalidates when a member's Cargo.toml changes without a lockfile bump", async () => {
+    await setStatMtimes({
+      '/ws/Cargo.lock': 1,
+      '/ws/Cargo.toml': 1,
+      '/ws/crates/foo/Cargo.toml': 1,
+    });
+    await setMetadata(md([pkg({ name: 'foo' })]));
+    const cargoFn = await cargoMetadataMock();
+    const graph = await load();
+
+    await runCreateNodes(graph);
+    await setStatMtimes({
+      '/ws/Cargo.lock': 1,
+      '/ws/Cargo.toml': 1,
+      '/ws/crates/foo/Cargo.toml': 5, // crate manifest edited (e.g. target/feature change)
+    });
+    await runCreateNodes(graph);
+
+    expect(cargoFn).toHaveBeenCalledTimes(2);
+  });
+
+  it('still recomputes when no Cargo.lock exists yet', async () => {
+    // Fresh workspace: the lockfile has not been generated yet, so cache
+    // must not pin to "missing-lockfile" forever.
+    await setStatMtimes({
+      '/ws/Cargo.toml': 1,
+      '/ws/crates/foo/Cargo.toml': 1,
+    });
+    await setMetadata(md([pkg({ name: 'foo' })]));
+    const cargoFn = await cargoMetadataMock();
+    const graph = await load();
+
+    await runCreateNodes(graph);
+    await setStatMtimes({
+      '/ws/Cargo.toml': 2, // workspace edited; still no lockfile
+      '/ws/crates/foo/Cargo.toml': 1,
+    });
+    await runCreateNodes(graph);
+
+    expect(cargoFn).toHaveBeenCalledTimes(2);
   });
 });

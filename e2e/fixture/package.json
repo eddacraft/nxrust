@@ -1,0 +1,9 @@
+{
+  "name": "nxrust-e2e-fixture",
+  "private": true,
+  "packageManager": "pnpm@10.33.1",
+  "devDependencies": {
+    "nx": "22.6.5",
+    "nxrust": "file:../../.e2e-pack/nxrust-0.1.0.tgz"
+  }
+}

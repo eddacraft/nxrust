@@ -35,6 +35,7 @@
   "scripts": {
     "build": "tsc -p tsconfig.json && node ./tools/copy-assets.mjs",
     "clean": "rm -rf dist",
+    "e2e": "node ./tools/e2e-smoke.mjs",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run",
     "test:watch": "vitest"

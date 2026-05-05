@@ -2,6 +2,9 @@ node_modules/
 dist/
 coverage/
 .nx/
+target/
+Cargo.lock
+.e2e-pack/
 .worktrees/
 *.tsbuildinfo
 .DS_Store

@@ -4,6 +4,26 @@ import type { BaseCargoOptions } from '../models/base-options';
 const SKIP_KEYS = new Set<string>(['toolchain', 'args', 'package']);
 
 /**
+ * Keys from `BaseCargoOptions` that every cargo-wrapping executor accepts.
+ * Always allowed alongside any subcommand-specific allowlist a caller passes.
+ */
+export const BASE_CARGO_KEYS: ReadonlySet<string> = new Set([
+  'toolchain',
+  'target',
+  'profile',
+  'release',
+  'target-dir',
+  'features',
+  'all-features',
+  'no-default-features',
+  'locked',
+  'frozen',
+  'offline',
+  'package',
+  'args',
+]);
+
+/**
  * Convert `allTargets` → `all-targets`. Executor schemas use camelCase keys
  * because that's what Nx's schema validator prefers, but cargo expects
  * kebab-case flags. This is idempotent for keys that are already kebab-cased.
@@ -25,12 +45,19 @@ function toKebabFlag(key: string): string {
  * repeats — plus passthrough `args` split between `cargo <sub>` and the binary
  * under `--`.
  *
+ * `allowedKeys` is a per-subcommand allowlist that's unioned with
+ * `BASE_CARGO_KEYS`. Anything outside that union is dropped silently — Nx
+ * merges CLI args (e.g. vitest `--run`/`--coverage` from `nx run-many -t test`)
+ * into the executor's options, and forwarding them unfiltered produced cargo
+ * invocations like `cargo test --run --coverage [object Object]`.
+ *
  * Kept as a pure function so it's unit-testable without touching cargo.
  */
 export function buildCargoArgs<T extends BaseCargoOptions>(
   subcommand: string,
   options: T,
   context: Pick<ExecutorContext, 'projectName'>,
+  allowedKeys: ReadonlySet<string> = new Set(),
 ): string[] {
   // The iterator below uses Object.entries, which at runtime sees every own
   // enumerable property regardless of declared type.
@@ -49,6 +76,7 @@ export function buildCargoArgs<T extends BaseCargoOptions>(
 
   for (const [rawKey, rawValue] of Object.entries(opts)) {
     if (SKIP_KEYS.has(rawKey)) continue;
+    if (!BASE_CARGO_KEYS.has(rawKey) && !allowedKeys.has(rawKey)) continue;
     if (rawValue === undefined || rawValue === null) continue;
     if (rawKey === 'release' && hasProfile) continue;
 

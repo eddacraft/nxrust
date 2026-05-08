@@ -246,26 +246,33 @@ function inferProjectConfig(
   const hasBin = pkg.targets.some((t) => t.kind.includes('bin'));
   const isPrivate = pkg.publish?.length === 0;
 
+  // Pin the cargo package name on every target. When another Nx plugin (e.g.
+  // `@nx/js` for napi-rs bindings) claims the project name from package.json,
+  // Nx renames the inferred project to the JS package name and the cargo
+  // executor would otherwise feed that scoped/prerelease string to
+  // `cargo -p`, which cargo rejects.
+  const pkgOpts = { package: pkg.name };
+
   const targets: ProjectConfiguration['targets'] = {
-    build: buildTargetConfig(),
-    check: checkTargetConfig(),
-    clippy: clippyTargetConfig(),
+    build: buildTargetConfig(pkgOpts),
+    check: checkTargetConfig(pkgOpts),
+    clippy: clippyTargetConfig(pkgOpts),
     // `fmt` rewrites files (uncached); `fmt-check` is the lint mode that
     // caches safely because its output is just an exit status.
-    fmt: fmtTargetConfig(),
-    'fmt-check': fmtCheckTargetConfig(),
-    test: testTargetConfig(),
+    fmt: fmtTargetConfig(pkgOpts),
+    'fmt-check': fmtCheckTargetConfig(pkgOpts),
+    test: testTargetConfig(pkgOpts),
   };
 
   if (hasBin) {
-    targets.run = runTargetConfig();
+    targets.run = runTargetConfig(pkgOpts);
   }
 
   if (!isPrivate) {
     targets['nx-release-publish'] = {
       dependsOn: ['^nx-release-publish'],
       executor: '@eddacraft/nxrust:release-publish',
-      options: {},
+      options: { ...pkgOpts },
     };
   }
 

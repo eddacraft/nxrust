@@ -12,10 +12,19 @@ export interface BuildExecutorSchema extends BaseCargoOptions {
   'all-targets'?: boolean;
 }
 
+const BUILD_KEYS = new Set([
+  'lib',
+  'bin',
+  'bins',
+  'example',
+  'examples',
+  'all-targets',
+]);
+
 export default async function buildExecutor(
   options: BuildExecutorSchema,
   context: ExecutorContext,
 ): Promise<{ success: boolean }> {
-  const args = buildCargoArgs('build', options, context);
+  const args = buildCargoArgs('build', options, context, BUILD_KEYS);
   return cargoCommand(...args);
 }

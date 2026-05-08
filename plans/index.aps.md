@@ -6,7 +6,7 @@
 | Field | Value |
 |-------|-------|
 | Status | In Progress |
-| Owner | @joshuaboys |
+| Owner | eddacraft |
 | Created | 2026-04-21 |
 | Licence | Apache-2.0 |
 
@@ -39,12 +39,12 @@ TypeScript + Rust monorepos.
 - [x] Project-graph plugin (`createNodesV2` + `createDependencies`) emits
       Rust crate nodes + cross-crate edges from `cargo metadata`
 - [x] Unit test suite green via Vitest
-- [x] Council + adversarial review findings addressed or documented
-- [ ] End-to-end pilot against a real Rust crate in a real Nx 22
+- [x] Review findings addressed or documented
+- [ ] End-to-end validation against a real Rust crate in a real Nx 22
       workspace passes and caches
-- [ ] Rollout to every crate in the pilot workspace completes green on
+- [ ] Rollout to every crate in the validation workspace completes green on
       `nx run-many`
-- [ ] CI smoke test job in nxrust + dependent-repo smoke in the pilot
+- [ ] CI smoke test job in nxrust + dependent-repo smoke in the validation
       workspace
 - [ ] First `@eddacraft/nxrust@0.1.0` published to npm
 
@@ -60,7 +60,7 @@ TypeScript + Rust monorepos.
   not failure.
 - UK English in plan and README text; user-facing CLI output stays
   locale-neutral.
-- Zero regressions on the pilot consumer: every
+- Zero regressions on the validation consumer: every
   `cargo check/test/clippy/fmt` invocation that passed before must
   still pass after the plugin wraps it.
 
@@ -68,7 +68,7 @@ TypeScript + Rust monorepos.
 
 | Module | Purpose | Status | Dependencies |
 |--------|---------|--------|--------------|
-| [01-v0.1-shakedown](./modules/01-v0.1-shakedown.aps.md) | Prove the plugin end-to-end on a pilot consumer, ship first npm release | In Progress | — |
+| [01-v0.1-shakedown](./modules/01-v0.1-shakedown.aps.md) | Prove the plugin end-to-end on a consumer workspace, ship first npm release | In Progress | — |
 
 Deferred (not yet active modules):
 
@@ -87,17 +87,16 @@ Deferred (not yet active modules):
 
 | Risk | Impact | Mitigation |
 |------|--------|------------|
-| `target/` caching yields stale artefacts under remote cache | high | Narrow `outputs` — cache test/clippy reports and binaries, not the whole `target/` tree; verify second-run cache hits on the pilot crate before rollout |
+| `target/` caching yields stale artefacts under remote cache | high | Narrow `outputs` — cache test/clippy reports and binaries, not the whole `target/` tree; verify second-run cache hits before rollout |
 | Nx 22 project-graph plugin API drifts on minor upgrades | medium | Small public surface (`createNodesV2` + `createDependencies` only); CI smoke test pins the contract |
-| `cargo metadata` performance on large workspaces | medium | Mtime-keyed `Cargo.lock` cache already in `graph.ts`; re-evaluate if the pilot hits a slowdown |
-| Pilot switchover breaks the consumer's pnpm graph mid-flight | medium | Switch only after pilot + rollout + CI smoke are all green; keep a revert commit ready |
+| `cargo metadata` performance on large workspaces | medium | Mtime-keyed `Cargo.lock` cache already in `graph.ts`; re-evaluate if validation hits a slowdown |
+| Consumer switchover breaks the consumer's pnpm graph mid-flight | medium | Switch only after validation + rollout + CI smoke are all green; keep a revert commit ready |
 
 ## Open Questions
 
 - [x] Final npm scope for v0.1 publish — use scoped
-      `@eddacraft/nxrust`. `npm org ls eddacraft --json` confirms
-      `joshuaboys` is an owner, and `npm view @eddacraft/nxrust`
-      currently returns 404, so the scoped package appears unpublished.
+      `@eddacraft/nxrust`. The package is published under the eddacraft
+      npm organisation.
 - [ ] Keep the `release-publish` executor in v0.1, or defer until a
       crate actually publishes to crates.io? Implemented and tested —
       keep it, but document as "unvalidated against a real crates.io
@@ -105,7 +104,7 @@ Deferred (not yet active modules):
 - [ ] Should the project-graph plugin emit external nodes for workspace
       dev-dependencies, or only runtime deps? Current behaviour skips
       `kind === 'dev'`; revisit if `nx affected -t test` misses edges
-      in the pilot.
+      in validation.
 
 ## Decisions
 

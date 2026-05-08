@@ -10,13 +10,13 @@
     "monorepo",
     "workspace"
   ],
-  "homepage": "https://github.com/EddaCraft/nxrust",
+  "homepage": "https://github.com/eddacraft/nxrust",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/EddaCraft/nxrust.git"
+    "url": "git+https://github.com/eddacraft/nxrust.git"
   },
   "license": "Apache-2.0",
-  "author": "EddaCraft",
+  "author": "eddacraft",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": [

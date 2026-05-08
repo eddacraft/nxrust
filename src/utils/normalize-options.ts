@@ -25,7 +25,7 @@ export type NormalizedGeneratorOptions<T extends BaseGeneratorInput> =
  * actually wants.
  *
  * Layout: crates live at `<directory>/<name>`, defaulting to `crates/<name>`.
- * This matches the anvil-001 layout and is the commonest Cargo convention.
+ * This matches the common Cargo workspace convention.
  */
 // Cargo accepts `[a-zA-Z0-9_-]` package names starting with a letter. Enforce
 // the same rule at generator time so we don't write manifests cargo rejects.

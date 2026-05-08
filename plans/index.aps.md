@@ -46,7 +46,7 @@ TypeScript + Rust monorepos.
       `nx run-many`
 - [ ] CI smoke test job in nxrust + dependent-repo smoke in the pilot
       workspace
-- [ ] First `nxrust@0.1.0` published to npm (final scope TBD)
+- [ ] First `@eddacraft/nxrust@0.1.0` published to npm
 
 ## Constraints
 
@@ -94,8 +94,10 @@ Deferred (not yet active modules):
 
 ## Open Questions
 
-- [ ] Final npm scope for v0.1 publish — scoped vs unscoped. Default:
-      scoped, re-evaluate at v0.2.
+- [x] Final npm scope for v0.1 publish — use scoped
+      `@eddacraft/nxrust`. `npm org ls eddacraft --json` confirms
+      `joshuaboys` is an owner, and `npm view @eddacraft/nxrust`
+      currently returns 404, so the scoped package appears unpublished.
 - [ ] Keep the `release-publish` executor in v0.1, or defer until a
       crate actually publishes to crates.io? Implemented and tested —
       keep it, but document as "unvalidated against a real crates.io
@@ -121,3 +123,9 @@ Deferred (not yet active modules):
 - **D-004:** Build target — CommonJS to `./dist`. Nx devkit plugins are
   consumed by Nx's Node runtime; ESM offers no win here.
   *Accepted.*
+- **D-005:** Distribution channel — publish `@eddacraft/nxrust` to npm,
+  not crates.io.
+  Nx plugins are JavaScript packages discovered through npm metadata
+  (`executors.json`, `generators.json`, and JS entrypoints). Cargo/crates.io
+  remains relevant for Rust consumers, not for this Nx plugin.
+  *Accepted 2026-05-07.*

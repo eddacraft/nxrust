@@ -6,7 +6,7 @@ const root = process.cwd();
 const packDir = join(root, '.e2e-pack');
 const fixtureDir = join(root, 'e2e', 'fixture');
 const fixturePackage = join(fixtureDir, 'package.json');
-const tarball = '../../.e2e-pack/nxrust-0.1.0.tgz';
+const tarball = '../../.e2e-pack/eddacraft-nxrust-0.1.0.tgz';
 
 function run(command, args, options = {}) {
   const result = spawnSync(command, args, {
@@ -21,7 +21,7 @@ function run(command, args, options = {}) {
 
 rmSync(packDir, { recursive: true, force: true });
 rmSync(join(fixtureDir, '.nx'), { recursive: true, force: true });
-rmSync(join(fixtureDir, 'node_modules', 'nxrust'), {
+rmSync(join(fixtureDir, 'node_modules', '@eddacraft', 'nxrust'), {
   recursive: true,
   force: true,
 });

@@ -39,12 +39,13 @@ describe('buildCargoArgs', () => {
   });
 
   it('repeats non-features array flags', () => {
-    // `bin` isn't in BaseCargoOptions but the runtime iterator walks every
-    // own property, so we cast through unknown to exercise the general path.
+    // `bin` isn't in BaseCargoOptions; the build executor opts it in via the
+    // allowedKeys set. With that opt-in, repeated values must each get a flag.
     const args = buildCargoArgs(
       'build',
       { bin: ['a', 'b'] } as unknown as Parameters<typeof buildCargoArgs>[1],
       ctx,
+      new Set(['bin']),
     );
     expect(args.filter((a) => a === '--bin')).toHaveLength(2);
   });
@@ -91,5 +92,38 @@ describe('buildCargoArgs', () => {
     );
     expect(args).not.toContain('--target');
     expect(args).not.toContain('--manifest');
+  });
+
+  it('drops keys outside the base + caller allowlist', () => {
+    // Simulates Nx merging vitest-style CLI args (`--run`, `--coverage`) into
+    // the test executor's options when `nx run-many -t test --run --coverage`
+    // is invoked in a mixed JS+Rust workspace. Without filtering, those keys
+    // landed on cargo's argv (e.g. `cargo test --run --coverage [object Object]`).
+    const args = buildCargoArgs(
+      'test',
+      {
+        run: true,
+        coverage: [true, { thresholds: 80 }, { reporter: 'json' }],
+        release: true,
+      } as unknown as Parameters<typeof buildCargoArgs>[1],
+      ctx,
+      new Set(['doc', 'lib']),
+    );
+    expect(args).not.toContain('--run');
+    expect(args).not.toContain('--coverage');
+    expect(args).toContain('--release');
+  });
+
+  it('keeps subcommand-specific keys passed via the allowlist', () => {
+    const args = buildCargoArgs(
+      'test',
+      { 'no-fail-fast': true, doc: true } as unknown as Parameters<
+        typeof buildCargoArgs
+      >[1],
+      ctx,
+      new Set(['no-fail-fast', 'doc']),
+    );
+    expect(args).toContain('--no-fail-fast');
+    expect(args).toContain('--doc');
   });
 });

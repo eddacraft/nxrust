@@ -8,10 +8,12 @@ export interface CheckExecutorSchema extends BaseCargoOptions {
   tests?: boolean;
 }
 
+const CHECK_KEYS = new Set(['all-targets', 'tests']);
+
 export default async function checkExecutor(
   options: CheckExecutorSchema,
   context: ExecutorContext,
 ): Promise<{ success: boolean }> {
-  const args = buildCargoArgs('check', options, context);
+  const args = buildCargoArgs('check', options, context, CHECK_KEYS);
   return cargoCommand(...args);
 }

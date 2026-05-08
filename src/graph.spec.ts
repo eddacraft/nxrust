@@ -273,6 +273,61 @@ describe('createDependencies', () => {
   });
 });
 
+describe('inferred project targets', () => {
+  beforeEach(async () => {
+    const { __resetGraphCacheForTests } = await load();
+    __resetGraphCacheForTests();
+    await setStatMtimes({
+      '/ws/Cargo.lock': 1,
+      '/ws/Cargo.toml': 1,
+      '/ws/crates/foo/Cargo.toml': 1,
+    });
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it('pins the cargo package name on every cargo-backed target', async () => {
+    // Without an explicit `package` option, the executor falls back to the Nx
+    // project name. When `@nx/js` claims the project name from a sibling
+    // package.json (e.g. napi-rs bindings) the Nx name becomes `@scope/foo`,
+    // which cargo rejects when handed to `-p`. Pinning here keeps the cargo
+    // package decoupled from whatever Nx ends up calling the project.
+    const publishablePkg = pkg({
+      name: 'foo',
+      targets: [
+        { kind: ['bin'], crate_types: ['bin'], name: 'foo', src_path: '' },
+      ],
+    });
+    await setMetadata(md([publishablePkg]));
+
+    const { createNodesV2 } = await load();
+    const fn = createNodesV2[1] as (
+      paths: readonly string[],
+      opts: unknown,
+      ctx: { workspaceRoot: string; nxJsonConfiguration: object },
+    ) => Promise<
+      Array<[string, { projects: Record<string, { targets: Record<string, { options?: { package?: string } }> }> }]>
+    >;
+
+    const result = await fn(['crates/foo/Cargo.toml'], {}, {
+      workspaceRoot: ws,
+      nxJsonConfiguration: {},
+    });
+
+    const [, payload] = result[0];
+    const project = payload.projects['crates/foo'];
+    const expected = ['build', 'check', 'clippy', 'fmt', 'fmt-check', 'test', 'run', 'nx-release-publish'];
+    for (const target of expected) {
+      expect(
+        project.targets[target]?.options?.package,
+        `target ${target} should pin the cargo package name`,
+      ).toBe('foo');
+    }
+  });
+});
+
 describe('graph cache invalidation', () => {
   beforeEach(async () => {
     const { __resetGraphCacheForTests } = await load();

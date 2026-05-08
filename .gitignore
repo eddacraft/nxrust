@@ -16,3 +16,4 @@ Cargo.lock
 
 # Repo-local agent context (internal pilot details)
 AGENTS.md
+.claude/logs/

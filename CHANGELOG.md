@@ -1,6 +1,8 @@
 # Changelog
 
-## Unreleased
+## 0.1.1 — 2026-05-08
+
+Bug fixes for two consumer-surfaced defects in 0.1.0.
 
 - Pin the cargo package name on every inferred target. Previously the cargo
   executor fell back to the Nx project name, so when another plugin (e.g.

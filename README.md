@@ -4,8 +4,9 @@
 and parses `cargo metadata` into the Nx project graph so `nx affected` works
 across your Rust crates.
 
-Spiritual successor to [`@monodon/rust`](https://github.com/Cammisuli/monodon) —
-same shape, explicitly Apache-2.0 licensed, targeting Nx 22.
+Inspired by the public API shape of
+[`@monodon/rust`](https://github.com/Cammisuli/monodon), with an Apache-2.0
+codebase targeting Nx 22.
 
 ## Install
 
@@ -87,13 +88,13 @@ This is what makes `nx affected -t test` correct across your Rust crates.
 
 ## License
 
-Apache-2.0 © EddaCraft. See [LICENSE](./LICENSE).
+Apache-2.0 © eddacraft. See [LICENSE](./LICENSE).
 
-This project does not contain any code copied from `@monodon/rust`; we reference 
-its public API shape only. `cargo metadata` is the official
-Rust tooling contract.
+This project does not contain code copied from `@monodon/rust`; it references
+the public API shape only. `cargo metadata` is the official Rust tooling
+contract.
 
 ## Acknowledgements
 
-We would however like to thank the author of `@monodon/rust` for their original work as it served as 
-invaluable inspiration for this plugin.
+Thanks to the author of `@monodon/rust`; that project established the shape of
+Rust support many Nx users expect.

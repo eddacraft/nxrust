@@ -1,5 +1,5 @@
 {
-  "name": "nxrust",
+  "name": "@eddacraft/nxrust",
   "version": "0.1.0",
   "description": "Nx plugin that wraps Cargo — executors, generators, and project-graph integration for Rust workspaces inside Nx monorepos.",
   "keywords": [
@@ -13,7 +13,7 @@
   "homepage": "https://github.com/EddaCraft/nxrust",
   "repository": {
     "type": "git",
-    "url": "https://github.com/EddaCraft/nxrust.git"
+    "url": "git+https://github.com/EddaCraft/nxrust.git"
   },
   "license": "Apache-2.0",
   "author": "EddaCraft",
@@ -36,6 +36,8 @@
     "build": "tsc -p tsconfig.json && node ./tools/copy-assets.mjs",
     "clean": "rm -rf dist",
     "e2e": "node ./tools/e2e-smoke.mjs",
+    "prepublishOnly": "pnpm build && pnpm test && pnpm e2e",
+    "release:dry-run": "pnpm build && pnpm pack --dry-run",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run",
     "test:watch": "vitest"

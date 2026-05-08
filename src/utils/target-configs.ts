@@ -19,7 +19,7 @@ export function buildTargetConfig(
   options: AnyOpts = {},
 ): TargetConfiguration {
   return {
-    executor: 'nxrust:build',
+    executor: '@eddacraft/nxrust:build',
     cache: true,
     outputs: BINARY_OUTPUTS,
     options,
@@ -33,7 +33,7 @@ export function checkTargetConfig(
   options: AnyOpts = {},
 ): TargetConfiguration {
   return {
-    executor: 'nxrust:check',
+    executor: '@eddacraft/nxrust:check',
     cache: true,
     outputs: [],
     options,
@@ -44,7 +44,7 @@ export function clippyTargetConfig(
   options: AnyOpts = {},
 ): TargetConfiguration {
   return {
-    executor: 'nxrust:clippy',
+    executor: '@eddacraft/nxrust:clippy',
     cache: true,
     outputs: [],
     options,
@@ -59,7 +59,7 @@ export function fmtTargetConfig(
   options: AnyOpts = {},
 ): TargetConfiguration {
   return {
-    executor: 'nxrust:fmt',
+    executor: '@eddacraft/nxrust:fmt',
     options,
   };
 }
@@ -72,7 +72,7 @@ export function fmtCheckTargetConfig(
   options: AnyOpts = {},
 ): TargetConfiguration {
   return {
-    executor: 'nxrust:fmt',
+    executor: '@eddacraft/nxrust:fmt',
     cache: true,
     outputs: [],
     options: { check: true, ...options },
@@ -83,7 +83,7 @@ export function testTargetConfig(
   options: AnyOpts = {},
 ): TargetConfiguration {
   return {
-    executor: 'nxrust:test',
+    executor: '@eddacraft/nxrust:test',
     cache: true,
     outputs: BINARY_OUTPUTS,
     options,
@@ -97,7 +97,7 @@ export function runTargetConfig(
   options: AnyOpts = {},
 ): TargetConfiguration {
   return {
-    executor: 'nxrust:run',
+    executor: '@eddacraft/nxrust:run',
     options,
     configurations: {
       production: { release: true },

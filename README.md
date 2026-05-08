@@ -10,15 +10,15 @@ same shape, explicitly Apache-2.0 licensed, targeting Nx 22.
 ## Install
 
 ```sh
-pnpm add -D nxrust
-# or: npm i -D nxrust  / yarn add -D nxrust
+pnpm add -D @eddacraft/nxrust
+# or: npm i -D @eddacraft/nxrust  / yarn add -D @eddacraft/nxrust
 ```
 
 Register in `nx.json`:
 
 ```json
 {
-  "plugins": ["nxrust"]
+  "plugins": ["@eddacraft/nxrust"]
 }
 ```
 
@@ -26,13 +26,13 @@ Register in `nx.json`:
 
 | Executor                | Wraps                  | Cache |
 | ----------------------- | ---------------------- | ----- |
-| `nxrust:build`          | `cargo build`          | yes   |
-| `nxrust:check`          | `cargo check`          | yes   |
-| `nxrust:clippy` / `lint`| `cargo clippy`         | yes   |
-| `nxrust:fmt`            | `cargo fmt`            | yes   |
-| `nxrust:run`            | `cargo run`            | no    |
-| `nxrust:test`           | `cargo test`           | yes   |
-| `nxrust:release-publish`| `cargo publish`        | no (use via `nx release publish`) |
+| `@eddacraft/nxrust:build`          | `cargo build`          | yes   |
+| `@eddacraft/nxrust:check`          | `cargo check`          | yes   |
+| `@eddacraft/nxrust:clippy` / `lint`| `cargo clippy`         | yes   |
+| `@eddacraft/nxrust:fmt`            | `cargo fmt`            | yes   |
+| `@eddacraft/nxrust:run`            | `cargo run`            | no    |
+| `@eddacraft/nxrust:test`           | `cargo test`           | yes   |
+| `@eddacraft/nxrust:release-publish`| `cargo publish`        | no (use via `nx release publish`) |
 
 All executors accept a shared option set:
 
@@ -53,15 +53,15 @@ Individual executors add specialised flags — see each schema.
 
 ```sh
 # Library crate
-nx g nxrust:crate my-crate
+nx g @eddacraft/nxrust:crate my-crate
 
 # Binary crate
-nx g nxrust:crate my-cli --bin
+nx g @eddacraft/nxrust:crate my-cli --bin
 # or alias:
-nx g nxrust:binary my-cli
+nx g @eddacraft/nxrust:binary my-cli
 
 # Library alias
-nx g nxrust:library my-lib
+nx g @eddacraft/nxrust:library my-lib
 ```
 
 Generated crates are added to the root `Cargo.toml` `[workspace.members]`
@@ -89,6 +89,11 @@ This is what makes `nx affected -t test` correct across your Rust crates.
 
 Apache-2.0 © EddaCraft. See [LICENSE](./LICENSE).
 
-This project does not contain any code copied from `@monodon/rust` — it
-references its public API shape only. `cargo metadata` is the official
+This project does not contain any code copied from `@monodon/rust`; we reference 
+its public API shape only. `cargo metadata` is the official
 Rust tooling contract.
+
+## Acknowledgements
+
+We would however like to thank the author of `@monodon/rust` for their original work as it served as 
+invaluable inspiration for this plugin.

@@ -4,10 +4,11 @@ permissions:
   contents: read
 
 on:
+  workflow_dispatch:
   pull_request:
   push:
     branches:
-      - main
+      - dev
 
 jobs:
   smoke:

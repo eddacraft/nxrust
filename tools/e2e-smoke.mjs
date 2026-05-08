@@ -6,7 +6,12 @@ const root = process.cwd();
 const packDir = join(root, '.e2e-pack');
 const fixtureDir = join(root, 'e2e', 'fixture');
 const fixturePackage = join(fixtureDir, 'package.json');
-const tarball = '../../.e2e-pack/eddacraft-nxrust-0.1.0.tgz';
+
+// Derive the tarball name from package.json so version bumps don't break the
+// e2e smoke. `pnpm pack` writes `<scope-stripped>-<name>-<version>.tgz`.
+const pkg = JSON.parse(readFileSync(join(root, 'package.json'), 'utf8'));
+const tarballName = `${pkg.name.replace('@', '').replace('/', '-')}-${pkg.version}.tgz`;
+const tarball = `../../.e2e-pack/${tarballName}`;
 
 function run(command, args, options = {}) {
   const result = spawnSync(command, args, {

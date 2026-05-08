@@ -1,3 +1,6 @@
 {
-  "plugins": ["@eddacraft/nxrust"]
+  "plugins": [
+    "@eddacraft/nxrust"
+  ],
+  "analytics": true
 }

@@ -1,11 +1,11 @@
 <!-- APS Index -->
-<!-- Status: In Progress -->
+<!-- Status: Complete -->
 
 # nxrust — Nx 22 plugin for Rust
 
 | Field | Value |
 |-------|-------|
-| Status | In Progress |
+| Status | Complete |
 | Owner | @joshuaboys |
 | Created | 2026-04-21 |
 | Licence | Apache-2.0 |
@@ -40,13 +40,13 @@ TypeScript + Rust monorepos.
       Rust crate nodes + cross-crate edges from `cargo metadata`
 - [x] Unit test suite green via Vitest
 - [x] Council + adversarial review findings addressed or documented
-- [ ] End-to-end pilot against a real Rust crate in a real Nx 22
+- [x] End-to-end pilot against a real Rust crate in a real Nx 22
       workspace passes and caches
-- [ ] Rollout to every crate in the pilot workspace completes green on
+- [x] Rollout to every crate in the pilot workspace completes green on
       `nx run-many`
-- [ ] CI smoke test job in nxrust + dependent-repo smoke in the pilot
+- [x] CI smoke test job in nxrust + dependent-repo smoke in the pilot
       workspace
-- [ ] First `@eddacraft/nxrust@0.1.0` published to npm
+- [x] First `@eddacraft/nxrust@0.1.0` published to npm
 
 ## Constraints
 
@@ -68,7 +68,7 @@ TypeScript + Rust monorepos.
 
 | Module | Purpose | Status | Dependencies |
 |--------|---------|--------|--------------|
-| [01-v0.1-shakedown](./modules/01-v0.1-shakedown.aps.md) | Prove the plugin end-to-end on a pilot consumer, ship first npm release | In Progress | — |
+| [01-v0.1-shakedown](./modules/01-v0.1-shakedown.aps.md) | Prove the plugin end-to-end on a pilot consumer, ship first npm release | Complete | — |
 
 Deferred (not yet active modules):
 
@@ -87,7 +87,7 @@ Deferred (not yet active modules):
 
 | Risk | Impact | Mitigation |
 |------|--------|------------|
-| `target/` caching yields stale artefacts under remote cache | high | Narrow `outputs` — cache test/clippy reports and binaries, not the whole `target/` tree; verify second-run cache hits on the pilot crate before rollout |
+| `target/` caching yields stale artefacts under remote cache | high | Narrow `outputs` — cache test/clippy reports and binaries, not the whole `target/` tree; verify second-run cache hits on the pilot crate before rollout. **Resolved 2026-05-12** for `test` (now `outputs: []`); `build` retains `target/` deliberately. |
 | Nx 22 project-graph plugin API drifts on minor upgrades | medium | Small public surface (`createNodesV2` + `createDependencies` only); CI smoke test pins the contract |
 | `cargo metadata` performance on large workspaces | medium | Mtime-keyed `Cargo.lock` cache already in `graph.ts`; re-evaluate if the pilot hits a slowdown |
 | Pilot switchover breaks the consumer's pnpm graph mid-flight | medium | Switch only after pilot + rollout + CI smoke are all green; keep a revert commit ready |

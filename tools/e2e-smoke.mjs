@@ -6,7 +6,10 @@ const root = process.cwd();
 const packDir = join(root, '.e2e-pack');
 const fixtureDir = join(root, 'e2e', 'fixture');
 const fixturePackage = join(fixtureDir, 'package.json');
-const tarball = '../../.e2e-pack/eddacraft-nxrust-0.1.0.tgz';
+const { version } = JSON.parse(
+  readFileSync(join(root, 'package.json'), 'utf8'),
+);
+const tarball = `../../.e2e-pack/eddacraft-nxrust-${version}.tgz`;
 
 function run(command, args, options = {}) {
   const result = spawnSync(command, args, {

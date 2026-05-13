@@ -69,19 +69,13 @@ TypeScript + Rust monorepos.
 | Module | Purpose | Status | Dependencies |
 |--------|---------|--------|--------------|
 | [01-v0.1-shakedown](./modules/01-v0.1-shakedown.aps.md) | Prove the plugin end-to-end on a consumer workspace, ship first npm release | Complete | — |
+| [02-monodon-parity](./modules/02-monodon-parity.aps.md) | Close the executor/generator gap with `@monodon/rust` (napi, wasm-pack, preset, etc.) | Proposed | 01 |
+| [03-v0.2-polish](./modules/03-v0.2-polish.aps.md) | nxrust-native polish surfaced in v0.1 review (nextest, bench, glob edges, key divergence, library preset) | Proposed | 01 |
 
-Deferred (not yet active modules):
-
-- **02-monodon-parity** (proposed) — catch up on executors/generators
-  present in `@monodon/rust` that nxrust does not yet cover: `napi`,
-  `wasm-pack`, `add-napi`, `add-wasm`, `add-wasm-reference`,
-  `create-napi-npm-dirs`, `preset`. Borrow monodon's implementations
-  where they fit (MIT, attribution required). Promote to active only
-  if a real consumer asks.
-- **03-v0.2-polish** (proposed) — items surfaced in review but out of
-  v0.1 scope: glob edge cases in workspace-member matching,
-  `cargo-nextest` executor, `bench` executor for Criterion, dedicated
-  library-only preset, project-key vs cargo-name divergence handling.
+**Promotion rule for Proposed modules:** items inside 02 and 03 stay
+Proposed until a real downstream consumer asks for them. Each module's
+Ready Checklist captures the trigger. No speculative work; promotion
+happens per-item, not per-module.
 
 ## Risks
 

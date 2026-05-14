@@ -72,10 +72,10 @@ TypeScript + Rust monorepos.
 | [02-monodon-parity](./modules/02-monodon-parity.aps.md) | Close the executor/generator gap with `@monodon/rust` (napi, wasm-pack, preset, etc.) | Proposed | 01 |
 | [03-v0.2-polish](./modules/03-v0.2-polish.aps.md) | nxrust-native polish surfaced in v0.1 review (nextest, bench, glob edges, key divergence, library preset) | Proposed | 01 |
 
-**Promotion rule for Proposed modules:** items inside 02 and 03 stay
-Proposed until a real downstream consumer asks for them. Each module's
-Ready Checklist captures the trigger. No speculative work; promotion
-happens per-item, not per-module.
+**Promotion rule for Proposed modules:** items inside Proposed modules
+stay Proposed until a real downstream consumer asks for them. Each
+module's Ready Checklist captures the trigger. No speculative work;
+promotion happens per-item, not per-module.
 
 ## Risks
 

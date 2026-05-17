@@ -99,8 +99,8 @@ Per-crate value overrides plugin-level setting.
 
 ### Depends On
 
-- `cargo nextest` binary on PATH (`cargo install cargo-nextest --locked`
-  or rustup).
+- `cargo nextest` binary on PATH (`cargo install cargo-nextest --locked`,
+  or the official nextest pre-built binary release).
 - [03-target-inference](./03-target-inference.aps.md) — inferred
   `nextest` target on crates with test code.
 - [05-cargo-features](./05-cargo-features.aps.md) — shared

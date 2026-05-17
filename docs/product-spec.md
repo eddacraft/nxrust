@@ -645,11 +645,18 @@ target
 
 ### Configuration option
 
+In `nx.json`, on the plugin entry:
+
 ```json
 {
-  "nxrust": {
-    "testRunner": "nextest"
-  }
+  "plugins": [
+    {
+      "plugin": "@eddacraft/nxrust",
+      "options": {
+        "testRunner": "nextest"
+      }
+    }
+  ]
 }
 ```
 

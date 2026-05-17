@@ -91,7 +91,8 @@ original `02-monodon-parity` module (now refactored away).
 
 - `napi-rs` CLI (`@napi-rs/cli`) on PATH or in the consumer's
   `devDependencies`.
-- `wasm-pack` binary on PATH (`cargo install wasm-pack` or rustup).
+- `wasm-pack` binary on PATH (`cargo install wasm-pack`, or the official
+  `wasm-pack` installer script / pre-built binary release).
 - v0.1's executor and generator scaffolding utilities.
 - [03-target-inference](./03-target-inference.aps.md) — for inferring the
   `napi` / `wasm-pack` targets on appropriately-shaped crates.

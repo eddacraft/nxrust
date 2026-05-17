@@ -1,12 +1,15 @@
 # nxrust
 
-**Nx plugin for Rust workspaces.** Wraps `cargo` as Nx executors and generators,
-and parses `cargo metadata` into the Nx project graph so `nx affected` works
-across your Rust crates.
+**The Cargo-native Nx plugin for Rust workspaces.** Cargo stays the build
+engine; `nxrust` makes Cargo workspaces feel native inside Nx by inferring
+Rust crates from `cargo metadata`, wiring Cargo tasks as Nx executors, and
+modelling crate dependencies in the Nx project graph so `nx affected`,
+caching, and release work the same way across Rust crates and TypeScript
+projects.
 
-Inspired by the public API shape of
-[`@monodon/rust`](https://github.com/Cammisuli/monodon), with an Apache-2.0
-codebase targeting Nx 22.
+Apache-2.0, Nx 22, single npm package. See
+[`docs/product-spec.md`](./docs/product-spec.md) for the long-form product
+thesis and roadmap, and [`plans/`](./plans/) for the live work plan.
 
 ## Install
 
@@ -22,6 +25,25 @@ Register in `nx.json`:
   "plugins": ["@eddacraft/nxrust"]
 }
 ```
+
+## Why Cargo-native?
+
+`nxrust` treats `cargo metadata` as the source of truth. The plugin's role
+is to:
+
+- **infer** Rust projects from your Cargo workspace, without per-crate
+  `project.json` boilerplate;
+- **wire** Cargo tasks as Nx executors so `nx affected -t test` and
+  `nx run-many -t check` work over Rust crates;
+- **model** internal and external crate dependencies in the Nx graph so
+  changes propagate correctly;
+- **orchestrate** Rust release flows through Nx release without losing
+  Cargo semantics.
+
+What `nxrust` is **not**: a replacement for Cargo, `rustup`, `clippy`,
+`rustfmt`, `nextest`, `cargo audit`, or `cargo deny`. Cargo and its
+ecosystem stay the canonical Rust tooling. `nxrust` is the bridge that
+lets Nx understand your Cargo workspace.
 
 ## Executors
 
@@ -67,7 +89,9 @@ nx g @eddacraft/nxrust:library my-lib
 
 Generated crates are added to the root `Cargo.toml` `[workspace.members]`
 (comments preserved via `@ltd/j-toml`) and get a minimal `project.json`
-pre-wired to the plugin's executors.
+pre-wired to the plugin's executors. Future versions move toward
+zero-`project.json` inference — see
+[`plans/modules/03-target-inference.aps.md`](./plans/modules/03-target-inference.aps.md).
 
 ## Project graph
 
@@ -86,15 +110,38 @@ This is what makes `nx affected -t test` correct across your Rust crates.
 - Cargo on `PATH`
 - A Cargo workspace at the Nx workspace root (or a single crate at root)
 
+## Roadmap
+
+See [`docs/product-spec.md`](./docs/product-spec.md) §8 for the long-form
+roadmap, and [`plans/index.aps.md`](./plans/index.aps.md) for the module
+breakdown and per-module status. Headlines:
+
+- **v0.2 — Solid.** Zero-`project.json` target inference, `fmt`/`fmt-check`
+  split, `no-default-features`, toolchain + env hashing, narrower target
+  outputs, actionable error messages.
+- **v0.3 — Compelling.** `nextest`, `audit`, `deny`, `doc`, Criterion
+  `bench`, synthetic `rust-workspace` project, `package.metadata.nxrust`
+  overrides, inferred configurations.
+- **v0.4 — Adoption-ready.** `migrate-from-monodon` generator, WASM and
+  NAPI executors, `create-nx-workspace` preset, docs site, Nx
+  Console-friendly schemas, example workspaces.
+- **v1.0 — The Rust Nx plugin.** Stable inference contract, stable release
+  support, semver-backed schemas, Nx version compatibility matrix.
+
+Work is consumer-driven — see the per-item promotion rule in
+[`plans/index.aps.md`](./plans/index.aps.md). No speculative builds.
+
 ## License
 
 Apache-2.0 © eddacraft. See [LICENSE](./LICENSE).
 
-This project does not contain code copied from `@monodon/rust`; it references
-the public API shape only. `cargo metadata` is the official Rust tooling
-contract.
+This project does not contain code copied from `@monodon/rust`; it
+references the public API shape only. `cargo metadata` is the official Rust
+tooling contract. Where Monodon-MIT code is borrowed in future modules
+(per index decision D-001), it is attributed in a top-of-file comment and
+in `THIRD-PARTY-NOTICES.md`.
 
 ## Acknowledgements
 
-Thanks to the author of `@monodon/rust`; that project established the shape of
-Rust support many Nx users expect.
+Thanks to the author of `@monodon/rust`; that project established the shape
+of Rust support many Nx users expect.

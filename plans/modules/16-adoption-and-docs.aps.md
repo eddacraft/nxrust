@@ -69,6 +69,10 @@ v1.0 stable-contract work from index roadmap §8.4.
   - Compatibility matrix: nxrust ↔ Nx version pairings.
   - Diagnostic catalogue
     ([14-diagnostics](./14-diagnostics.aps.md) cross-link).
+  - Recipes (`docs/recipes/`) — focused how-to guides for specific
+    failure modes and patterns. First recipe:
+    `docs/recipes/javascript-rust-test-seams.md` (ISS-001 / D-WN4
+    consumer-facing companion).
 
 **Example workspaces (spec §8.3):**
 
@@ -178,10 +182,32 @@ Promote individual Work Items to Ready when:
 
 ## Work Items
 
-*No work items yet — module is Proposed. Items promote individually on
-real-consumer asks per D-007. The v1.0 contract items wait until the
-underlying modules (02, 03, 04, 06, 08) have stable shipped surface,
-then promote as a coherent contract-doc push.*
+The module stays Proposed; individual items promote on real-consumer asks
+per D-007. The v1.0 contract items wait until the underlying modules
+(02, 03, 04, 06, 08) have stable shipped surface, then promote as a
+coherent contract-doc push.
+
+### ADOPT-001 — JavaScript/Rust test seams recipe
+
+**Status:** Complete: 2026-05-20
+**Triggered by:** Anvil PR eddacraft/anvil-001#1729 (ISS-001).
+**Packages:** `@eddacraft/nxrust` (docs only)
+
+- **Intent:** Publish a recipe so adopters of mixed TS+Rust Nx workspaces
+  can find the cross-language `^build` failure mode and the canonical
+  script-split workaround without reading the source.
+- **Expected Outcome:** `docs/recipes/javascript-rust-test-seams.md`
+  exists, explains the seam, names the failure mode (cargo `target/` lock
+  contention under mixed-stack `nx run-many`), captures the script-split
+  fix (`test:js && test:rust`), and cites anvil-001#1729 as empirical
+  reference.
+- **Validation:** Recipe linked from this module's docs Sections list;
+  recipe references D-WN4 in `10-wasm-napi.aps.md` and ISS-001 in
+  `plans/issues.md`; recipe is reachable from `docs/` index when the
+  static site lands (forward-link tolerated until docs site promotion).
+- **Scope:** Recipe markdown only. The static-site-generator choice
+  (open question) and the broader recipes infrastructure stay deferred.
+- **Files:** `docs/recipes/javascript-rust-test-seams.md` (new).
 
 ## Risks & Mitigations
 

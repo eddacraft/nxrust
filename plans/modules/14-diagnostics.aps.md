@@ -63,6 +63,7 @@ shape:
 | `project.json` declares a target that conflicts with inferred shape | "<target> in project.json overrides inferred target … remove project.json entry to use inference, or keep override and silence this warning via <option>" |
 | `release-publish` without credentials | "no CARGO_REGISTRY_TOKEN and no `[registry]` config … `cargo login` or pass `--registry=<name>` with config" |
 | Workspace-dep missing version | "`crate-a = { path = "..." }` has no `version = "..."` field; release-publish requires version … add version" |
+| Cross-language edge inherits workspace `^build` test default (ISS-001) | warning: "JS project `<name>` inherits `test.dependsOn: ["^build"]` across a cross-language edge to Rust crate `<crate>`; every JS test will trigger a transitive cargo build and serialise on the workspace `target/` lock. Fix: narrow `test.dependsOn` on `<name>`, or split scripts at the entry point (`test:js && test:rust`). See `docs/recipes/javascript-rust-test-seams.md`." (severity: warning; surfaced by `nxrust doctor` only — not in-flight) |
 
 **Common envelope:**
 

@@ -251,3 +251,22 @@ items only ship when a real consumer ask promotes them.
   not patch. Consumers should be able to pin patch versions and trust
   that graph shape is stable within a minor line. Inherits from the
   original 03-v0.2-polish module. *Accepted 2026-05-17.*
+- **D-009:** nxrust generators **never emit `^build` on cross-language
+  edges by default.** Any generator that wires a JS↔Rust edge (current:
+  `add-wasm-reference`, `add-napi`; future: any cross-stack glue under
+  modules 13, 15, or beyond) emits narrow per-target `dependsOn` on the
+  JS side, explicitly overriding any workspace-default `^build`. Opt-in
+  to `^build` is per-generator-flag and is only correct when the JS
+  build actually imports the Rust artefact at TS build time (WASM
+  bundled into webpack/Vite, generated `.d.ts` consumed by `tsc`,
+  embedded blobs). Rationale: cargo's workspace `target/` lock
+  serialises concurrent builds, which silently amplifies into 40+
+  minute test runs in mixed-stack workspaces. Empirical anchor:
+  eddacraft/anvil-001 PR #1729 — 40m03s → 31-52s, 46× speedup.
+  Implementing decision: D-WN4 in
+  [`10-wasm-napi`](./modules/10-wasm-napi.aps.md). Consumer recipe:
+  [`docs/recipes/javascript-rust-test-seams.md`](../docs/recipes/javascript-rust-test-seams.md).
+  Full risk context: ISS-001 in [`plans/issues.md`](./issues.md).
+  *Accepted 2026-05-20 (consumer-driven via Anvil; ratified upstream
+  after anvil agent confirmed the upstream contract is the more elegant
+  fix than per-consumer script splits).*

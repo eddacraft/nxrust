@@ -85,12 +85,21 @@ fighting the other.
 
 Tagging conventions:
 
-- Tag every JS/TS project with `npm:public` or `npm:private` in its
-  `project.json` (or rely on `@nx/js` defaults if you have them).
-- Tag every Rust crate with `cargo` — easiest done via
+- **JS/TS side:** `@nx/js` auto-synthesises the `npm:public` and
+  `npm:private` tags from each project's `package.json#private` field —
+  no `project.json` editing required. `private: true` ⇒ `npm:private`;
+  absent or `false` ⇒ `npm:public`. The filter above works against
+  whatever your existing JS workspace already has, untouched.
+- **Rust side:** nxrust's preferred convention is
   `package.metadata.nxrust.tags = ["cargo"]` in each crate's
-  `Cargo.toml`, which the nxrust graph plugin lifts into the Nx
-  project's `tags` array.
+  `Cargo.toml`. The nxrust graph plugin parses
+  `package.metadata.nxrust` and lifts `tags` into the Nx project's
+  `tags` array. This keeps Rust-side configuration in the crate's
+  metadata (the Cargo-native principle) and survives any future graph
+  inference changes without needing a parallel `project.json`. A
+  `project.json` with `"tags": ["cargo"]` works too, but is the
+  fallback for crates that already have a `project.json` for other
+  reasons.
 
 The split means: JS suite runs first with full Nx parallelism, building
 its handful of legitimately-needed Rust artefacts once each; Rust suite

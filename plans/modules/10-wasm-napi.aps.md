@@ -49,6 +49,22 @@ original `02-monodon-parity` module (now refactored away).
   sibling `wasm-pack` crate: dep in the JS `package.json`, optional types
   entry, bundler-specific glue (Vite/webpack/Next).
 
+**Cross-language `dependsOn` contract (ISS-001):**
+
+- `add-wasm-reference` and `add-napi` MUST NOT emit a `dependsOn` shape on
+  the JS side that inherits the workspace-default `^build` test
+  dependency. The generator's emitted JS target config explicitly overrides
+  `test.dependsOn` to a narrow form (`[]` by default; consumer opts in to
+  `^build` only when their JS build actually imports the Rust artefact at
+  TS build time — e.g. a WASM module bundled into a webpack/Vite build).
+- The opt-in shape is a generator flag (e.g. `--js-build-depends-on-rust`)
+  and is documented in the generator's `schema.json` description.
+- Rationale: see ISS-001 in [`plans/issues.md`](../issues.md). Anvil's
+  PR #1729 (40m → 52s, 46× speedup) is the empirical anchor.
+- NAPI follows the same default — the `.node` binary is loaded at
+  `require` time, not at JS build time, so a JS `tsc` never needs the
+  Rust artefact present.
+
 **Cache:**
 
 - `napi` and `wasm-pack` executors cache the build artefact directory
@@ -126,6 +142,12 @@ original `02-monodon-parity` module (now refactored away).
 - **Tool-presence detection.** Missing `napi` or `wasm-pack` ⇒
   diagnostic via [14-diagnostics](./14-diagnostics.aps.md), never raw
   shell error.
+- **Cross-language edges never inherit `^build`.** `add-wasm-reference`
+  and `add-napi` emit JS-side target config that explicitly overrides
+  `test.dependsOn` so adopters with a workspace-default
+  `test.dependsOn: ["^build"]` do not pay a transitive cargo build per
+  JS test invocation. Opt-in only when the JS build actually consumes the
+  Rust artefact at TS build time. See D-WN4.
 
 ## Ready Checklist
 
@@ -154,6 +176,7 @@ real-consumer asks per D-007 — same gate as the original
 | Attribution stripped accidentally during refactor | medium | low | `THIRD-PARTY-NOTICES.md` is the source of truth; CI lint that fails on borrowed-file attribution loss is a v0.4 candidate |
 | WASM artefact caching across target triples mixes browser and nodejs builds | high | medium | Target triple participates in cache key; tested in [04-cache-semantics](./04-cache-semantics.aps.md) fixture matrix |
 | `add-wasm-reference` glue lags behind bundler upgrades (Vite/webpack/Next) | medium | medium | Template snapshot date in each glue file's comment; bump templates as part of v0.x line |
+| Cross-language edge inherits workspace `^build` test default, serialising JS tests on cargo lock | high | high | D-WN4: generator pins narrow `dependsOn` on JS side, opt-in for real artefact consumption; recipe in [16-adoption-and-docs](./16-adoption-and-docs.aps.md). Empirical anchor: anvil-001 PR #1729 (40m → 52s). |
 
 ## Decisions
 
@@ -167,6 +190,18 @@ real-consumer asks per D-007 — same gate as the original
   preset lives in [16-adoption-and-docs](./16-adoption-and-docs.aps.md).
   Different scope (workspace-bootstrap vs in-workspace generator).
   *Accepted 2026-05-17 (refactor decision).*
+- **D-WN4:** Cross-language edges constructed by `add-wasm-reference`
+  and `add-napi` default to **empty** `test.dependsOn` on the JS side,
+  explicitly overriding any workspace-default `^build`. The generator
+  exposes an opt-in flag for cases where the JS build actually consumes
+  the Rust artefact at TS build time (e.g. WASM bundled into webpack/Vite).
+  Rationale: cargo `target/` lock contention silently turns a 52-second
+  test suite into a 40-minute one when every JS test pulls a transitive
+  cargo build. Empirical anchor: anvil-001 PR #1729 — 46× speedup after
+  splitting `test:js && test:rust`. Tracked as ISS-001.
+  *Accepted 2026-05-20 (consumer-driven, per D-007). Lifted to
+  index-level [D-009](../index.aps.md#decisions) on 2026-05-20 so the
+  rule binds future cross-language generators outside this module.*
 
 ## Open Questions
 

@@ -37,7 +37,8 @@ adopter with a workspace-level `^build` test dependency inherits the
 **Required actions** (tracked via promotion of the listed work items):
 
 1. Module 10 — pin the `add-wasm-reference` `dependsOn` contract as
-   empty-by-default with opt-in opt-out.
+   empty-by-default with an explicit opt-in flag for the cases where the
+   JS build genuinely imports the Rust artefact at TS build time.
 2. Module 16 — publish a recipe at `docs/recipes/javascript-rust-test-seams.md`
    so adopters who already inherit the failure mode (e.g. via `@nx/js`
    auto-deps) can find the script-split workaround.

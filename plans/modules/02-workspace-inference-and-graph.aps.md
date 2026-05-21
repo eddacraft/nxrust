@@ -45,14 +45,16 @@ land downstream.
   overrides — feeds both inference here and target configuration in
   [03-target-inference](./03-target-inference.aps.md) /
   [05-cargo-features](./05-cargo-features.aps.md).
-- **Tag convention.** `package.metadata.nxrust.tags = ["..."]` in
-  `Cargo.toml` is nxrust's **preferred** way to tag a Rust crate. The
-  parser lifts the values into the Nx project's `tags` array. A
-  `project.json` with `"tags": [...]` continues to work for crates that
-  carry one for other reasons, but pure Cargo crates should never need
-  `project.json` just to acquire tags — this is the zero-`project.json`
-  goal restated. Ratified by Anvil 2026-05-20 as the inaugural
-  convention for downstream consumers.
+- **Tag convention** (planned for this module; not in v0.1).
+  `package.metadata.nxrust.tags = ["..."]` in `Cargo.toml` is the
+  **preferred** way to tag a Rust crate once this module's parser ships:
+  the planned `package.metadata.nxrust` parser lifts the values into
+  the Nx project's `tags` array, so pure Cargo crates acquire tags with
+  no `project.json`. Today, until the parser lands, tagging happens via
+  `project.json` (`"tags": [...]`) or the `crate` / `library` / `binary`
+  generators' `--tags` option. The two paths coexist post-parser; the
+  zero-`project.json` outcome is the goal. Convention ratified by
+  Anvil 2026-05-20 as the inaugural shape for downstream consumers.
 
 **Project graph (spec §6.2):**
 

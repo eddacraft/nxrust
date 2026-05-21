@@ -90,16 +90,24 @@ Tagging conventions:
   no `project.json` editing required. `private: true` ⇒ `npm:private`;
   absent or `false` ⇒ `npm:public`. The filter above works against
   whatever your existing JS workspace already has, untouched.
-- **Rust side:** nxrust's preferred convention is
-  `package.metadata.nxrust.tags = ["cargo"]` in each crate's
-  `Cargo.toml`. The nxrust graph plugin parses
-  `package.metadata.nxrust` and lifts `tags` into the Nx project's
-  `tags` array. This keeps Rust-side configuration in the crate's
-  metadata (the Cargo-native principle) and survives any future graph
-  inference changes without needing a parallel `project.json`. A
-  `project.json` with `"tags": ["cargo"]` works too, but is the
-  fallback for crates that already have a `project.json` for other
-  reasons.
+- **Rust side (today):** tag each crate via `project.json`. New crates
+  created through nxrust's `crate` / `library` / `binary` generators
+  accept a `--tags=cargo[,...]` option and write the tags into the
+  emitted `project.json`. Existing crates need a `project.json`
+  containing `"tags": ["cargo"]`. This is the current shipped behaviour
+  in the v0.1 line.
+- **Rust side (planned, module 02):** the nxrust graph plugin will read
+  `package.metadata.nxrust.tags = ["cargo"]` from `Cargo.toml` and lift
+  the values into the Nx project's `tags` array, so pure Cargo crates
+  acquire tags with no `project.json` at all. Tracked under
+  [`02-workspace-inference-and-graph`](../../plans/modules/02-workspace-inference-and-graph.aps.md)
+  — see the "Tag convention" note. The parser does not exist yet; the
+  Cargo-metadata path becomes available when that work promotes. Adopt
+  the `project.json` path now and migrate later — the metadata key
+  shape is fixed by the planning contract, so prep-writing
+  `package.metadata.nxrust.tags = ["cargo"]` in your `Cargo.toml` now
+  is safe (currently a no-op; lifted automatically once the parser
+  ships).
 
 The split means: JS suite runs first with full Nx parallelism, building
 its handful of legitimately-needed Rust artefacts once each; Rust suite

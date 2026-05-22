@@ -191,6 +191,7 @@ items only ship when a real consumer ask promotes them.
 | Consumer switchover breaks the consumer's pnpm graph mid-flight | medium | Switch only after the consumer's own CI smoke is green; keep a revert commit ready. Repeats per major version bump. |
 | Speculative builds outpace real demand | high | Per-item consumer-driven promotion (D-007); modules stay Proposed; Work Items only enter modules when a consumer asks. |
 | Cache-key gaps cause silent miscompiles | high | Toolchain + env hashing is foundational (`04`, `06`) — these must land before any `target/`-aware caching expansion in later modules. |
+| Mixed-stack `^build` inheritance serialises JS tests on cargo `target/` lock | high | **Resolved 2026-05-20.** D-009 binds nxrust generators to never emit `^build` on cross-language edges; canonical recipe at `docs/recipes/javascript-rust-test-seams.md` covers consumer-side remediation for workspaces hitting the failure mode via `@nx/js` auto-deps. |
 
 ## Open Questions
 
@@ -211,8 +212,13 @@ items only ship when a real consumer ask promotes them.
       `nx graph`? Tracked in `02-workspace-inference-and-graph`.
 - [ ] How aggressive should lockfile affected detection become after the
       conservative baseline? Tracked in `13-affected-refinement`.
-- [ ] Should generated crates include `package.metadata.nxrust` by
-      default? Tracked in `07-generators`.
+- [x] Should generated crates include `package.metadata.nxrust` by
+      default? **Yes** — at minimum `[package.metadata.nxrust] tags = ["cargo"]`
+      so the metadata key is present when the planned module 02 parser
+      ships and lifts tags into Nx. Anvil ratified the convention
+      2026-05-20. Detail tracked in `07-generators`; the convention
+      itself is recorded in `02-workspace-inference-and-graph` § Tag
+      convention.
 - [ ] Should Anvil-style presets live in `nxrust` or in a separate
       EddaCraft plugin package? Tracked in `16-adoption-and-docs`.
 - [ ] Should `target/` outputs be cached at all by default, or should

@@ -149,6 +149,15 @@ real-consumer asks per D-007.*
   [14-diagnostics](./14-diagnostics.aps.md). *Accepted.*
 - **D-G3:** Graph-shape changes bump the minor version. Inherits index
   D-008. *Accepted.*
+- **D-G4:** `package.metadata.nxrust.tags = [...]` in `Cargo.toml` is
+  the canonical Rust-side tag convention. The planned
+  `package.metadata.nxrust` parser lifts values into the Nx project's
+  `tags` array; until the parser ships, tagging happens via
+  `project.json` (`"tags": [...]` or generator `--tags`). The metadata
+  key shape is fixed from this point — adopters writing it today are
+  safe from rework. Ratified by Anvil 2026-05-20 as the inaugural
+  downstream-consumer convention. See § Tag convention.
+  *Accepted 2026-05-22.*
 
 ## Open Questions
 

@@ -120,8 +120,65 @@ Promote individual Work Items to Ready when:
 
 ## Work Items
 
-*No work items yet — module is Proposed. Items promote individually on
-real-consumer asks per D-007.*
+The module stays Proposed; individual items promote on real-consumer
+asks per D-007.
+
+### TOOLCHAIN-001 — `rust-toolchain.toml` parser
+
+**Status:** Complete: 2026-05-25
+**Triggered by:** Internal consumer DX-performance ask (2026-05-22);
+unblocks the cache + toolchain design promotion chain
+(`designs/2026-05-22-cache-and-toolchain.design.md`).
+**Packages:** `@eddacraft/nxrust`
+
+- **Intent:** Provide the file-only branch of `resolveToolchain` so
+  CACHE-001 has a concrete API to bake channel literals into the
+  per-target `rustup run <channel> rustc -Vv` runtime strings.
+  TOOLCHAIN-002 later extends the same API to the full D-TC2 hierarchy.
+- **Expected Outcome:**
+  - `src/utils/rust-toolchain.ts` exports
+    `resolveToolchain({ projectRoot, workspaceRoot })` returning
+    `{ channel, source, origin? }`. Source is one of
+    `rust-toolchain.toml | rust-toolchain | default`. Returns the
+    `"default"` sentinel when no file is found.
+  - Walks up from `projectRoot` to `workspaceRoot` inclusive, preferring
+    `.toml` over legacy single-line `rust-toolchain` at the same depth,
+    preferring deeper (closer to projectRoot) files over shallower.
+  - Validates the channel literal against `/^[A-Za-z0-9._+-]+$/`;
+    shell-meta or whitespace is a hard error with a clear message
+    (cross-links to module 14's future `nxrust:invalid-toolchain-literal`
+    diagnostic code; the formal diagnostic envelope is module 14's job).
+  - Malformed TOML / empty / whitespace-only legacy files raise
+    distinct, actionable errors.
+- **Validation:** `pnpm test src/utils/rust-toolchain.spec.ts` green;
+  every case in the table below covered.
+- **Scope/Non-scope:** TOOLCHAIN-001 implements step 5 of the D-TC2
+  hierarchy (file lookup) only. Steps 1-4 (per-invocation,
+  `project.json`, `package.metadata.nxrust.targets.<name>`,
+  `package.metadata.nxrust`) are TOOLCHAIN-002. The API shape is
+  designed so TOOLCHAIN-002 can extend without breaking callers.
+- **Files:**
+  - `src/utils/rust-toolchain.ts` (new)
+  - `src/utils/rust-toolchain.spec.ts` (new)
+
+**Fixture matrix** (each case is a `.spec.ts` test):
+
+| Case | Expected |
+|------|----------|
+| Workspace-root `rust-toolchain.toml` with `[toolchain] channel = "stable"` | `{ channel: "stable", source: "rust-toolchain.toml" }` |
+| Workspace-root + project-root `rust-toolchain.toml`, channels differ | project-root wins |
+| `rust-toolchain.toml` and legacy `rust-toolchain` in same dir | `.toml` wins |
+| Legacy `rust-toolchain` only (single line, trimmed) | `{ channel: "<trimmed>", source: "rust-toolchain" }` |
+| No file at any level | `{ channel: "default", source: "default" }` |
+| Malformed `rust-toolchain.toml` (broken TOML) | throws with file path + reason |
+| Empty `rust-toolchain.toml` | throws (no `[toolchain]` table) |
+| `rust-toolchain.toml` with no `channel` field | throws |
+| Legacy `rust-toolchain` with empty content | throws |
+| Legacy `rust-toolchain` with whitespace-only content | throws |
+| Channel literal containing space (e.g. `"my channel"`) | throws (channel-literal validation) |
+| Channel literal containing shell-meta (`"a;b"`, `"a$b"`) | throws |
+| Fully-qualified channel triple (`"nightly-2024-01-15-x86_64-unknown-linux-gnu"`) | accepted |
+| Custom linked toolchain name (`"my-custom-1"`) | accepted |
 
 ## Risks & Mitigations
 

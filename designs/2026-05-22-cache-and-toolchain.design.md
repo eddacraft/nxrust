@@ -40,10 +40,11 @@ and toolchain participation in nxrust. Targets modules 04 and 06.
 - Module boundary: `RUSTUP_TOOLCHAIN` ownership clarified — module 06
   owns the toolchain selector; module 04's allowlist references rather
   than re-declares.
-- Promotion plan: re-sequenced so TOOLCHAIN-001 precedes TOOLCHAIN-002;
-  CACHE-001 and TOOLCHAIN-002 collapsed into one work item or
-  explicitly sequenced (they edit the same `target-configs.ts`
-  functions).
+- Promotion plan: re-sequenced so TOOLCHAIN-001 precedes TOOLCHAIN-002,
+  which precedes CACHE-001. The three work items stay as separate IDs
+  but are ordered so they cannot land concurrently — the previous
+  draft attempted parallel landings against the same
+  `target-configs.ts` functions.
 - Open questions: item 9 (Anvil migration) resolved as "absorb at
   work-item drafting time."
 
@@ -327,8 +328,8 @@ cacheable target (per module 06 D-TC3).
 
 | Element | Source | Cached for session? |
 |---------|--------|---------------------|
-| `rustc -Vv` full output | Subprocess | Yes — one query per Nx session |
-| `cargo -V` full output | Subprocess | Yes — one query per Nx session |
+| `rustc -Vv` full output | Subprocess | Yes — one query **per resolved channel** per Nx session (see § C runtime emission) |
+| `cargo -V` full output | Subprocess | Yes — one query **per resolved channel** per Nx session |
 | Resolved toolchain channel | Hierarchy (D-TC2) | Yes — invalidated on any input below |
 | `rust-toolchain.toml` content hash | File | Yes — invalidated on file change |
 | `RUSTUP_TOOLCHAIN` env var | Process env | No — env always read fresh |
@@ -619,7 +620,9 @@ target now participates `rustSources` / `rustWorkspace` named inputs,
 the documented env-var allowlist, and `rustc -Vv` / `cargo -V` runtime
 hashes. `build` outputs narrowed from `target/` to per-binary paths.
 First run after upgrade is a cold cache by design. See
-`docs/cache-and-toolchain.md` for the full contract."
+`designs/2026-05-22-cache-and-toolchain.design.md` for the full
+contract; the consumer-facing docs site landing in module 16 will
+absorb it as the public reference."
 
 ## Trade-offs and Alternatives
 
@@ -627,13 +630,15 @@ First run after upgrade is a cold cache by design. See
 
 - **Smaller allowlist** (e.g. just `RUSTFLAGS`) maximises cache hits
   but risks silent miscompiles when an exotic var changes.
-- **Wider allowlist** (the proposed set, 10 vars) catches the common
+- **Wider allowlist** (the proposed set in § B) catches the common
   build-affecting cases without ballooning the key.
 - **Hash-all** is wrong (zero hits across CI runs).
 
-Going with the wider documented set. The 10 vars in § B cover every
-common case I can recall hitting. Additions surface via
-`additionalCacheEnv`.
+Going with the wider documented set. The vars enumerated in § B's
+table cover the common build-affecting cases — RUSTFLAGS / encoded
+form, RUSTC, RUSTC_WRAPPER, the OpenSSL family, the C toolchain trio,
+pkg-config path, and the cargo target / profile / target-dir vars.
+Additions surface via `additionalCacheEnv`.
 
 ### Trade-off 2: `examples/**/*.rs` in `rustSources`
 
@@ -750,10 +755,14 @@ decides to short-circuit D-007 given the DX-performance ask).
 
 The original `CACHE-001` and `TOOLCHAIN-002` both edited
 `target-configs.ts`'s function bodies to extend the `inputs` array —
-landing them in parallel guarantees merge conflicts. They are
-collapsed into one work item; the resolved-channel-aware runtime
-emission (formerly TOOLCHAIN-002 alone) requires the parser
-(TOOLCHAIN-001) to land first.
+landing them in parallel guarantees merge conflicts. The fix: keep
+them as separate IDs but sequence them so they cannot land
+concurrently (see § Promotion order below). TOOLCHAIN-001 lands
+first (file-only parser), then TOOLCHAIN-002 (the full D-TC2
+hierarchy), then CACHE-001 (which calls `resolveToolchain` to bake
+channel literals into the per-target runtime strings). CACHE-001
+therefore inherits the full resolution behaviour, not just the
+file-only branch.
 
 | ID | Module | Scope |
 |----|--------|-------|

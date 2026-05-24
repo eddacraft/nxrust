@@ -156,7 +156,8 @@ real-consumer asks per D-007.*
   `project.json` (`"tags": [...]` or generator `--tags`). The metadata
   key shape is fixed from this point — adopters writing it today are
   safe from rework. Ratified by Anvil 2026-05-20 as the inaugural
-  downstream-consumer convention. See § Tag convention.
+  downstream-consumer convention. Full detail in the **Tag convention**
+  bullet under § In Scope above.
   *Accepted 2026-05-22.*
 
 ## Open Questions

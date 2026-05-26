@@ -25,7 +25,13 @@ export const DEFAULT_TOOLCHAIN_SENTINEL = 'default';
  */
 const CHANNEL_LITERAL_PATTERN = /^[A-Za-z0-9._+-]+$/;
 
-export type ToolchainSource = 'rust-toolchain.toml' | 'rust-toolchain' | 'default';
+export type ToolchainSource =
+  | 'project.json'
+  | 'package.metadata.nxrust.targets'
+  | 'package.metadata.nxrust'
+  | 'rust-toolchain.toml'
+  | 'rust-toolchain'
+  | 'default';
 
 export interface ToolchainResolution {
   channel: string;
@@ -36,6 +42,28 @@ export interface ToolchainResolution {
 export interface ResolveToolchainOptions {
   projectRoot: string;
   workspaceRoot: string;
+  /**
+   * D-TC2 step 2 — toolchain literal taken from the Nx target's
+   * `project.json` option (e.g. `target.options.toolchain`). When set,
+   * overrides every lower-priority source. Callers (executors,
+   * `cache-inputs.ts` wiring) read this from the resolved Nx target
+   * configuration; this function only consumes the value.
+   */
+  projectJsonToolchain?: string;
+  /**
+   * D-TC2 step 3 — toolchain literal taken from
+   * `package.metadata.nxrust.targets.<name>.toolchain` in `Cargo.toml`.
+   * Higher priority than the crate-default but lower than `project.json`.
+   * Callers read from `cargo metadata` and pass the resolved value here.
+   */
+  cargoMetadataTargetToolchain?: string;
+  /**
+   * D-TC2 step 4 — toolchain literal taken from
+   * `package.metadata.nxrust.toolchain` in `Cargo.toml` (per-crate
+   * default). Higher priority than `rust-toolchain.toml` but lower than
+   * per-target overrides.
+   */
+  cargoMetadataPackageToolchain?: string;
 }
 
 /**
@@ -55,19 +83,51 @@ export function validateChannelLiteral(channel: string): void {
 }
 
 /**
- * Resolve the Rust toolchain channel for a project by walking up the
- * directory tree from `projectRoot` to `workspaceRoot` (inclusive), looking
- * for `rust-toolchain.toml` first, then the legacy single-line
- * `rust-toolchain` file at the same depth. The deepest match wins so
- * per-crate pins override workspace defaults.
+ * Resolve the Rust toolchain channel for a project, applying the full
+ * D-TC2 override hierarchy at target-emission time:
  *
- * Implements step 5 of the D-TC2 hierarchy (file lookup). Steps 1-4 live in
- * TOOLCHAIN-002 and extend `ToolchainResolution` callers rather than this
- * function's signature.
+ * 1. (executor-time, not handled here) per-invocation `--toolchain` flag.
+ * 2. `project.json` target option (`projectJsonToolchain`).
+ * 3. `package.metadata.nxrust.targets.<name>.toolchain`
+ *    (`cargoMetadataTargetToolchain`).
+ * 4. `package.metadata.nxrust.toolchain` (`cargoMetadataPackageToolchain`).
+ * 5. `rust-toolchain.toml` or legacy `rust-toolchain`, found by walking
+ *    upward from `projectRoot` to `workspaceRoot` (deepest wins).
+ * 6. The `"default"` sentinel — callers emit bare `rustc -Vv` runtime
+ *    commands rather than `rustup run <channel> ...`.
+ *
+ * Each non-undefined override is validated against the channel-literal
+ * pattern so a downstream `rustup run <channel> ...` runtime command is
+ * always shell-safe.
+ *
+ * Step 1 (per-invocation flag) is intentionally not consumed by this
+ * function — it is hashed by Nx as a task option at executor time rather
+ * than baked into the runtime string at emission time.
  */
 export function resolveToolchain(
   opts: ResolveToolchainOptions,
 ): ToolchainResolution {
+  if (opts.projectJsonToolchain !== undefined) {
+    validateChannelLiteral(opts.projectJsonToolchain);
+    return { channel: opts.projectJsonToolchain, source: 'project.json' };
+  }
+
+  if (opts.cargoMetadataTargetToolchain !== undefined) {
+    validateChannelLiteral(opts.cargoMetadataTargetToolchain);
+    return {
+      channel: opts.cargoMetadataTargetToolchain,
+      source: 'package.metadata.nxrust.targets',
+    };
+  }
+
+  if (opts.cargoMetadataPackageToolchain !== undefined) {
+    validateChannelLiteral(opts.cargoMetadataPackageToolchain);
+    return {
+      channel: opts.cargoMetadataPackageToolchain,
+      source: 'package.metadata.nxrust',
+    };
+  }
+
   const dirs = walkUp(opts.projectRoot, opts.workspaceRoot);
 
   for (const dir of dirs) {

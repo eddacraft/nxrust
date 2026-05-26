@@ -202,6 +202,170 @@ describe('resolveToolchain', () => {
       rmSync(siblingRoot, { recursive: true, force: true });
     }
   });
+
+  describe('D-TC2 override hierarchy (TOOLCHAIN-002)', () => {
+    it('projectJsonToolchain wins over the file branch', () => {
+      writeFileSync(
+        join(workspaceRoot, 'rust-toolchain.toml'),
+        '[toolchain]\nchannel = "stable"\n',
+      );
+
+      const result = resolveToolchain({
+        projectRoot,
+        workspaceRoot,
+        projectJsonToolchain: 'nightly',
+      });
+
+      expect(result).toEqual({ channel: 'nightly', source: 'project.json' });
+    });
+
+    it('cargoMetadataTargetToolchain wins over the file branch', () => {
+      writeFileSync(
+        join(workspaceRoot, 'rust-toolchain.toml'),
+        '[toolchain]\nchannel = "stable"\n',
+      );
+
+      const result = resolveToolchain({
+        projectRoot,
+        workspaceRoot,
+        cargoMetadataTargetToolchain: 'beta',
+      });
+
+      expect(result).toEqual({
+        channel: 'beta',
+        source: 'package.metadata.nxrust.targets',
+      });
+    });
+
+    it('cargoMetadataPackageToolchain wins over the file branch', () => {
+      writeFileSync(
+        join(workspaceRoot, 'rust-toolchain.toml'),
+        '[toolchain]\nchannel = "stable"\n',
+      );
+
+      const result = resolveToolchain({
+        projectRoot,
+        workspaceRoot,
+        cargoMetadataPackageToolchain: '1.83.0',
+      });
+
+      expect(result).toEqual({
+        channel: '1.83.0',
+        source: 'package.metadata.nxrust',
+      });
+    });
+
+    it('projectJsonToolchain wins when all three overrides are set', () => {
+      const result = resolveToolchain({
+        projectRoot,
+        workspaceRoot,
+        projectJsonToolchain: 'nightly',
+        cargoMetadataTargetToolchain: 'beta',
+        cargoMetadataPackageToolchain: '1.83.0',
+      });
+
+      expect(result.channel).toBe('nightly');
+      expect(result.source).toBe('project.json');
+    });
+
+    it('cargoMetadataTargetToolchain wins over cargoMetadataPackageToolchain', () => {
+      const result = resolveToolchain({
+        projectRoot,
+        workspaceRoot,
+        cargoMetadataTargetToolchain: 'beta',
+        cargoMetadataPackageToolchain: '1.83.0',
+      });
+
+      expect(result.channel).toBe('beta');
+      expect(result.source).toBe('package.metadata.nxrust.targets');
+    });
+
+    it('cargoMetadataPackageToolchain is used when no file exists and no higher-priority override is set', () => {
+      const result = resolveToolchain({
+        projectRoot,
+        workspaceRoot,
+        cargoMetadataPackageToolchain: 'nightly',
+      });
+
+      expect(result).toEqual({
+        channel: 'nightly',
+        source: 'package.metadata.nxrust',
+      });
+    });
+
+    it('falls through to the file branch when no overrides are passed', () => {
+      writeFileSync(
+        join(workspaceRoot, 'rust-toolchain.toml'),
+        '[toolchain]\nchannel = "stable"\n',
+      );
+
+      const result = resolveToolchain({ projectRoot, workspaceRoot });
+
+      expect(result.source).toBe('rust-toolchain.toml');
+      expect(result.channel).toBe('stable');
+    });
+
+    it('throws when projectJsonToolchain contains shell-meta', () => {
+      expect(() =>
+        resolveToolchain({
+          projectRoot,
+          workspaceRoot,
+          projectJsonToolchain: 'evil;rm -rf /',
+        }),
+      ).toThrow(/invalid toolchain literal/i);
+    });
+
+    it('throws when cargoMetadataTargetToolchain contains whitespace', () => {
+      expect(() =>
+        resolveToolchain({
+          projectRoot,
+          workspaceRoot,
+          cargoMetadataTargetToolchain: 'my channel',
+        }),
+      ).toThrow(/invalid toolchain literal/i);
+    });
+
+    it('throws when cargoMetadataPackageToolchain is empty', () => {
+      expect(() =>
+        resolveToolchain({
+          projectRoot,
+          workspaceRoot,
+          cargoMetadataPackageToolchain: '',
+        }),
+      ).toThrow(/invalid toolchain literal/i);
+    });
+
+    it('accepts a fully-qualified channel triple as projectJsonToolchain', () => {
+      const result = resolveToolchain({
+        projectRoot,
+        workspaceRoot,
+        projectJsonToolchain: 'nightly-2024-01-15-x86_64-unknown-linux-gnu',
+      });
+
+      expect(result.channel).toBe(
+        'nightly-2024-01-15-x86_64-unknown-linux-gnu',
+      );
+      expect(result.source).toBe('project.json');
+    });
+
+    it('overrides take precedence even when file is unreadable would have thrown', () => {
+      // Malformed file would normally throw — but if a higher-priority
+      // override is set, the file is never read in the first place.
+      writeFileSync(
+        join(workspaceRoot, 'rust-toolchain.toml'),
+        '[toolchain\nchannel = "broken"',
+      );
+
+      const result = resolveToolchain({
+        projectRoot,
+        workspaceRoot,
+        projectJsonToolchain: 'stable',
+      });
+
+      expect(result.channel).toBe('stable');
+      expect(result.source).toBe('project.json');
+    });
+  });
 });
 
 describe('validateChannelLiteral', () => {

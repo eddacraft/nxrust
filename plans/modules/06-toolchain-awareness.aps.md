@@ -180,6 +180,67 @@ unblocks the cache + toolchain design promotion chain
 | Fully-qualified channel triple (`"nightly-2024-01-15-x86_64-unknown-linux-gnu"`) | accepted |
 | Custom linked toolchain name (`"my-custom-1"`) | accepted |
 
+### TOOLCHAIN-002 — Full D-TC2 override hierarchy
+
+**Status:** Complete: 2026-05-26
+**Triggered by:** Internal consumer DX-performance ask (2026-05-22);
+required prerequisite of CACHE-001 per the cache + toolchain design
+doc's promotion ordering.
+**Packages:** `@eddacraft/nxrust`
+**Depends on:** TOOLCHAIN-001
+
+- **Intent:** Extend `resolveToolchain` so the channel literal baked
+  into per-target runtime strings honours the full D-TC2 hierarchy at
+  target-emission time, not just the `rust-toolchain.toml` file branch.
+- **Expected Outcome:**
+  - `ResolveToolchainOptions` gains three optional override fields:
+    - `projectJsonToolchain` — D-TC2 step 2 (Nx target option)
+    - `cargoMetadataTargetToolchain` — D-TC2 step 3
+      (`package.metadata.nxrust.targets.<name>.toolchain`)
+    - `cargoMetadataPackageToolchain` — D-TC2 step 4
+      (`package.metadata.nxrust.toolchain`)
+  - Resolution priority: 2 > 3 > 4 > 5 (file walk) > 6 (default).
+  - Each non-undefined override is validated against the same
+    channel-literal pattern as TOOLCHAIN-001. Invalid overrides throw
+    a path-bearing error.
+  - `ToolchainSource` enum extended with `project.json`,
+    `package.metadata.nxrust.targets`, and `package.metadata.nxrust`.
+  - File-walk fallback path is unchanged — TOOLCHAIN-001 callers that
+    don't pass overrides see identical behaviour.
+- **Validation:** `pnpm test src/utils/rust-toolchain.spec.ts` green;
+  every priority pairing exercised; channel-literal validation runs on
+  each new override path.
+- **Scope/Non-scope:**
+  - **In scope:** Steps 2-4 of D-TC2 (project.json + Cargo metadata
+    overrides), validation, source attribution.
+  - **Out of scope:** Step 1 (per-invocation `--toolchain` flag) is an
+    executor-time concern, hashed by Nx as a task option rather than
+    baked into the runtime string. Callers (executors / CACHE-001
+    wiring) read the override sources from their respective files
+    (`project.json` parser, `cargo metadata` JSON); this function
+    accepts the values rather than reading the files itself, keeping
+    it pure and testable.
+- **Files:**
+  - `src/utils/rust-toolchain.ts` (extend)
+  - `src/utils/rust-toolchain.spec.ts` (extend)
+
+**Fixture matrix:**
+
+| Case | Expected |
+|------|----------|
+| `projectJsonToolchain: "nightly"` + file says `stable` | `{ channel: "nightly", source: "project.json" }` |
+| `cargoMetadataTargetToolchain: "beta"` + file says `stable` | `{ channel: "beta", source: "package.metadata.nxrust.targets" }` |
+| `cargoMetadataPackageToolchain: "1.83.0"` + file says `stable` | `{ channel: "1.83.0", source: "package.metadata.nxrust" }` |
+| All three overrides set | `projectJsonToolchain` wins |
+| Cargo target + Cargo package overrides | target wins |
+| Cargo package override only + no file | `{ channel: <pkg>, source: "package.metadata.nxrust" }` |
+| No overrides + file present | file branch (TOOLCHAIN-001) |
+| No overrides + no file | `default` sentinel |
+| Invalid override (shell-meta in `projectJsonToolchain`) | throws via channel-literal validation |
+| Invalid override in `cargoMetadataTargetToolchain` | throws |
+| Invalid override in `cargoMetadataPackageToolchain` | throws |
+| Empty-string override is rejected (validated as invalid) | throws |
+
 ## Risks & Mitigations
 
 | Risk | Impact | Likelihood | Mitigation |

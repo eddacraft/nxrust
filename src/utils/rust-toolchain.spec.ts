@@ -178,6 +178,30 @@ describe('resolveToolchain', () => {
       /invalid toolchain literal/i,
     );
   });
+
+  it('returns the default sentinel when projectRoot is outside workspaceRoot', () => {
+    // projectRoot is a sibling of workspaceRoot, not under it. The walk-up
+    // safety guard should refuse to ascend past workspaceRoot.
+    const siblingRoot = mkdtempSync(join(tmpdir(), 'nxrust-sibling-'));
+    try {
+      writeFileSync(
+        join(workspaceRoot, 'rust-toolchain.toml'),
+        '[toolchain]\nchannel = "stable"\n',
+      );
+
+      const result = resolveToolchain({
+        projectRoot: siblingRoot,
+        workspaceRoot,
+      });
+
+      // workspaceRoot's file is still seen because the walk falls back to
+      // stop-only, but it must not invent intermediate dirs above the stop.
+      expect(result.source).toBe('rust-toolchain.toml');
+      expect(result.origin).toBe(join(workspaceRoot, 'rust-toolchain.toml'));
+    } finally {
+      rmSync(siblingRoot, { recursive: true, force: true });
+    }
+  });
 });
 
 describe('validateChannelLiteral', () => {

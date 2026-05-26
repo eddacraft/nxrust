@@ -1,5 +1,5 @@
 import { existsSync, readFileSync } from 'node:fs';
-import { join, relative, sep } from 'node:path';
+import { isAbsolute, join, relative, resolve, sep } from 'node:path';
 import TOML from '@ltd/j-toml';
 
 /**
@@ -132,23 +132,30 @@ function parseRustToolchainLegacy(source: string, path: string): string {
  * deepest first. Stops if `start` is not under `stop` — callers should pass
  * a `projectRoot` that lives beneath `workspaceRoot`; the safety stop keeps
  * a misconfigured pair from walking up to the filesystem root.
+ *
+ * Mirrors the `relative()` + `isAbsolute()` outside-check pattern from
+ * `cargo.ts` so the cross-drive Windows case (where `relative()` returns an
+ * absolute path rather than a `..`-prefixed one) is handled correctly.
  */
 function walkUp(start: string, stop: string): string[] {
-  const dirs: string[] = [];
-  const rel = relative(stop, start);
+  const absStart = isAbsolute(start) ? start : resolve(start);
+  const absStop = isAbsolute(stop) ? stop : resolve(stop);
+  const rel = relative(absStop, absStart);
 
-  // If start === stop, relative returns ''; if start is outside stop,
-  // relative starts with '..'. In either of those cases we only want the
-  // `stop` directory itself.
-  if (rel === '' || rel.startsWith('..')) {
-    return [stop];
+  // If absStart === absStop, relative returns ''; if absStart is outside
+  // absStop, relative either starts with '..' (same root, parent path) or
+  // is absolute (different root / different drive on Windows). In any of
+  // those cases we only want the `absStop` directory itself.
+  if (rel === '' || rel.startsWith('..') || isAbsolute(rel)) {
+    return [absStop];
   }
 
+  const dirs: string[] = [];
   const parts = rel.split(sep);
   for (let i = parts.length; i > 0; i--) {
-    dirs.push(join(stop, ...parts.slice(0, i)));
+    dirs.push(join(absStop, ...parts.slice(0, i)));
   }
-  dirs.push(stop);
+  dirs.push(absStop);
   return dirs;
 }
 

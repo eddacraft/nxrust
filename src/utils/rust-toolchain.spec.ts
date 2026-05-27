@@ -179,7 +179,7 @@ describe('resolveToolchain', () => {
     );
   });
 
-  it('returns the default sentinel when projectRoot is outside workspaceRoot', () => {
+  it('uses the workspace toolchain when projectRoot is outside workspaceRoot', () => {
     // projectRoot is a sibling of workspaceRoot, not under it. The walk-up
     // safety guard should refuse to ascend past workspaceRoot.
     const siblingRoot = mkdtempSync(join(tmpdir(), 'nxrust-sibling-'));
@@ -305,34 +305,34 @@ describe('resolveToolchain', () => {
       expect(result.channel).toBe('stable');
     });
 
-    it('throws when projectJsonToolchain contains shell-meta', () => {
+    it('throws with source context when projectJsonToolchain contains shell-meta', () => {
       expect(() =>
         resolveToolchain({
           projectRoot,
           workspaceRoot,
           projectJsonToolchain: 'evil;rm -rf /',
         }),
-      ).toThrow(/invalid toolchain literal/i);
+      ).toThrow(/invalid toolchain literal from projectJsonToolchain/i);
     });
 
-    it('throws when cargoMetadataTargetToolchain contains whitespace', () => {
+    it('throws with source context when cargoMetadataTargetToolchain contains whitespace', () => {
       expect(() =>
         resolveToolchain({
           projectRoot,
           workspaceRoot,
           cargoMetadataTargetToolchain: 'my channel',
         }),
-      ).toThrow(/invalid toolchain literal/i);
+      ).toThrow(/invalid toolchain literal from cargoMetadataTargetToolchain/i);
     });
 
-    it('throws when cargoMetadataPackageToolchain is empty', () => {
+    it('throws with source context when cargoMetadataPackageToolchain is empty', () => {
       expect(() =>
         resolveToolchain({
           projectRoot,
           workspaceRoot,
           cargoMetadataPackageToolchain: '',
         }),
-      ).toThrow(/invalid toolchain literal/i);
+      ).toThrow(/invalid toolchain literal from cargoMetadataPackageToolchain/i);
     });
 
     it('accepts a fully-qualified channel triple as projectJsonToolchain', () => {

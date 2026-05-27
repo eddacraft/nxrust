@@ -70,14 +70,14 @@ export interface ResolveToolchainOptions {
  * Validate that a channel literal is safe to embed in a `rustup run
  * <channel> ...` runtime command. Throws on whitespace or shell-meta.
  *
- * Exported for unit-testing and for future callers (TOOLCHAIN-002's
- * `project.json` / `package.metadata.nxrust.toolchain` branches need the
- * same validation before extending the resolution surface).
+ * Exported for unit-testing and used by every resolved source before callers
+ * embed the channel in runtime strings.
  */
-export function validateChannelLiteral(channel: string): void {
+export function validateChannelLiteral(channel: string, origin?: string): void {
   if (!CHANNEL_LITERAL_PATTERN.test(channel)) {
+    const source = origin === undefined ? '' : ` from ${origin}`;
     throw new Error(
-      `invalid toolchain literal: ${JSON.stringify(channel)} — channel must match ${CHANNEL_LITERAL_PATTERN}`,
+      `invalid toolchain literal${source}: ${JSON.stringify(channel)} — channel must match ${CHANNEL_LITERAL_PATTERN}`,
     );
   }
 }
@@ -108,12 +108,15 @@ export function resolveToolchain(
   opts: ResolveToolchainOptions,
 ): ToolchainResolution {
   if (opts.projectJsonToolchain !== undefined) {
-    validateChannelLiteral(opts.projectJsonToolchain);
+    validateChannelLiteral(opts.projectJsonToolchain, 'projectJsonToolchain');
     return { channel: opts.projectJsonToolchain, source: 'project.json' };
   }
 
   if (opts.cargoMetadataTargetToolchain !== undefined) {
-    validateChannelLiteral(opts.cargoMetadataTargetToolchain);
+    validateChannelLiteral(
+      opts.cargoMetadataTargetToolchain,
+      'cargoMetadataTargetToolchain',
+    );
     return {
       channel: opts.cargoMetadataTargetToolchain,
       source: 'package.metadata.nxrust.targets',
@@ -121,7 +124,10 @@ export function resolveToolchain(
   }
 
   if (opts.cargoMetadataPackageToolchain !== undefined) {
-    validateChannelLiteral(opts.cargoMetadataPackageToolchain);
+    validateChannelLiteral(
+      opts.cargoMetadataPackageToolchain,
+      'cargoMetadataPackageToolchain',
+    );
     return {
       channel: opts.cargoMetadataPackageToolchain,
       source: 'package.metadata.nxrust',
@@ -134,14 +140,14 @@ export function resolveToolchain(
     const tomlPath = join(dir, 'rust-toolchain.toml');
     if (existsSync(tomlPath)) {
       const channel = parseRustToolchainToml(readFileSync(tomlPath, 'utf-8'), tomlPath);
-      validateChannelLiteral(channel);
+      validateChannelLiteral(channel, tomlPath);
       return { channel, source: 'rust-toolchain.toml', origin: tomlPath };
     }
 
     const legacyPath = join(dir, 'rust-toolchain');
     if (existsSync(legacyPath)) {
       const channel = parseRustToolchainLegacy(readFileSync(legacyPath, 'utf-8'), legacyPath);
-      validateChannelLiteral(channel);
+      validateChannelLiteral(channel, legacyPath);
       return { channel, source: 'rust-toolchain', origin: legacyPath };
     }
   }

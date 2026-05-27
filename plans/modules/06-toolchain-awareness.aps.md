@@ -202,7 +202,7 @@ doc's promotion ordering.
   - Resolution priority: 2 > 3 > 4 > 5 (file walk) > 6 (default).
   - Each non-undefined override is validated against the same
     channel-literal pattern as TOOLCHAIN-001. Invalid overrides throw
-    a path-bearing error.
+    a source-bearing error naming the override field.
   - `ToolchainSource` enum extended with `project.json`,
     `package.metadata.nxrust.targets`, and `package.metadata.nxrust`.
   - File-walk fallback path is unchanged — TOOLCHAIN-001 callers that

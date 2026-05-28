@@ -20,6 +20,7 @@ import type {
   CargoPackage,
 } from './models/cargo-metadata';
 import { cargoMetadata, isExternal } from './utils/cargo';
+import { resolveToolchain } from './utils/rust-toolchain';
 import {
   buildTargetConfig,
   checkTargetConfig,
@@ -77,11 +78,33 @@ function workspaceFingerprint(
   const parts = [
     fileFingerprint(join(workspaceRoot, 'Cargo.lock')),
     fileFingerprint(join(workspaceRoot, 'Cargo.toml')),
+    fileFingerprint(join(workspaceRoot, 'rust-toolchain.toml')),
+    fileFingerprint(join(workspaceRoot, 'rust-toolchain')),
   ];
   for (const manifest of knownManifests) {
     parts.push(fileFingerprint(manifest));
+    for (const dir of toolchainSearchDirs(dirname(manifest), workspaceRoot)) {
+      parts.push(fileFingerprint(join(dir, 'rust-toolchain.toml')));
+      parts.push(fileFingerprint(join(dir, 'rust-toolchain')));
+    }
   }
   return parts.join('|');
+}
+
+function toolchainSearchDirs(projectRoot: string, workspaceRoot: string): string[] {
+  const dirs: string[] = [];
+  let dir = projectRoot;
+
+  while (true) {
+    dirs.push(dir);
+    if (dir === workspaceRoot) break;
+
+    const parent = dirname(dir);
+    if (parent === dir) break;
+    dir = parent;
+  }
+
+  return dirs;
 }
 
 function workspaceManifests(
@@ -94,13 +117,20 @@ function workspaceManifests(
     .map((p) => p.manifest_path);
 }
 
-function computeCached(workspaceRoot: string): GraphComputation {
+function computeCached(
+  workspaceRoot: string,
+  requestedConfigFiles: readonly string[] = [],
+): GraphComputation {
   const cached = metadataCache.get(workspaceRoot);
   const knownManifests = cached
     ? workspaceManifests(cached.result.metadata, workspaceRoot)
     : [];
   const current = workspaceFingerprint(workspaceRoot, knownManifests);
-  if (cached && cached.fingerprint === current) {
+  if (
+    cached &&
+    cached.fingerprint === current &&
+    requestedConfigFiles.every((path) => pickProjectForConfigFile(cached.result.projects, path))
+  ) {
     return cached.result;
   }
 
@@ -132,7 +162,7 @@ function computeCached(workspaceRoot: string): GraphComputation {
 export const createNodesV2: CreateNodesV2 = [
   CARGO_GLOB,
   async (configFilePaths, options, context) => {
-    const computed = computeCached(context.workspaceRoot);
+    const computed = computeCached(context.workspaceRoot, configFilePaths);
     // `externalNodes` is a single graph-wide payload — attaching the same map
     // to every file result works (Nx dedupes by key) but wastes IPC. Emit it
     // with the first file we actually produce and blank on the rest.
@@ -209,7 +239,7 @@ function computeGraph(workspaceRoot: string): GraphComputation {
     const root = normalizePath(
       dirname(relative(workspaceRoot, pkg.manifest_path)),
     );
-    projects[root] = inferProjectConfig(pkg, root);
+    projects[root] = inferProjectConfig(pkg, root, workspaceRoot);
 
     // Only create external nodes for DIRECT deps of workspace members. If we
     // scanned every package's deps, transitive registry crates would show up
@@ -242,6 +272,7 @@ function computeGraph(workspaceRoot: string): GraphComputation {
 function inferProjectConfig(
   pkg: CargoPackage,
   root: string,
+  workspaceRoot: string,
 ): ProjectConfiguration {
   const hasBin = pkg.targets.some((t) => t.kind.includes('bin'));
   const isPrivate = pkg.publish?.length === 0;
@@ -252,16 +283,22 @@ function inferProjectConfig(
   // executor would otherwise feed that scoped/prerelease string to
   // `cargo -p`, which cargo rejects.
   const pkgOpts = { package: pkg.name };
+  const cache = {
+    resolvedToolchain: resolveToolchain({
+      projectRoot: join(workspaceRoot, root),
+      workspaceRoot,
+    }).channel,
+  };
 
   const targets: ProjectConfiguration['targets'] = {
-    build: buildTargetConfig(pkgOpts),
-    check: checkTargetConfig(pkgOpts),
-    clippy: clippyTargetConfig(pkgOpts),
+    build: buildTargetConfig(pkgOpts, cache),
+    check: checkTargetConfig(pkgOpts, cache),
+    clippy: clippyTargetConfig(pkgOpts, cache),
     // `fmt` rewrites files (uncached); `fmt-check` is the lint mode that
     // caches safely because its output is just an exit status.
     fmt: fmtTargetConfig(pkgOpts),
-    'fmt-check': fmtCheckTargetConfig(pkgOpts),
-    test: testTargetConfig(pkgOpts),
+    'fmt-check': fmtCheckTargetConfig(pkgOpts, cache),
+    test: testTargetConfig(pkgOpts, cache),
   };
 
   if (hasBin) {

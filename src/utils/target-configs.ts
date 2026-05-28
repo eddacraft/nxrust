@@ -1,4 +1,8 @@
 import type { TargetConfiguration } from '@nx/devkit';
+import {
+  buildCacheInputs,
+  type BuildCacheInputsOptions,
+} from './cache-inputs';
 
 /**
  * Pre-fabricated `TargetConfiguration` blobs so generators don't duplicate
@@ -15,14 +19,18 @@ import type { TargetConfiguration } from '@nx/devkit';
 
 type AnyOpts = Record<string, unknown>;
 
+type CacheOpts = BuildCacheInputsOptions;
+
 const BINARY_OUTPUTS = ['{options.target-dir}', '{workspaceRoot}/target'];
 
 export function buildTargetConfig(
   options: AnyOpts = {},
+  cache: CacheOpts = {},
 ): TargetConfiguration {
   return {
     executor: '@eddacraft/nxrust:build',
     cache: true,
+    inputs: buildCacheInputs(cache),
     outputs: BINARY_OUTPUTS,
     options,
     configurations: {
@@ -33,10 +41,12 @@ export function buildTargetConfig(
 
 export function checkTargetConfig(
   options: AnyOpts = {},
+  cache: CacheOpts = {},
 ): TargetConfiguration {
   return {
     executor: '@eddacraft/nxrust:check',
     cache: true,
+    inputs: buildCacheInputs(cache),
     outputs: [],
     options,
   };
@@ -44,10 +54,12 @@ export function checkTargetConfig(
 
 export function clippyTargetConfig(
   options: AnyOpts = {},
+  cache: CacheOpts = {},
 ): TargetConfiguration {
   return {
     executor: '@eddacraft/nxrust:clippy',
     cache: true,
+    inputs: buildCacheInputs(cache),
     outputs: [],
     options,
   };
@@ -72,10 +84,12 @@ export function fmtTargetConfig(
  */
 export function fmtCheckTargetConfig(
   options: AnyOpts = {},
+  cache: CacheOpts = {},
 ): TargetConfiguration {
   return {
     executor: '@eddacraft/nxrust:fmt',
     cache: true,
+    inputs: buildCacheInputs(cache),
     outputs: [],
     options: { check: true, ...options },
   };
@@ -83,10 +97,12 @@ export function fmtCheckTargetConfig(
 
 export function testTargetConfig(
   options: AnyOpts = {},
+  cache: CacheOpts = {},
 ): TargetConfiguration {
   return {
     executor: '@eddacraft/nxrust:test',
     cache: true,
+    inputs: buildCacheInputs(cache),
     outputs: [],
     options,
     configurations: {

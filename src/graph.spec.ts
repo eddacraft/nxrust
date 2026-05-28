@@ -16,6 +16,8 @@ vi.mock('./utils/cargo', async () => {
 // Mock `node:fs` statSync so cache-fingerprint tests can drive mtime values
 // without touching the real filesystem.
 vi.mock('node:fs', () => ({
+  existsSync: vi.fn(() => false),
+  readFileSync: vi.fn(),
   statSync: vi.fn(),
 }));
 
@@ -326,6 +328,42 @@ describe('inferred project targets', () => {
       ).toBe('foo');
     }
   });
+
+  it('bakes the resolved rust-toolchain channel into cacheable target runtime inputs', async () => {
+    const fs = await import('node:fs');
+    (fs.existsSync as ReturnType<typeof vi.fn>).mockImplementation((path: string) =>
+      path === '/ws/rust-toolchain.toml',
+    );
+    (fs.readFileSync as ReturnType<typeof vi.fn>).mockReturnValue(
+      '[toolchain]\nchannel = "stable"\n',
+    );
+    await setMetadata(md([pkg({ name: 'foo' })]));
+
+    const { createNodesV2 } = await load();
+    const fn = createNodesV2[1] as (
+      paths: readonly string[],
+      opts: unknown,
+      ctx: { workspaceRoot: string; nxJsonConfiguration: object },
+    ) => Promise<
+      Array<[
+        string,
+        { projects: Record<string, { targets: Record<string, { inputs?: unknown[] }> }> },
+      ]>
+    >;
+
+    const result = await fn(['crates/foo/Cargo.toml'], {}, {
+      workspaceRoot: ws,
+      nxJsonConfiguration: {},
+    });
+
+    const [, payload] = result[0];
+    expect(payload.projects['crates/foo'].targets.build.inputs).toContainEqual({
+      runtime: 'rustup run stable rustc -Vv',
+    });
+    expect(payload.projects['crates/foo'].targets.build.inputs).toContainEqual({
+      runtime: 'rustup run stable cargo -V',
+    });
+  });
 });
 
 describe('graph cache invalidation', () => {
@@ -338,14 +376,17 @@ describe('graph cache invalidation', () => {
     vi.restoreAllMocks();
   });
 
-  async function runCreateNodes(graph: Awaited<ReturnType<typeof load>>) {
+  async function runCreateNodes(
+    graph: Awaited<ReturnType<typeof load>>,
+    paths: readonly string[] = ['crates/foo/Cargo.toml'],
+  ) {
     const { createNodesV2 } = graph;
     const fn = createNodesV2[1] as (
       paths: readonly string[],
       opts: unknown,
       ctx: { workspaceRoot: string; nxJsonConfiguration: object },
     ) => Promise<unknown>;
-    await fn(['crates/foo/Cargo.toml'], {}, {
+    await fn(paths, {}, {
       workspaceRoot: ws,
       nxJsonConfiguration: {},
     });
@@ -405,6 +446,70 @@ describe('graph cache invalidation', () => {
       '/ws/crates/foo/Cargo.toml': 5, // crate manifest edited (e.g. target/feature change)
     });
     await runCreateNodes(graph);
+
+    expect(cargoFn).toHaveBeenCalledTimes(2);
+  });
+
+  it('invalidates when the workspace rust-toolchain.toml changes', async () => {
+    await setStatMtimes({
+      '/ws/Cargo.lock': 1,
+      '/ws/Cargo.toml': 1,
+      '/ws/rust-toolchain.toml': 1,
+      '/ws/crates/foo/Cargo.toml': 1,
+    });
+    await setMetadata(md([pkg({ name: 'foo' })]));
+    const cargoFn = await cargoMetadataMock();
+    const graph = await load();
+
+    await runCreateNodes(graph);
+    await setStatMtimes({
+      '/ws/Cargo.lock': 1,
+      '/ws/Cargo.toml': 1,
+      '/ws/rust-toolchain.toml': 2,
+      '/ws/crates/foo/Cargo.toml': 1,
+    });
+    await runCreateNodes(graph);
+
+    expect(cargoFn).toHaveBeenCalledTimes(2);
+  });
+
+  it('invalidates when an intermediate rust-toolchain.toml changes', async () => {
+    await setStatMtimes({
+      '/ws/Cargo.lock': 1,
+      '/ws/Cargo.toml': 1,
+      '/ws/crates/rust-toolchain.toml': 1,
+      '/ws/crates/foo/Cargo.toml': 1,
+    });
+    await setMetadata(md([pkg({ name: 'foo' })]));
+    const cargoFn = await cargoMetadataMock();
+    const graph = await load();
+
+    await runCreateNodes(graph);
+    await setStatMtimes({
+      '/ws/Cargo.lock': 1,
+      '/ws/Cargo.toml': 1,
+      '/ws/crates/rust-toolchain.toml': 2,
+      '/ws/crates/foo/Cargo.toml': 1,
+    });
+    await runCreateNodes(graph);
+
+    expect(cargoFn).toHaveBeenCalledTimes(2);
+  });
+
+  it('recomputes when Nx asks for a newly added wildcard workspace member', async () => {
+    await setStatMtimes({
+      '/ws/Cargo.lock': 1,
+      '/ws/Cargo.toml': 1,
+      '/ws/crates/foo/Cargo.toml': 1,
+      '/ws/crates/bar/Cargo.toml': 1,
+    });
+    await setMetadata(md([pkg({ name: 'foo' })]));
+    const cargoFn = await cargoMetadataMock();
+    const graph = await load();
+
+    await runCreateNodes(graph, ['crates/foo/Cargo.toml']);
+    await setMetadata(md([pkg({ name: 'foo' }), pkg({ name: 'bar' })]));
+    await runCreateNodes(graph, ['crates/foo/Cargo.toml', 'crates/bar/Cargo.toml']);
 
     expect(cargoFn).toHaveBeenCalledTimes(2);
   });

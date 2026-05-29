@@ -1,5 +1,5 @@
 <!-- APS Module: 04-cache-semantics -->
-<!-- Status: In Progress -->
+<!-- Status: Complete -->
 
 # Cache Semantics
 
@@ -8,7 +8,7 @@ conservative output narrowing.
 
 | ID | Owner | Status |
 |----|-------|--------|
-| CACHE | eddacraft | In Progress |
+| CACHE | eddacraft | Complete |
 
 ## Purpose
 
@@ -141,7 +141,7 @@ Promote individual Work Items to Ready when:
 
 ### CACHE-001 — Rust cache input wiring
 
-**Status: In Review** (PR #15, branch `feat/cache-001`).
+**Status: Done** (PR #15 merged 2026-05-29).
 
 New `src/utils/cache-inputs.ts` (named-input refs + env allowlist +
 per-target `rustup run <channel>` runtime entries via `resolveToolchain`)
@@ -155,7 +155,39 @@ Review-round fixes (2026-05-29):
   `tree.write`.
 - e2e smoke now runs the `init` generator before graph load — see D-C5.
 
-*Other items promote individually on real-consumer asks per D-007.*
+### CACHE-002 — Narrow rust build outputs
+
+**Status: Done** (rebased onto main; landing via the cache-completion PR).
+
+`build` targets now declare narrow per-binary (`{workspaceRoot}/target/
+{profile}/<bin>`) and per-rlib (`lib<crate>.rlib`) outputs instead of the
+whole `{workspaceRoot}/target` tree, for both `debug` and `release`
+profiles. `src/utils/cache-inputs.ts` gains `buildCacheOutputs`; `graph.ts`
+derives the binary/library set per package from `cargo metadata` and threads
+a `narrowBuildOutputs` plugin option through `createNodesV2`/
+`createDependencies` (participating in the metadata cache key). A wide-output
+escape hatch (`{options.target-dir}` + `{workspaceRoot}/target`) is retained
+for the unsafe cases: `narrowBuildOutputs: false`, custom target-dir or
+target triple, and crate types beyond `lib`/`rlib`/`bin` (e.g. `cdylib`,
+`staticlib`, `proc-macro`). Resolves the build-output open question. See D-C6.
+
+### CACHE-003 — Cache-correctness CI fixture matrix
+
+**Status: Done** (landing via the cache-completion PR).
+
+`tools/cache-matrix.mjs` + the `e2e/cache-matrix/` fixture exercise the
+inferred cacheable targets (`check`, `fmt-check`, `clippy`, `test`, `build`)
+across representative workspace shapes — single-crate (`solo`), multi-crate
+with a cross-crate normal dep (`engine` + `app`), dev-dep (`with-dev-dep`),
+build-dep (`with-build-dep`), feature-gated (`featured`), and mixed TS+Rust
+(`ts-app`). The harness packs the plugin, runs `init`, then asserts every
+cacheable target **misses on first run and hits on the second run** with
+unchanged inputs, failing loudly with the offending `project:target` pairs on
+any regression. Wired into CI as a parallel `cache-matrix` job and the
+`pnpm cache-matrix` script. All path-dependencies keep the matrix hermetic
+(no registry/network access). Satisfies spec §8.1 "add CI fixture matrix".
+
+*Further items promote individually on real-consumer asks per D-007.*
 
 ## Risks & Mitigations
 
@@ -188,18 +220,29 @@ Review-round fixes (2026-05-29):
   PR #15 smoke failure).* Open follow-up: consider making inference
   self-sufficient (project-level `namedInputs`) so the plugin degrades
   gracefully pre-`init` — deferred, not in CACHE-001 scope.
+- **D-C6:** `build` outputs are narrowed to per-binary/per-rlib paths by
+  default (`narrowBuildOutputs: true`), not the whole `{workspaceRoot}/
+  target` tree — answering the build-output open question in favour of the
+  conservative default (consistent with D-C3). The wide-output escape hatch
+  is auto-selected for cases narrow paths cannot safely express (custom
+  target-dir, custom target triple, crate types beyond `lib`/`rlib`/`bin`)
+  and is also reachable via `narrowBuildOutputs: false`. *Accepted
+  (CACHE-002).*
 
 ## Open Questions
 
 - [ ] Should `clippy` cache its JSON report by default, or only when the
       consumer asks via plugin option? Reports are small but introduce a
       filesystem artefact for what was previously a result-only target.
-- [ ] Should `target/{profile}/<binary>` outputs be enabled by default
-      for the `build` target, or stay opt-in? v0.1 caches `target/`
-      for `build`; we may narrow this in the same pass.
+      *Deferred — promote on a real consumer ask per D-007; not blocking
+      module completion.*
+- [x] Should `target/{profile}/<binary>` outputs be enabled by default
+      for the `build` target, or stay opt-in? **Resolved (CACHE-002, D-C6):
+      narrow by default, with an auto/opt-in wide-output escape hatch.**
 - [ ] Should `RUSTFLAGS` env participation be on by default or behind a
       plugin option? It's the single most build-affecting var; defaulting
       on seems right.
-- [ ] Should the fixture matrix live in this repo's `e2e/` or in a sibling
-      `e2e/fixtures/` tree? Inherits the "checked-in vs generated" open
-      question from module 01.
+- [x] Should the fixture matrix live in this repo's `e2e/` or in a sibling
+      `e2e/fixtures/` tree? **Resolved (CACHE-003): a checked-in
+      `e2e/cache-matrix/` workspace alongside the existing `e2e/fixture/`
+      smoke workspace, driven by `tools/cache-matrix.mjs`.**

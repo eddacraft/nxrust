@@ -44,6 +44,10 @@ interface GraphComputation {
   metadata: CargoMetadata | null;
 }
 
+interface NxRustPluginOptions {
+  narrowBuildOutputs?: boolean;
+}
+
 /**
  * Cache `cargo metadata` per workspace root — Nx calls `createNodesV2` once per
  * matched Cargo.toml, and would otherwise spawn cargo N times per graph
@@ -62,6 +66,13 @@ const metadataCache = new Map<
   string,
   { fingerprint: string; result: GraphComputation }
 >();
+
+function metadataCacheKey(
+  workspaceRoot: string,
+  options: NxRustPluginOptions,
+): string {
+  return `${workspaceRoot}|narrowBuildOutputs:${options.narrowBuildOutputs !== false}`;
+}
 
 function fileFingerprint(path: string): string {
   try {
@@ -120,8 +131,10 @@ function workspaceManifests(
 function computeCached(
   workspaceRoot: string,
   requestedConfigFiles: readonly string[] = [],
+  options: NxRustPluginOptions = {},
 ): GraphComputation {
-  const cached = metadataCache.get(workspaceRoot);
+  const cacheKey = metadataCacheKey(workspaceRoot, options);
+  const cached = metadataCache.get(cacheKey);
   const knownManifests = cached
     ? workspaceManifests(cached.result.metadata, workspaceRoot)
     : [];
@@ -134,14 +147,14 @@ function computeCached(
     return cached.result;
   }
 
-  const result = computeGraph(workspaceRoot);
+  const result = computeGraph(workspaceRoot, options);
   // Re-fingerprint with the freshly discovered manifests so subsequent
   // calls invalidate when *any* of them changes.
   const nextFingerprint = workspaceFingerprint(
     workspaceRoot,
     workspaceManifests(result.metadata, workspaceRoot),
   );
-  metadataCache.set(workspaceRoot, {
+  metadataCache.set(cacheKey, {
     fingerprint: nextFingerprint,
     result,
   });
@@ -162,7 +175,12 @@ function computeCached(
 export const createNodesV2: CreateNodesV2 = [
   CARGO_GLOB,
   async (configFilePaths, options, context) => {
-    const computed = computeCached(context.workspaceRoot, configFilePaths);
+    const pluginOptions = options as NxRustPluginOptions | undefined;
+    const computed = computeCached(
+      context.workspaceRoot,
+      configFilePaths,
+      pluginOptions ?? {},
+    );
     // `externalNodes` is a single graph-wide payload — attaching the same map
     // to every file result works (Nx dedupes by key) but wastes IPC. Emit it
     // with the first file we actually produce and blank on the rest.
@@ -190,7 +208,7 @@ export const createDependencies: CreateDependencies = (
   ctx: CreateDependenciesContext,
 ) => {
   const { projects, externalNodes, workspaceRoot } = ctx;
-  const { metadata } = computeCached(workspaceRoot);
+  const { metadata } = computeCached(workspaceRoot, [], _opts as NxRustPluginOptions);
   if (!metadata) return [];
 
   const out: RawProjectGraphDependency[] = [];
@@ -222,7 +240,10 @@ export const createDependencies: CreateDependencies = (
   return out;
 };
 
-function computeGraph(workspaceRoot: string): GraphComputation {
+function computeGraph(
+  workspaceRoot: string,
+  options: NxRustPluginOptions,
+): GraphComputation {
   const metadata = cargoMetadata(workspaceRoot);
   if (!metadata) {
     return { projects: {}, externalNodes: {}, metadata: null };
@@ -239,7 +260,7 @@ function computeGraph(workspaceRoot: string): GraphComputation {
     const root = normalizePath(
       dirname(relative(workspaceRoot, pkg.manifest_path)),
     );
-    projects[root] = inferProjectConfig(pkg, root, workspaceRoot);
+    projects[root] = inferProjectConfig(pkg, root, workspaceRoot, options);
 
     // Only create external nodes for DIRECT deps of workspace members. If we
     // scanned every package's deps, transitive registry crates would show up
@@ -273,6 +294,7 @@ function inferProjectConfig(
   pkg: CargoPackage,
   root: string,
   workspaceRoot: string,
+  pluginOptions: NxRustPluginOptions,
 ): ProjectConfiguration {
   const hasBin = pkg.targets.some((t) => t.kind.includes('bin'));
   const isPrivate = pkg.publish?.length === 0;
@@ -283,6 +305,10 @@ function inferProjectConfig(
   // executor would otherwise feed that scoped/prerelease string to
   // `cargo -p`, which cargo rejects.
   const pkgOpts = { package: pkg.name };
+  const buildOutputs = buildOutputsForPackage(pkg);
+  if (pluginOptions.narrowBuildOutputs === false) {
+    buildOutputs.narrowBuildOutputs = false;
+  }
   const cache = {
     resolvedToolchain: resolveToolchain({
       projectRoot: join(workspaceRoot, root),
@@ -291,7 +317,7 @@ function inferProjectConfig(
   };
 
   const targets: ProjectConfiguration['targets'] = {
-    build: buildTargetConfig(pkgOpts, cache),
+    build: buildTargetConfig(pkgOpts, cache, buildOutputs),
     check: checkTargetConfig(pkgOpts, cache),
     clippy: clippyTargetConfig(pkgOpts, cache),
     // `fmt` rewrites files (uncached); `fmt-check` is the lint mode that
@@ -320,6 +346,28 @@ function inferProjectConfig(
     sourceRoot: `${root}/src`,
     targets,
   };
+}
+
+function buildOutputsForPackage(pkg: CargoPackage): {
+  binaries?: string[];
+  libraries?: string[];
+  narrowBuildOutputs?: boolean;
+} {
+  const unsupportedLibrary = pkg.targets.some(
+    (target) =>
+      !target.kind.includes('bin') &&
+      target.crate_types.some((crateType) => !['lib', 'rlib'].includes(crateType)),
+  );
+  if (unsupportedLibrary) return { narrowBuildOutputs: false };
+
+  const binaries = pkg.targets
+    .filter((target) => target.kind.includes('bin'))
+    .map((target) => target.name);
+  const libraries = pkg.targets
+    .filter((target) => target.kind.includes('lib'))
+    .map((target) => target.name);
+
+  return { binaries, libraries };
 }
 
 function pickProjectForConfigFile(

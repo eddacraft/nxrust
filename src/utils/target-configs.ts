@@ -1,7 +1,9 @@
 import type { TargetConfiguration } from '@nx/devkit';
 import {
   buildCacheInputs,
+  buildCacheOutputs,
   type BuildCacheInputsOptions,
+  type BuildCacheOutputsOptions,
 } from './cache-inputs';
 
 /**
@@ -20,18 +22,25 @@ import {
 type AnyOpts = Record<string, unknown>;
 
 type CacheOpts = BuildCacheInputsOptions;
-
-const BINARY_OUTPUTS = ['{options.target-dir}', '{workspaceRoot}/target'];
+type BuildOutputOpts = Omit<BuildCacheOutputsOptions, 'target'>;
 
 export function buildTargetConfig(
   options: AnyOpts = {},
   cache: CacheOpts = {},
+  outputs: BuildOutputOpts = {},
 ): TargetConfiguration {
   return {
     executor: '@eddacraft/nxrust:build',
     cache: true,
     inputs: buildCacheInputs(cache),
-    outputs: BINARY_OUTPUTS,
+    outputs: buildCacheOutputs({
+      target: 'build',
+      ...outputs,
+      narrowBuildOutputs:
+        options.target || options['target-dir'] || options.profile
+          ? false
+          : outputs.narrowBuildOutputs,
+    }),
     options,
     configurations: {
       production: { release: true },

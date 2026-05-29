@@ -364,6 +364,149 @@ describe('inferred project targets', () => {
       runtime: 'rustup run stable cargo -V',
     });
   });
+
+  it('narrows inferred build outputs from cargo metadata targets', async () => {
+    await setMetadata(
+      md([
+        pkg({
+          name: 'foo-cli',
+          targets: [
+            { kind: ['lib'], crate_types: ['lib'], name: 'foo-cli', src_path: '' },
+            { kind: ['bin'], crate_types: ['bin'], name: 'foo', src_path: '' },
+          ],
+        }),
+      ]),
+    );
+
+    const { createNodesV2 } = await load();
+    const fn = createNodesV2[1] as (
+      paths: readonly string[],
+      opts: unknown,
+      ctx: { workspaceRoot: string; nxJsonConfiguration: object },
+    ) => Promise<
+      Array<[
+        string,
+        { projects: Record<string, { targets: Record<string, { outputs?: string[] }> }> },
+      ]>
+    >;
+
+    const result = await fn(['crates/foo-cli/Cargo.toml'], {}, {
+      workspaceRoot: ws,
+      nxJsonConfiguration: {},
+    });
+
+    const [, payload] = result[0];
+    expect(payload.projects['crates/foo-cli'].targets.build.outputs).toEqual([
+      '{workspaceRoot}/target/debug/foo',
+      '{workspaceRoot}/target/debug/libfoo_cli.rlib',
+      '{workspaceRoot}/target/release/foo',
+      '{workspaceRoot}/target/release/libfoo_cli.rlib',
+    ]);
+  });
+
+  it('honours the narrowBuildOutputs false plugin option for inferred targets', async () => {
+    await setMetadata(md([pkg({ name: 'foo' })]));
+
+    const { createNodesV2 } = await load();
+    const fn = createNodesV2[1] as (
+      paths: readonly string[],
+      opts: { narrowBuildOutputs?: boolean },
+      ctx: { workspaceRoot: string; nxJsonConfiguration: object },
+    ) => Promise<
+      Array<[
+        string,
+        { projects: Record<string, { targets: Record<string, { outputs?: string[] }> }> },
+      ]>
+    >;
+
+    const result = await fn(['crates/foo/Cargo.toml'], { narrowBuildOutputs: false }, {
+      workspaceRoot: ws,
+      nxJsonConfiguration: {},
+    });
+
+    const [, payload] = result[0];
+    expect(payload.projects['crates/foo'].targets.build.outputs).toEqual([
+      '{options.target-dir}',
+      '{workspaceRoot}/target',
+    ]);
+  });
+
+  it('uses wide outputs for unsupported library crate types', async () => {
+    await setMetadata(
+      md([
+        pkg({
+          name: 'native',
+          targets: [
+            { kind: ['lib'], crate_types: ['cdylib'], name: 'native', src_path: '' },
+          ],
+        }),
+      ]),
+    );
+
+    const { createNodesV2 } = await load();
+    const fn = createNodesV2[1] as (
+      paths: readonly string[],
+      opts: unknown,
+      ctx: { workspaceRoot: string; nxJsonConfiguration: object },
+    ) => Promise<
+      Array<[
+        string,
+        { projects: Record<string, { targets: Record<string, { outputs?: string[] }> }> },
+      ]>
+    >;
+
+    const result = await fn(['crates/native/Cargo.toml'], {}, {
+      workspaceRoot: ws,
+      nxJsonConfiguration: {},
+    });
+
+    const [, payload] = result[0];
+    expect(payload.projects['crates/native'].targets.build.outputs).toEqual([
+      '{options.target-dir}',
+      '{workspaceRoot}/target',
+    ]);
+  });
+
+  it('uses wide outputs for proc-macro targets', async () => {
+    await setMetadata(
+      md([
+        pkg({
+          name: 'macros',
+          targets: [
+            {
+              kind: ['proc-macro'],
+              crate_types: ['proc-macro'],
+              name: 'macros',
+              src_path: '',
+            },
+          ],
+        }),
+      ]),
+    );
+
+    const { createNodesV2 } = await load();
+    const fn = createNodesV2[1] as (
+      paths: readonly string[],
+      opts: unknown,
+      ctx: { workspaceRoot: string; nxJsonConfiguration: object },
+    ) => Promise<
+      Array<[
+        string,
+        { projects: Record<string, { targets: Record<string, { outputs?: string[] }> }> },
+      ]>
+    >;
+
+    const result = await fn(['crates/macros/Cargo.toml'], {}, {
+      workspaceRoot: ws,
+      nxJsonConfiguration: {},
+    });
+
+    const [, payload] = result[0];
+    expect(payload.projects['crates/macros'].targets.build.outputs).toEqual([
+      '{options.target-dir}',
+      '{workspaceRoot}/target',
+    ]);
+  });
 });
 
 describe('graph cache invalidation', () => {

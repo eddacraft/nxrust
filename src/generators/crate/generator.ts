@@ -41,9 +41,12 @@ export default async function crateGenerator(
   await initGenerator(tree, { skipFormat: true });
 
   const normalized = normalizeOptions(tree, options);
+  const buildOutputs = options.bin
+    ? { binaries: [normalized.cargoName] }
+    : { libraries: [normalized.cargoName] };
 
   const targets = {
-    build: buildTargetConfig(),
+    build: buildTargetConfig({}, {}, buildOutputs),
     check: checkTargetConfig(),
     clippy: clippyTargetConfig(),
     fmt: fmtTargetConfig(),

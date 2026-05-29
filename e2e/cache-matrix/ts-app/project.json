@@ -1,0 +1,18 @@
+{
+  "name": "ts-app",
+  "$schema": "../node_modules/nx/schemas/project-schema.json",
+  "projectType": "application",
+  "sourceRoot": "ts-app/src",
+  "targets": {
+    "build": {
+      "executor": "nx:run-commands",
+      "cache": true,
+      "inputs": ["{projectRoot}/**/*"],
+      "outputs": ["{projectRoot}/dist"],
+      "options": {
+        "cwd": "ts-app",
+        "command": "node -e \"const fs=require('fs');fs.mkdirSync('dist',{recursive:true});fs.writeFileSync('dist/out.txt','built')\""
+      }
+    }
+  }
+}

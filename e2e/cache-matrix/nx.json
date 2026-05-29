@@ -1,0 +1,4 @@
+{
+  "neverConnectToCloud": true,
+  "plugins": ["@eddacraft/nxrust"]
+}

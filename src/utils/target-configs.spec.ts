@@ -15,7 +15,7 @@ describe('target cache inputs', () => {
     const cache = { resolvedToolchain: 'stable' };
     const expectedInputs = buildCacheInputs(cache);
 
-    expect(buildTargetConfig({}, cache).inputs).toEqual(expectedInputs);
+    expect(buildTargetConfig({}, cache, { binaries: ['app'] }).inputs).toEqual(expectedInputs);
     expect(checkTargetConfig({}, cache).inputs).toEqual(expectedInputs);
     expect(clippyTargetConfig({}, cache).inputs).toEqual(expectedInputs);
     expect(fmtCheckTargetConfig({}, cache).inputs).toEqual(expectedInputs);
@@ -25,5 +25,39 @@ describe('target cache inputs', () => {
   it('does not attach cache inputs to mutating or uncached targets', () => {
     expect(fmtTargetConfig().inputs).toBeUndefined();
     expect(runTargetConfig().inputs).toBeUndefined();
+  });
+
+  it('narrows build outputs to cargo artefact paths', () => {
+    expect(buildTargetConfig({}, {}, { binaries: ['app'] }).outputs).toEqual([
+      '{workspaceRoot}/target/debug/app',
+      '{workspaceRoot}/target/release/app',
+    ]);
+  });
+
+  it('can keep the old wide build outputs as an escape hatch', () => {
+    expect(
+      buildTargetConfig({}, {}, { binaries: ['app'], narrowBuildOutputs: false }).outputs,
+    ).toEqual(['{options.target-dir}', '{workspaceRoot}/target']);
+  });
+
+  it('uses wide outputs when a static target triple changes the cargo output directory', () => {
+    expect(buildTargetConfig({ target: 'wasm32-unknown-unknown' }, {}, { binaries: ['app'] }).outputs).toEqual([
+      '{options.target-dir}',
+      '{workspaceRoot}/target',
+    ]);
+  });
+
+  it('uses wide outputs when a static target-dir changes the cargo output directory', () => {
+    expect(buildTargetConfig({ 'target-dir': 'tmp/target' }, {}, { binaries: ['app'] }).outputs).toEqual([
+      '{options.target-dir}',
+      '{workspaceRoot}/target',
+    ]);
+  });
+
+  it('uses wide outputs when a static custom profile changes the output directory', () => {
+    expect(buildTargetConfig({ profile: 'dist' }, {}, { binaries: ['app'] }).outputs).toEqual([
+      '{options.target-dir}',
+      '{workspaceRoot}/target',
+    ]);
   });
 });

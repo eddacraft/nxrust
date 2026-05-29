@@ -48,6 +48,13 @@ export interface BuildCacheInputsOptions {
   resolvedToolchain?: string;
 }
 
+export interface BuildCacheOutputsOptions {
+  target: 'build';
+  binaries?: readonly string[];
+  libraries?: readonly string[];
+  narrowBuildOutputs?: boolean;
+}
+
 export function buildCacheInputs(
   options: BuildCacheInputsOptions = {},
 ): CacheInput[] {
@@ -63,4 +70,27 @@ export function buildCacheInputs(
     { runtime: `${runtimePrefix}rustc -Vv` },
     { runtime: `${runtimePrefix}cargo -V` },
   ];
+}
+
+export function buildCacheOutputs(options: BuildCacheOutputsOptions): string[] {
+  if (options.narrowBuildOutputs === false) {
+    return ['{options.target-dir}', '{workspaceRoot}/target'];
+  }
+
+  const outputs: string[] = [];
+  for (const profile of ['debug', 'release']) {
+    for (const binary of options.binaries ?? []) {
+      outputs.push(`{workspaceRoot}/target/${profile}/${binary}`);
+    }
+    for (const library of options.libraries ?? []) {
+      outputs.push(
+        `{workspaceRoot}/target/${profile}/lib${cargoArtifactName(library)}.rlib`,
+      );
+    }
+  }
+  return outputs;
+}
+
+function cargoArtifactName(name: string): string {
+  return name.replace(/-/g, '_');
 }

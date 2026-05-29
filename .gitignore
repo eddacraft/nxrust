@@ -5,6 +5,7 @@ coverage/
 target/
 Cargo.lock
 .e2e-pack/
+.cache-matrix-pack/
 .worktrees/
 *.tsbuildinfo
 .DS_Store

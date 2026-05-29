@@ -348,14 +348,27 @@ function inferProjectConfig(
   };
 }
 
+// Cargo target `kind` values that denote a library artefact (as opposed to
+// `bin`, `example`, `test`, `bench`, `custom-build`). Used to decide whether a
+// crate's library output can be expressed as a narrow per-rlib path.
+const LIBRARY_KINDS = ['lib', 'rlib', 'dylib', 'cdylib', 'staticlib', 'proc-macro'];
+
 function buildOutputsForPackage(pkg: CargoPackage): {
   binaries?: string[];
   libraries?: string[];
   narrowBuildOutputs?: boolean;
 } {
+  // Only genuine library targets gate the narrowing. `cargo metadata` also
+  // reports build scripts (`custom-build`), examples, integration tests, and
+  // benchmarks as targets whose `kind` lacks `bin` but whose `crate_types` is
+  // `["bin"]` — matching those here would wrongly drop any crate with a
+  // build.rs / examples / tests / benches back to wide outputs. We fall back
+  // to wide outputs only when a library target emits something `cargo build`
+  // places at a path the per-rlib rule cannot express (cdylib, staticlib,
+  // proc-macro, dylib).
   const unsupportedLibrary = pkg.targets.some(
     (target) =>
-      !target.kind.includes('bin') &&
+      target.kind.some((kind) => LIBRARY_KINDS.includes(kind)) &&
       target.crate_types.some((crateType) => !['lib', 'rlib'].includes(crateType)),
   );
   if (unsupportedLibrary) return { narrowBuildOutputs: false };

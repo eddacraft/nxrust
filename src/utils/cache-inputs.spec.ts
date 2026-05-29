@@ -4,6 +4,7 @@ import {
   RUST_SOURCES_PATTERNS,
   RUST_WORKSPACE_PATTERNS,
   buildCacheInputs,
+  buildCacheOutputs,
 } from './cache-inputs';
 
 describe('cache input contract', () => {
@@ -48,5 +49,29 @@ describe('cache input contract', () => {
     expect(buildCacheInputs({ resolvedToolchain: 'nightly' })).toContainEqual({
       runtime: 'rustup run nightly cargo -V',
     });
+  });
+
+  it('builds narrow binary outputs for debug and release profiles', () => {
+    expect(buildCacheOutputs({ target: 'build', binaries: ['cli'] })).toEqual([
+      '{workspaceRoot}/target/debug/cli',
+      '{workspaceRoot}/target/release/cli',
+    ]);
+  });
+
+  it('builds narrow library outputs using cargo artifact names', () => {
+    expect(buildCacheOutputs({ target: 'build', libraries: ['my-crate'] })).toEqual([
+      '{workspaceRoot}/target/debug/libmy_crate.rlib',
+      '{workspaceRoot}/target/release/libmy_crate.rlib',
+    ]);
+  });
+
+  it('keeps the wide v0.1 build outputs when narrowBuildOutputs is false', () => {
+    expect(
+      buildCacheOutputs({
+        target: 'build',
+        binaries: ['cli'],
+        narrowBuildOutputs: false,
+      }),
+    ).toEqual(['{options.target-dir}', '{workspaceRoot}/target']);
   });
 });

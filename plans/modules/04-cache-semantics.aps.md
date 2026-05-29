@@ -1,5 +1,5 @@
 <!-- APS Module: 04-cache-semantics -->
-<!-- Status: Proposed -->
+<!-- Status: In Progress -->
 
 # Cache Semantics
 
@@ -8,7 +8,7 @@ conservative output narrowing.
 
 | ID | Owner | Status |
 |----|-------|--------|
-| CACHE | eddacraft | Proposed |
+| CACHE | eddacraft | In Progress |
 
 ## Purpose
 
@@ -139,8 +139,23 @@ Promote individual Work Items to Ready when:
 
 ## Work Items
 
-*No work items yet — module is Proposed. Items promote individually on
-real-consumer asks per D-007.*
+### CACHE-001 — Rust cache input wiring
+
+**Status: In Review** (PR #15, branch `feat/cache-001`).
+
+New `src/utils/cache-inputs.ts` (named-input refs + env allowlist +
+per-target `rustup run <channel>` runtime entries via `resolveToolchain`)
+applied through every emitted target in `target-configs.ts`; `init`
+registers the named inputs in `nx.json` with a divergence diagnostic.
+
+Review-round fixes (2026-05-29):
+
+- `init` now merges via devkit `readNxJson`/`updateNxJson` (JSONC-safe;
+  skips the write when nothing changed) instead of raw `JSON.parse`/
+  `tree.write`.
+- e2e smoke now runs the `init` generator before graph load — see D-C5.
+
+*Other items promote individually on real-consumer asks per D-007.*
 
 ## Risks & Mitigations
 
@@ -164,6 +179,15 @@ real-consumer asks per D-007.*
   `target/` caching, never opt-out from narrow. *Accepted.*
 - **D-C4:** Cache-rule changes bump the minor version. Inherits D-008.
   *Accepted.*
+- **D-C5:** `init` registering the `rustSources`/`rustWorkspace` named
+  inputs in `nx.json` is a hard prerequisite for the inferred graph:
+  targets reference those names, so a workspace that adds the plugin
+  without running `init` fails graph load with `"rustSources" is an
+  invalid fileset`. The e2e smoke fixture therefore runs `init` before
+  the graph is computed, mirroring `nx add`. *Accepted (discovered via
+  PR #15 smoke failure).* Open follow-up: consider making inference
+  self-sufficient (project-level `namedInputs`) so the plugin degrades
+  gracefully pre-`init` — deferred, not in CACHE-001 scope.
 
 ## Open Questions
 

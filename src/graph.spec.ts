@@ -404,6 +404,49 @@ describe('inferred project targets', () => {
     ]);
   });
 
+  it('keeps narrow outputs for crates with build.rs, examples, tests, and benches', async () => {
+    // `cargo metadata` reports these auxiliary targets with a non-`bin` kind
+    // but `crate_types: ['bin']`. They must NOT trip the unsupported-library
+    // fallback, or every real crate with a build script loses narrowing.
+    await setMetadata(
+      md([
+        pkg({
+          name: 'foo-lib',
+          targets: [
+            { kind: ['lib'], crate_types: ['lib'], name: 'foo-lib', src_path: '' },
+            { kind: ['custom-build'], crate_types: ['bin'], name: 'build-script-build', src_path: '' },
+            { kind: ['example'], crate_types: ['bin'], name: 'demo', src_path: '' },
+            { kind: ['test'], crate_types: ['bin'], name: 'it', src_path: '' },
+            { kind: ['bench'], crate_types: ['bin'], name: 'perf', src_path: '' },
+          ],
+        }),
+      ]),
+    );
+
+    const { createNodesV2 } = await load();
+    const fn = createNodesV2[1] as (
+      paths: readonly string[],
+      opts: unknown,
+      ctx: { workspaceRoot: string; nxJsonConfiguration: object },
+    ) => Promise<
+      Array<[
+        string,
+        { projects: Record<string, { targets: Record<string, { outputs?: string[] }> }> },
+      ]>
+    >;
+
+    const result = await fn(['crates/foo-lib/Cargo.toml'], {}, {
+      workspaceRoot: ws,
+      nxJsonConfiguration: {},
+    });
+
+    const [, payload] = result[0];
+    expect(payload.projects['crates/foo-lib'].targets.build.outputs).toEqual([
+      '{workspaceRoot}/target/debug/libfoo_lib.rlib',
+      '{workspaceRoot}/target/release/libfoo_lib.rlib',
+    ]);
+  });
+
   it('honours the narrowBuildOutputs false plugin option for inferred targets', async () => {
     await setMetadata(md([pkg({ name: 'foo' })]));
 

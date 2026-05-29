@@ -52,6 +52,40 @@ describe('initGenerator cache named inputs', () => {
     expect(warn).not.toHaveBeenCalled();
   });
 
+  it('parses JSONC nx.json with comments without throwing', async () => {
+    const tree = createTree();
+    tree.write(
+      'nx.json',
+      `{
+  // consumer workspace defaults
+  "namedInputs": { "default": ["{projectRoot}/**/*"] }
+}`,
+    );
+
+    await initGenerator(tree, { skipFormat: true });
+
+    const nxJson = JSON.parse(tree.read('nx.json')?.toString() ?? '{}');
+    expect(nxJson.namedInputs.rustSources).toEqual(RUST_SOURCES_PATTERNS);
+    expect(nxJson.namedInputs.rustWorkspace).toEqual(RUST_WORKSPACE_PATTERNS);
+    expect(nxJson.namedInputs.default).toEqual(['{projectRoot}/**/*']);
+  });
+
+  it('leaves nx.json byte-for-byte untouched when nothing changes', async () => {
+    const tree = createTree();
+    const original = `{
+  // keep me
+  "namedInputs": {
+    "rustSources": ${JSON.stringify(RUST_SOURCES_PATTERNS)},
+    "rustWorkspace": ${JSON.stringify(RUST_WORKSPACE_PATTERNS)}
+  }
+}`;
+    tree.write('nx.json', original);
+
+    await initGenerator(tree, { skipFormat: true });
+
+    expect(tree.read('nx.json')?.toString()).toBe(original);
+  });
+
   it('warns and leaves non-array named inputs unchanged', async () => {
     const tree = createTree();
     tree.write(

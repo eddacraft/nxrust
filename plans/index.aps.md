@@ -109,7 +109,7 @@ historical reference; full detail in
 | 01 | [v0.1-shakedown](./modules/01-v0.1-shakedown.aps.md) | 3.1 | Prove the plugin end-to-end on a consumer workspace, ship first npm release | Complete | — |
 | 02 | [workspace-inference-and-graph](./modules/02-workspace-inference-and-graph.aps.md) | 6.1, 6.2 | Cargo workspace + project graph inference (members, globs, excludes, edges, external nodes, kind metadata) | Proposed | 01 |
 | 03 | [target-inference](./modules/03-target-inference.aps.md) | 6.3 | Auto-inferred Nx targets per crate; zero `project.json`; `fmt` / `fmt-check` split | Proposed | 02 |
-| 04 | [cache-semantics](./modules/04-cache-semantics.aps.md) | 6.4 | Named inputs, output narrowing, env-var hashing, per-target cache rules | In Progress | 03 |
+| 04 | [cache-semantics](./modules/04-cache-semantics.aps.md) | 6.4 | Named inputs, output narrowing, env-var hashing, per-target cache rules | Complete | 03 |
 | 05 | [cargo-features](./modules/05-cargo-features.aps.md) | 6.5 | Feature/profile/target options across executors; inferred configurations | Proposed | 03 |
 | 06 | [toolchain-awareness](./modules/06-toolchain-awareness.aps.md) | 6.6 | `rust-toolchain.toml`, `cargo +toolchain`, `rustc -Vv`/`cargo -V` hashing | Proposed | 04 |
 | 07 | [generators](./modules/07-generators.aps.md) | 6.7 | Generator inventory: CLI, service, TUI, ffi, bench, xtask, policy preset | Proposed | 03 |
@@ -185,7 +185,7 @@ items only ship when a real consumer ask promotes them.
 
 | Risk | Impact | Mitigation |
 |------|--------|------------|
-| `target/` caching yields stale artefacts under remote cache | high | Narrow `outputs` per target; cache reports not whole `target/` subtrees. **Resolved 2026-05-12** for `test` (now `outputs: []`); `build` retains `target/` outputs deliberately. Broader rules tracked in `04-cache-semantics`. |
+| `target/` caching yields stale artefacts under remote cache | high | Narrow `outputs` per target; cache reports not whole `target/` subtrees. **Resolved 2026-05-12** for `test` (now `outputs: []`) and **2026-05-29** for `build` (narrowed to per-binary/per-rlib paths via CACHE-002, with a `narrowBuildOutputs: false` escape hatch for target-dir/custom-profile/unsupported crate types). Contract closed in `04-cache-semantics` (Complete). |
 | Nx 22 project-graph plugin API drifts on minor upgrades | medium | Small public surface (`createNodesV2` + `createDependencies` only); CI smoke test pins the contract; semver-backed schemas land in `16-adoption-and-docs` for v1.0. |
 | `cargo metadata` performance on large workspaces | medium | Mtime-keyed `Cargo.lock` cache already in `graph.ts`; performance-tracking in `02-workspace-inference-and-graph` and `13-affected-refinement`. |
 | Consumer switchover breaks the consumer's pnpm graph mid-flight | medium | Switch only after the consumer's own CI smoke is green; keep a revert commit ready. Repeats per major version bump. |

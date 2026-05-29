@@ -6,6 +6,8 @@ const root = process.cwd();
 const packDir = join(root, '.e2e-pack');
 const fixtureDir = join(root, 'e2e', 'fixture');
 const fixturePackage = join(fixtureDir, 'package.json');
+const fixtureNxJson = join(fixtureDir, 'nx.json');
+const fixtureToolchain = join(fixtureDir, 'rust-toolchain.toml');
 
 // Derive the tarball name from package.json so version bumps don't break the
 // e2e smoke. `pnpm pack` writes `<scope-stripped>-<name>-<version>.tgz`.
@@ -20,7 +22,7 @@ function run(command, args, options = {}) {
     shell: process.platform === 'win32',
   });
   if (result.status !== 0) {
-    process.exit(result.status ?? 1);
+    throw new Error(`${command} ${args.join(' ')} exited with ${result.status}`);
   }
 }
 
@@ -41,6 +43,28 @@ run('pnpm', ['add', '--save-dev', '--lockfile=false', tarball], {
   cwd: fixtureDir,
 });
 writeFileSync(fixturePackage, fixturePackageBeforeTarballInstall);
-run('pnpm', ['exec', 'nx', 'run', 'smoke:check', '--skip-nx-cache'], {
-  cwd: fixtureDir,
-});
+
+// Mirror a real install: `nx add @eddacraft/nxrust` runs the init generator,
+// which registers the `rustSources`/`rustWorkspace` named inputs that every
+// inferred target references. Without it the graph fails to load with
+// "rustSources is an invalid fileset". Snapshot the committed fixture files
+// first so a local run leaves no diff behind, restoring them in `finally`.
+const fixtureNxJsonBefore = readFileSync(fixtureNxJson);
+try {
+  run(
+    'pnpm',
+    ['exec', 'nx', 'g', '@eddacraft/nxrust:init', '--skipFormat', '--no-interactive'],
+    { cwd: fixtureDir },
+  );
+  run('pnpm', ['exec', 'nx', 'run', 'smoke:check', '--skip-nx-cache'], {
+    cwd: fixtureDir,
+  });
+} catch (error) {
+  console.error(String(error.message ?? error));
+  process.exitCode = 1;
+} finally {
+  writeFileSync(fixtureNxJson, fixtureNxJsonBefore);
+  // `init` creates rust-toolchain.toml in the fixture; drop it so the working
+  // tree stays clean (the fixture is intentionally toolchain-file-free).
+  rmSync(fixtureToolchain, { force: true });
+}

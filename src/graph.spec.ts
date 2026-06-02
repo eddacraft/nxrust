@@ -37,6 +37,11 @@ async function cargoMetadataMock() {
   return cargo.cargoMetadata as ReturnType<typeof vi.fn>;
 }
 
+async function clearCargoMetadataMock() {
+  const cargoFn = await cargoMetadataMock();
+  cargoFn.mockClear();
+}
+
 async function setStatMtimes(mtimes: Record<string, number | 'missing'>) {
   const fs = await import('node:fs');
   (fs.statSync as ReturnType<typeof vi.fn>).mockImplementation((path: string) => {
@@ -77,6 +82,7 @@ function md(packages: CargoMetadata['packages']): CargoMetadata {
 
 describe('createDependencies', () => {
   beforeEach(async () => {
+    await clearCargoMetadataMock();
     const { __resetGraphCacheForTests } = await load();
     __resetGraphCacheForTests();
     await setStatMtimes({
@@ -277,6 +283,7 @@ describe('createDependencies', () => {
 
 describe('inferred project targets', () => {
   beforeEach(async () => {
+    await clearCargoMetadataMock();
     const { __resetGraphCacheForTests } = await load();
     __resetGraphCacheForTests();
     await setStatMtimes({
@@ -554,6 +561,7 @@ describe('inferred project targets', () => {
 
 describe('graph cache invalidation', () => {
   beforeEach(async () => {
+    await clearCargoMetadataMock();
     const { __resetGraphCacheForTests } = await load();
     __resetGraphCacheForTests();
   });

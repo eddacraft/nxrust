@@ -48,7 +48,7 @@
     "chalk": "^4.1.2"
   },
   "peerDependencies": {
-    "@nx/devkit": ">=22.0.0"
+    "@nx/devkit": "^22.6.5"
   },
   "devDependencies": {
     "@nx/devkit": "^22.7.5",

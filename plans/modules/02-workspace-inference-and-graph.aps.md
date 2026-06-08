@@ -1,5 +1,5 @@
 <!-- APS Module: 02-workspace-inference-and-graph -->
-<!-- Status: Proposed -->
+<!-- Status: In Progress -->
 
 # Workspace Inference and Project Graph
 
@@ -8,7 +8,7 @@ beyond the canonical-layout cases v0.1 already handles.
 
 | ID | Owner | Status |
 |----|-------|--------|
-| GRAPH | eddacraft | Proposed |
+| GRAPH | eddacraft | In Progress |
 
 ## Purpose
 
@@ -126,8 +126,51 @@ Promote individual Work Items to Ready when:
 
 ## Work Items
 
-*No work items yet — module is Proposed. Items promote individually on
-real-consumer asks per D-007.*
+### GRAPH-001: `package.metadata.nxrust` parser + tag lifting
+
+**Status: In Progress**
+
+- **Intent:** Parse the `[package.metadata.nxrust]` table from each member
+  `Cargo.toml` during `createNodesV2` and lift `metadata.nxrust.tags` into
+  the inferred Nx project's `tags`, so a pure-Cargo crate acquires tags with
+  no `project.json`. Trigger: Anvil ratified the convention 2026-05-20 (D-G4)
+  and the `crate` / `library` / `binary` generators already emit it, but the
+  tags stay inert until this parser ships — promotes per D-007. Sibling
+  modules [03-target-inference](./03-target-inference.aps.md) and
+  [05-cargo-features](./05-cargo-features.aps.md) consume the same parser.
+- **Expected Outcome:** A member crate carrying
+  `[package.metadata.nxrust] tags = ["cargo", "scope:anvil"]` and **no**
+  `project.json` (today the inferred node has `tags: []`) yields an inferred
+  Nx project whose `tags` array is `["cargo", "scope:anvil"]`. Where a
+  `project.json` also carries tags, Nx's own `mergeProjectConfigurations`
+  unions and de-duplicates across sources (that cross-source merge is Nx's
+  behaviour, not this plugin's, and is verified by the e2e rather than the
+  unit tests). Scope
+  is the table-parser foundation and the `tags` key only; `test-runner` and
+  target-override keys are parsed-but-ignored here and stay Proposed for
+  modules 03 / 05. **Implementation note:** the table is read from the
+  `package.metadata` field that `cargo metadata` already surfaces in its JSON
+  output — *not* a separate TOML read of the manifest. This is stronger than
+  the planned "direct TOML read" (D-G1 caveat): `cargo metadata` stays the
+  single authoritative source, no parallel manifest parse exists. A malformed
+  `tags` value (not an array of strings) warns and is ignored rather than
+  throwing, so one bad manifest never breaks graph construction for the whole
+  workspace. **Deferred:** warning on *unknown* sibling keys routes "via
+  [14-diagnostics](./14-diagnostics.aps.md)" — that module is Proposed/unbuilt
+  and the known-key set is still being finalised by modules 03/05, so the
+  unknown-key warning is deferred to 14-diagnostics rather than guessed at
+  here. No graph *edge* changes (additive).
+- **Validation:** Unit tests in `src/graph.spec.ts` (`inferred project tags`)
+  assert lift, de-dup, omit-when-absent, empty-array omit, coexistence with
+  reserved keys, and warn-and-ignore on malformed `tags`. E2e
+  `nx show project <crate> --json` reports `tags: ["cargo","scope:anvil"]` for
+  a crate with no `project.json`. Ships as a **minor** bump with a CHANGELOG
+  entry (D-008), since the project `tags` set changes for adopters already
+  writing the metadata key.
+
+*Further items (nested globs, excludes, single-crate-at-root, name
+normalisation, content-hash lockfile keying, dep-kind/feature edge metadata)
+stay Proposed and promote individually on real-consumer asks per D-007.*
 
 ## Risks & Mitigations
 

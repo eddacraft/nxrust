@@ -115,7 +115,7 @@ historical reference; full detail in
 | 07 | [generators](./modules/07-generators.aps.md) | 6.7 | Generator inventory: CLI, service, TUI, ffi, bench, xtask, policy preset | Proposed | 03 |
 | 08 | [release-support](./modules/08-release-support.aps.md) | 6.8 | Cargo-aware Nx release: version, internal deps, dry-run, registries, fixed/independent modes | Proposed | 03 |
 | 09 | [supply-chain](./modules/09-supply-chain.aps.md) | 6.9 | `audit`, `deny`, `outdated`, `vet`, `sbom`, `licenses` | Proposed | 03 |
-| 10 | [wasm-napi](./modules/10-wasm-napi.aps.md) | 6.10 | `napi`, `wasm-pack` executors and generators (Monodon-parity surface) | Proposed | 03, 07 |
+| 10 | [wasm-napi](./modules/10-wasm-napi.aps.md) | 6.10 | `napi`, `wasm-pack` executors and generators (Monodon-parity surface) | In Progress (WN-001) | 03, 07 |
 | 11 | [nextest](./modules/11-nextest.aps.md) | 6.11 | `cargo nextest` executor with profiles, partitions, archive-file | Proposed | 03 |
 | 12 | [workspace-synthetic-project](./modules/12-workspace-synthetic-project.aps.md) | 6.12 | Synthetic `rust-workspace` project for workspace-level targets | Proposed | 02 |
 | 13 | [affected-refinement](./modules/13-affected-refinement.aps.md) | 6.13 | Lockfile / toolchain / manifest / feature-aware affected behaviour | Proposed | 02, 04 |

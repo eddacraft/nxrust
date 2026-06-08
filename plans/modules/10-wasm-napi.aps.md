@@ -165,7 +165,8 @@ Promote individual Work Items to Ready when:
 
 ### WN-001: Cross-language test-seam contract helper (D-WN4)
 
-**Status: In Progress**
+**Status: In Progress** — PR [#21](https://github.com/eddacraft/nxrust/pull/21)
+(implementation + 19 unit tests landed; awaiting review/merge → then Merged).
 
 - **Intent:** Provide the reusable utility that enforces D-WN4 — given a JS
   project that depends on a Rust crate, sever the workspace-default

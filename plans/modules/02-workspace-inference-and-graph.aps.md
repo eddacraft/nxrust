@@ -128,7 +128,7 @@ Promote individual Work Items to Ready when:
 
 ### GRAPH-001: `package.metadata.nxrust` parser + tag lifting
 
-**Status: In Progress**
+**Status: Merged** (PR #22, squash-merged 2026-06-08; ships in 0.2.0).
 
 - **Intent:** Parse the `[package.metadata.nxrust]` table from each member
   `Cargo.toml` during `createNodesV2` and lift `metadata.nxrust.tags` into

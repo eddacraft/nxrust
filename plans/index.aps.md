@@ -107,7 +107,7 @@ historical reference; full detail in
 | # | Module | Spec § | Purpose | Status | Dependencies |
 |---|--------|--------|---------|--------|--------------|
 | 01 | [v0.1-shakedown](./modules/01-v0.1-shakedown.aps.md) | 3.1 | Prove the plugin end-to-end on a consumer workspace, ship first npm release | Complete | — |
-| 02 | [workspace-inference-and-graph](./modules/02-workspace-inference-and-graph.aps.md) | 6.1, 6.2 | Cargo workspace + project graph inference (members, globs, excludes, edges, external nodes, kind metadata) | Proposed | 01 |
+| 02 | [workspace-inference-and-graph](./modules/02-workspace-inference-and-graph.aps.md) | 6.1, 6.2 | Cargo workspace + project graph inference (members, globs, excludes, edges, external nodes, kind metadata) | In Progress | 01 |
 | 03 | [target-inference](./modules/03-target-inference.aps.md) | 6.3 | Auto-inferred Nx targets per crate; zero `project.json`; `fmt` / `fmt-check` split | Proposed | 02 |
 | 04 | [cache-semantics](./modules/04-cache-semantics.aps.md) | 6.4 | Named inputs, output narrowing, env-var hashing, per-target cache rules | Complete | 03 |
 | 05 | [cargo-features](./modules/05-cargo-features.aps.md) | 6.5 | Feature/profile/target options across executors; inferred configurations | Proposed | 03 |

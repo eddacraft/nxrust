@@ -5,11 +5,15 @@ Development-time discoveries during APS execution. See `aps-rules.md`
 
 ## Issues
 
-### ISS-001 — Cross-language `^build` inheritance amplifies cargo lock contention
+### ISS-001: Cross-language `^build` inheritance amplifies cargo lock contention
 
-**Logged:** 2026-05-20
-**Source:** Anvil consumer workspace (eddacraft/anvil-001)
-**Related modules:** 10-wasm-napi, 14-diagnostics, 16-adoption-and-docs
+| Field | Value |
+|-------|-------|
+| Status | Resolved |
+| Discovered | 2026-05-20 |
+| Severity | High |
+| Source | Anvil consumer workspace (eddacraft/anvil-001) |
+| Related modules | 10-wasm-napi, 14-diagnostics, 16-adoption-and-docs |
 
 A mixed TS+Rust Nx workspace where JS `package.json`s reference a sibling
 napi-rs crate inherits Nx's workspace-default `test.dependsOn: ["^build"]`

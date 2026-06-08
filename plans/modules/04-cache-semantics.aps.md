@@ -13,7 +13,7 @@ conservative output narrowing.
 ## Purpose
 
 Rust caching is notoriously easy to get wrong. v0.1 already narrowed the
-`test` target's outputs after a real consumer regression (CHANGELOG 0.1.2
+`test` target's outputs after a real consumer regression (CHANGELOG 0.2.0
 entry — `outputs: []` for `test`). Spec §6.4 lays out the broader contract:
 named inputs reusable across targets, environment-variable hashing for
 toolchain/build-affecting vars, target-triple and toolchain version
@@ -65,7 +65,7 @@ caching is added in later modules.
 | `check` | `[]` (result-cached only) |
 | `clippy` / `lint` | `[]` (or `clippy.json` if requested) |
 | `fmt-check` | `[]` |
-| `test` | `[]` (per v0.1.2 fix); test reports cached when configured |
+| `test` | `[]` (per v0.2.0 fix); test reports cached when configured |
 | `build` | `{workspaceRoot}/target/{profile}/<binary>` only when safe — narrow, not whole `target/` |
 | `doc` | `{workspaceRoot}/target/doc` |
 | `run` | not cached |

@@ -1,6 +1,6 @@
 {
   "name": "@eddacraft/nxrust",
-  "version": "0.1.2",
+  "version": "0.2.0",
   "description": "Nx plugin that wraps Cargo — executors, generators, and project-graph integration for Rust workspaces inside Nx monorepos.",
   "keywords": [
     "nx",

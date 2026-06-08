@@ -1,6 +1,17 @@
 # Changelog
 
-## 0.1.2 — Unreleased
+## 0.2.0 — Unreleased
+
+- Infer Nx project `tags` from `[package.metadata.nxrust] tags = [...]` in a
+  crate's `Cargo.toml`. A crate that declares the key acquires those tags on
+  its inferred Nx project with no `project.json`; Nx then merges them with any
+  `project.json` tags (its `mergeProjectConfigurations` unions and
+  de-duplicates across sources). The table is read from the `package.metadata` that
+  `cargo metadata` already emits — no separate manifest parse, so
+  `cargo metadata` stays the single authoritative source. A malformed `tags`
+  value (anything other than an array of strings) warns and is ignored rather
+  than failing graph construction. This changes the inferred project's `tags`
+  set for adopters already writing the key, hence the **minor** bump (D-008).
 
 - `test` target now declares `outputs: []` instead of caching the
   workspace `target/` directory. `cargo test` reuses the `target/`

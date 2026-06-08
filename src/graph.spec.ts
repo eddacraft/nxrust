@@ -1,4 +1,4 @@
-import type { CreateDependenciesContext } from '@nx/devkit';
+import { logger, type CreateDependenciesContext } from '@nx/devkit';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { CargoMetadata } from './models/cargo-metadata';
 
@@ -719,5 +719,178 @@ describe('graph cache invalidation', () => {
     await runCreateNodes(graph);
 
     expect(cargoFn).toHaveBeenCalledTimes(2);
+  });
+});
+
+describe('inferred project tags', () => {
+  beforeEach(async () => {
+    const { __resetGraphCacheForTests } = await load();
+    __resetGraphCacheForTests();
+    await setStatMtimes({
+      '/ws/Cargo.lock': 1,
+      '/ws/Cargo.toml': 1,
+      '/ws/crates/foo/Cargo.toml': 1,
+    });
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  // Run `createNodesV2` over a metadata set and return the inferred project
+  // configs keyed by root, so tests can assert tags per crate.
+  async function inferProjects(
+    packages: CargoMetadata['packages'],
+    paths: readonly string[],
+  ): Promise<Record<string, { projectType?: string; tags?: string[] }>> {
+    await setMetadata(md(packages));
+    const { createNodesV2 } = await load();
+    const fn = createNodesV2[1] as (
+      paths: readonly string[],
+      opts: unknown,
+      ctx: { workspaceRoot: string; nxJsonConfiguration: object },
+    ) => Promise<
+      Array<[string, { projects: Record<string, { projectType?: string; tags?: string[] }> }]>
+    >;
+    const results = await fn(paths, {}, { workspaceRoot: ws, nxJsonConfiguration: {} });
+    return Object.fromEntries(results.flatMap(([, payload]) => Object.entries(payload.projects)));
+  }
+
+  // Single-crate convenience wrapper around `inferProjects`.
+  async function inferTagsFor(
+    over: Partial<CargoMetadata['packages'][0]>,
+  ): Promise<string[] | undefined> {
+    const projects = await inferProjects(
+      [pkg({ name: 'foo', ...over })],
+      ['crates/foo/Cargo.toml'],
+    );
+    return projects['crates/foo'].tags;
+  }
+
+  it('lifts package.metadata.nxrust.tags into the inferred project tags', async () => {
+    expect(
+      await inferTagsFor({ metadata: { nxrust: { tags: ['cargo', 'scope:anvil'] } } }),
+    ).toEqual(['cargo', 'scope:anvil']);
+  });
+
+  it('lifts tags on a binary crate (projectType application) too', async () => {
+    const projects = await inferProjects(
+      [
+        pkg({
+          name: 'foo',
+          targets: [{ kind: ['bin'], crate_types: ['bin'], name: 'foo', src_path: '' }],
+          metadata: { nxrust: { tags: ['cargo', 'type:bin'] } },
+        }),
+      ],
+      ['crates/foo/Cargo.toml'],
+    );
+    expect(projects['crates/foo'].projectType).toBe('application');
+    expect(projects['crates/foo'].tags).toEqual(['cargo', 'type:bin']);
+  });
+
+  it('de-duplicates repeated tags while preserving first-seen order', async () => {
+    expect(
+      await inferTagsFor({ metadata: { nxrust: { tags: ['cargo', 'cargo', 'rust'] } } }),
+    ).toEqual(['cargo', 'rust']);
+  });
+
+  it('omits tags when the crate has no package metadata', async () => {
+    expect(await inferTagsFor({})).toBeUndefined();
+  });
+
+  it('omits tags when package metadata is explicitly null', async () => {
+    const warn = vi.spyOn(logger, 'warn').mockImplementation(() => {});
+    expect(await inferTagsFor({ metadata: null })).toBeUndefined();
+    expect(warn).not.toHaveBeenCalled();
+  });
+
+  it('omits tags when the nxrust value is an array, not a table', async () => {
+    expect(await inferTagsFor({ metadata: { nxrust: ['cargo'] } })).toBeUndefined();
+  });
+
+  it('omits tags when the nxrust table has no tags key', async () => {
+    expect(
+      await inferTagsFor({ metadata: { nxrust: { project: 'foo' } } }),
+    ).toBeUndefined();
+  });
+
+  it('omits tags for an empty tags array', async () => {
+    expect(
+      await inferTagsFor({ metadata: { nxrust: { tags: [] } } }),
+    ).toBeUndefined();
+  });
+
+  it('lifts tags even when other reserved nxrust keys are present', async () => {
+    expect(
+      await inferTagsFor({
+        metadata: { nxrust: { tags: ['cargo'], project: 'foo', 'test-runner': 'nextest' } },
+      }),
+    ).toEqual(['cargo']);
+  });
+
+  it('does not warn on valid input', async () => {
+    const warn = vi.spyOn(logger, 'warn').mockImplementation(() => {});
+    await inferTagsFor({ metadata: { nxrust: { tags: ['cargo'] } } });
+    expect(warn).not.toHaveBeenCalled();
+  });
+
+  it('warns and ignores a non-array tags value instead of throwing', async () => {
+    const warn = vi.spyOn(logger, 'warn').mockImplementation(() => {});
+    expect(
+      await inferTagsFor({ metadata: { nxrust: { tags: 'cargo' } } }),
+    ).toBeUndefined();
+    expect(warn).toHaveBeenCalledWith(
+      expect.stringContaining('[nxrust] foo'),
+    );
+    expect(warn).toHaveBeenCalledWith(
+      expect.stringContaining('expected an array of strings'),
+    );
+  });
+
+  it('warns and ignores a tags array containing non-strings (incl. nested arrays)', async () => {
+    const warn = vi.spyOn(logger, 'warn').mockImplementation(() => {});
+    expect(
+      await inferTagsFor({ metadata: { nxrust: { tags: ['cargo', 42, ['nested']] } } }),
+    ).toBeUndefined();
+    expect(warn).toHaveBeenCalledWith(
+      expect.stringContaining('expected an array of strings'),
+    );
+  });
+
+  it('keeps one malformed crate from suppressing a sibling crate\'s valid tags', async () => {
+    const warn = vi.spyOn(logger, 'warn').mockImplementation(() => {});
+    await setStatMtimes({
+      '/ws/Cargo.lock': 1,
+      '/ws/Cargo.toml': 1,
+      '/ws/crates/foo/Cargo.toml': 1,
+      '/ws/crates/bar/Cargo.toml': 1,
+    });
+    const projects = await inferProjects(
+      [
+        pkg({ name: 'foo', metadata: { nxrust: { tags: 'oops' } } }),
+        pkg({ name: 'bar', metadata: { nxrust: { tags: ['cargo', 'ok'] } } }),
+      ],
+      ['crates/foo/Cargo.toml', 'crates/bar/Cargo.toml'],
+    );
+    // The malformed `foo` warns and gets no tags; `bar` is unaffected.
+    expect(projects['crates/foo'].tags).toBeUndefined();
+    expect(projects['crates/bar'].tags).toEqual(['cargo', 'ok']);
+    expect(warn).toHaveBeenCalledTimes(1);
+  });
+
+  it('preserves tags on the cache-hit path (second createNodesV2 call)', async () => {
+    await setMetadata(md([pkg({ name: 'foo', metadata: { nxrust: { tags: ['cargo'] } } })]));
+    const { createNodesV2 } = await load();
+    const fn = createNodesV2[1] as (
+      paths: readonly string[],
+      opts: unknown,
+      ctx: { workspaceRoot: string; nxJsonConfiguration: object },
+    ) => Promise<Array<[string, { projects: Record<string, { tags?: string[] }> }]>>;
+    const ctx = { workspaceRoot: ws, nxJsonConfiguration: {} };
+
+    await fn(['crates/foo/Cargo.toml'], {}, ctx);
+    // Second call with unchanged mtimes hits the metadata cache.
+    const second = await fn(['crates/foo/Cargo.toml'], {}, ctx);
+    expect(second[0][1].projects['crates/foo'].tags).toEqual(['cargo']);
   });
 });

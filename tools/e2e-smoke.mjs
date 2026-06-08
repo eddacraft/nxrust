@@ -26,6 +26,20 @@ function run(command, args, options = {}) {
   }
 }
 
+// Like `run`, but captures stdout so the caller can assert on command output.
+function capture(command, args, options = {}) {
+  const result = spawnSync(command, args, {
+    cwd: options.cwd ?? root,
+    encoding: 'utf8',
+    shell: process.platform === 'win32',
+  });
+  if (result.status !== 0) {
+    process.stderr.write(result.stderr ?? '');
+    throw new Error(`${command} ${args.join(' ')} exited with ${result.status}`);
+  }
+  return result.stdout ?? '';
+}
+
 rmSync(packDir, { recursive: true, force: true });
 rmSync(join(fixtureDir, '.nx'), { recursive: true, force: true });
 rmSync(join(fixtureDir, 'node_modules', '@eddacraft', 'nxrust'), {
@@ -59,6 +73,25 @@ try {
   run('pnpm', ['exec', 'nx', 'run', 'smoke:check', '--skip-nx-cache'], {
     cwd: fixtureDir,
   });
+
+  // GRAPH-001: the smoke crate declares `[package.metadata.nxrust] tags` and
+  // has no project.json, so the inferred Nx project must surface those tags
+  // end-to-end through `nx show project`.
+  const shown = capture(
+    'pnpm',
+    ['exec', 'nx', 'show', 'project', 'smoke', '--json'],
+    { cwd: fixtureDir },
+  );
+  const project = JSON.parse(shown.slice(shown.indexOf('{'), shown.lastIndexOf('}') + 1));
+  const expectedTags = ['cargo', 'scope:smoke'];
+  const missing = expectedTags.filter((tag) => !(project.tags ?? []).includes(tag));
+  if (missing.length > 0) {
+    throw new Error(
+      `nx show project smoke is missing inferred tags ${JSON.stringify(missing)}; ` +
+        `got ${JSON.stringify(project.tags ?? [])}`,
+    );
+  }
+  console.log(`e2e: inferred tags OK — ${JSON.stringify(project.tags)}`);
 } catch (error) {
   console.error(String(error.message ?? error));
   process.exitCode = 1;

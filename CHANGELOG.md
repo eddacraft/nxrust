@@ -13,6 +13,13 @@
   than failing graph construction. This changes the inferred project's `tags`
   set for adopters already writing the key, hence the **minor** bump (D-008).
 
+- Add `applyCrossLanguageTestSeam` / `severCrossLanguageTestEdge` helpers
+  (exported from the package root). They sever the inherited `^build` from a
+  JS project's `test` target so a JS test never triggers a transitive cargo
+  build and serialises on the workspace `target/` lock — the D-WN4 contract.
+  An opt-in (`consumesArtifactAtBuildTime`) retains `^build` for builds that
+  genuinely import the Rust artefact at TS build time. Additive; no
+  graph-shape change. Empirical anchor: eddacraft/anvil-001#1729 (46×).
 - `test` target now declares `outputs: []` instead of caching the
   workspace `target/` directory. `cargo test` reuses the `target/`
   populated by `build`, so per-crate test targets do not own that

@@ -5,3 +5,9 @@ edition = "2021"
 
 [lib]
 path = "src/lib.rs"
+
+# Exercises GRAPH-001 tag lifting: these tags must appear on the inferred Nx
+# project with no project.json. The e2e asserts `nx show project smoke --json`
+# surfaces them.
+[package.metadata.nxrust]
+tags = ["cargo", "scope:smoke"]

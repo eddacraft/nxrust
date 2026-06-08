@@ -1,5 +1,6 @@
 import {
   createNodesFromFiles,
+  logger,
   normalizePath,
   type CreateDependencies,
   type CreateDependenciesContext,
@@ -339,13 +340,71 @@ function inferProjectConfig(
     };
   }
 
+  const tags = inferTags(pkg);
+
   return {
     root,
     name: pkg.name,
     projectType: hasBin ? 'application' : 'library',
     sourceRoot: `${root}/src`,
+    // Only attach `tags` when the crate actually declares them, so crates
+    // without the metadata key keep emitting an untagged config and Nx's
+    // project.json merge is untouched.
+    ...(tags ? { tags } : {}),
     targets,
   };
+}
+
+/**
+ * The `[package.metadata.nxrust]` table, as surfaced by `cargo metadata`
+ * (Cargo serialises `[package.metadata]` straight into the package JSON).
+ * Reading it from the metadata we already have keeps `cargo metadata` the
+ * single authoritative source (D-G1) — no second TOML read of the manifest.
+ */
+function nxrustMetadata(pkg: CargoPackage): Record<string, unknown> | undefined {
+  const metadata = pkg.metadata;
+  // `typeof [] === 'object'`, so arrays must be excluded explicitly — a TOML
+  // `metadata = [...]` or `nxrust = [...]` must not be treated as a table.
+  if (!metadata || typeof metadata !== 'object' || Array.isArray(metadata)) {
+    return undefined;
+  }
+  const nxrust = (metadata as Record<string, unknown>).nxrust;
+  if (!nxrust || typeof nxrust !== 'object' || Array.isArray(nxrust)) {
+    return undefined;
+  }
+  return nxrust as Record<string, unknown>;
+}
+
+/**
+ * Lift `package.metadata.nxrust.tags` into the inferred project's Nx tags so a
+ * pure-Cargo crate acquires tags with no `project.json` (GRAPH-001, D-G4). Nx
+ * then merges these with any `project.json` tags via its own
+ * `mergeProjectConfigurations` (which unions and de-duplicates across sources)
+ * — that cross-source merge is Nx's behaviour, not this plugin's, and is
+ * covered by the e2e rather than these unit tests.
+ *
+ * A malformed `tags` value (not an array of strings) warns and is ignored
+ * rather than throwing — one bad manifest must not break graph construction
+ * for the whole workspace. Unknown sibling keys (e.g. `project`,
+ * `test-runner`) are left untouched here; warning on them is deferred to the
+ * 14-diagnostics work, which owns the diagnostic channel and the finalised
+ * known-key set defined by modules 03/05.
+ */
+function inferTags(pkg: CargoPackage): string[] | undefined {
+  const nxrust = nxrustMetadata(pkg);
+  if (!nxrust || !('tags' in nxrust)) return undefined;
+
+  const tags = nxrust.tags;
+  if (!Array.isArray(tags) || tags.some((tag) => typeof tag !== 'string')) {
+    logger.warn(
+      `[nxrust] ${pkg.name}: ignoring \`package.metadata.nxrust.tags\` — ` +
+        `expected an array of strings.`,
+    );
+    return undefined;
+  }
+
+  const unique = [...new Set(tags as string[])];
+  return unique.length > 0 ? unique : undefined;
 }
 
 // Cargo target `kind` values that denote a library artefact (as opposed to

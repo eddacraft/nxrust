@@ -59,6 +59,7 @@ adopter with a workspace-level `^build` test dependency inherits the
 | Severity | High |
 | Source | `pnpm test` on `main` (reproduced on clean HEAD) |
 | Related modules | 02-workspace-inference-and-graph |
+| Tracked | [eddacraft/nxrust#23](https://github.com/eddacraft/nxrust/issues/23) |
 
 Seven tests under `src/graph.spec.ts > graph cache invalidation` fail on
 `main` independently of any feature branch. The `cargo metadata` cache is not

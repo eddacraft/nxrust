@@ -1,5 +1,5 @@
 <!-- APS Module: 10-wasm-napi -->
-<!-- Status: Proposed (WN-001 In Progress) -->
+<!-- Status: Proposed -->
 
 # WASM and NAPI
 

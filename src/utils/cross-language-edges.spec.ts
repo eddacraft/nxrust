@@ -114,6 +114,17 @@ describe('applyCrossLanguageTestSeam (D-WN4)', () => {
           .dependsOn,
       ).toEqual(['prebuild', '^build']);
     });
+
+    it('returns a fresh array — does not alias the input when retaining `^build`', () => {
+      const dependsOn = ['^build'];
+      const test: TargetConfiguration = { dependsOn };
+      const result = applyCrossLanguageTestSeam(test, {
+        consumesArtifactAtBuildTime: true,
+      });
+      expect(result.dependsOn).not.toBe(dependsOn);
+      (result.dependsOn as string[]).push('mutated');
+      expect(dependsOn).toEqual(['^build']);
+    });
   });
 });
 

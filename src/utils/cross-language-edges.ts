@@ -78,7 +78,9 @@ export function applyCrossLanguageTestSeam(
     const hadBuild = withoutBuild.length !== existing.length;
     return {
       ...testTarget,
-      dependsOn: hadBuild ? existing : [...existing, INHERITED_BUILD],
+      // Always a fresh array — never alias the caller's `testTarget.dependsOn`,
+      // so the returned config honours the "return a copy" contract.
+      dependsOn: hadBuild ? [...existing] : [...existing, INHERITED_BUILD],
     };
   }
 

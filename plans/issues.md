@@ -50,6 +50,32 @@ adopter with a workspace-level `^build` test dependency inherits the
    detects a cross-language graph edge inheriting workspace `^build`.
    Lower priority than 1 and 2.
 
+### ISS-002: `graph.spec.ts` cache-invalidation suite failing on `main`
+
+| Field | Value |
+|-------|-------|
+| Status | Open |
+| Discovered | 2026-06-08 |
+| Severity | High |
+| Source | `pnpm test` on `main` (reproduced on clean HEAD) |
+| Related modules | 02-workspace-inference-and-graph |
+
+Seven tests under `src/graph.spec.ts > graph cache invalidation` fail on
+`main` independently of any feature branch. The `cargo metadata` cache is not
+being reused: a test that expects one `cargo metadata` invocation observes 13
+(`expected "vi.fn()" to be called 1 times, but got 13 times`). The mtime-keyed
+`Cargo.lock` cache in `graph.ts` appears to no longer dedupe across
+`createNodesV2` calls.
+
+Bisect candidates: `4b98e3b fix(deps): upgrade nx to 22.7.5` (devkit graph
+API drift — a known risk in the index risk table) or `07c12d3 Potential fix
+for pull request finding`. Not introduced by the WN-001 branch — verified by
+stashing all WN-001 changes and re-running the suite on clean HEAD.
+
+**Out of scope for WN-001** (module 10); this is graph/cache territory
+(module 02). Logged here for planning-level visibility; needs its own work
+item under 02-workspace-inference-and-graph.
+
 ## Questions
 
 *(none yet)*

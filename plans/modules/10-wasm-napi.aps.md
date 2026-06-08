@@ -163,9 +163,47 @@ Promote individual Work Items to Ready when:
 
 ## Work Items
 
-*No work items yet — module is Proposed. Items promote individually on
-real-consumer asks per D-007 — same gate as the original
-02-monodon-parity module before refactor.*
+### WN-001: Cross-language test-seam contract helper (D-WN4)
+
+**Status: Blocked** — implementation + 19 unit tests complete and pushed;
+PR [#21](https://github.com/eddacraft/nxrust/pull/21) open. Blocked on human
+review/merge (not self-merged per review-before-merge). On merge, advance to
+Merged → Released/Shipped per the dev-workflow lifecycle.
+
+- **Intent:** Provide the reusable utility that enforces D-WN4 — given a JS
+  project that depends on a Rust crate, sever the workspace-default
+  `^build` from that JS project's `test` target so a JS test never pulls a
+  transitive cargo build and serialises on the workspace `target/` lock.
+  Trigger: Anvil PR `eddacraft/anvil-001#1729` / ISS-001 (46× speedup);
+  D-WN4 is already ratified (and lifted to index D-009), so the contract is
+  decided — only the code-authoring is outstanding. Promotes per D-007.
+- **Scope / Non-scope:** Ships the contract *helper* + tests only. The
+  `add-wasm-reference`, `add-napi`, `add-wasm` generators and the `napi` /
+  `wasm-pack` executors stay **Proposed** — no consumer has asked for those
+  executables, and building them would be the speculative work D-007 forbids.
+  When the first of those generators *is* promoted, it consumes this helper
+  rather than re-deriving the `dependsOn` shape; until then the helper is also
+  callable directly by a consumer wiring a cross-language edge by hand.
+- **Expected Outcome:** A `src/utils` helper accepts a JS project's
+  `ProjectConfiguration` (or its `test` `TargetConfiguration`) and returns it
+  with `test.dependsOn` set to an explicit value that **excludes** `^build`
+  (empty by default), overriding any workspace-default `test.dependsOn:
+  ["^build"]`. A `consumesArtifactAtBuildTime` opt-in retains `^build` for the
+  legitimate case where the JS build imports the Rust artefact at TS build
+  time (WASM bundled into webpack/Vite, generated `.d.ts` consumed by `tsc`).
+  Pre-existing non-`^build` `dependsOn` entries on the JS `test` target are
+  preserved; only the `^build` token is stripped. Idempotent — applying twice
+  is a no-op.
+- **Validation:** `pnpm test` — unit suite over the helper asserting: (a)
+  `^build` stripped from a JS `test.dependsOn` that had only `^build`; (b)
+  sibling non-`^build` deps preserved; (c) opt-in flag retains `^build`; (d)
+  idempotency. `pnpm typecheck` green. Ships as a **minor** bump with a
+  CHANGELOG entry (new exported utility; no graph-shape change, additive).
+
+*Further items (the `napi` / `wasm-pack` executors and the `add-*`
+generators) stay Proposed and promote individually on real-consumer asks
+per D-007 — same gate as the original 02-monodon-parity module before
+refactor.*
 
 ## Risks & Mitigations
 

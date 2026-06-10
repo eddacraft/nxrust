@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.2.0 — Unreleased
+## 0.2.0 — 2026-06-10
 
 - Infer Nx project `tags` from `[package.metadata.nxrust] tags = [...]` in a
   crate's `Cargo.toml`. A crate that declares the key acquires those tags on

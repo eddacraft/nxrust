@@ -1,5 +1,5 @@
 <!-- APS Module: 02-workspace-inference-and-graph -->
-<!-- Status: In Progress -->
+<!-- Status: Proposed -->
 
 # Workspace Inference and Project Graph
 
@@ -8,7 +8,7 @@ beyond the canonical-layout cases v0.1 already handles.
 
 | ID | Owner | Status |
 |----|-------|--------|
-| GRAPH | eddacraft | In Progress |
+| GRAPH | eddacraft | Proposed (GRAPH-001 released 0.2.0) |
 
 ## Purpose
 
@@ -128,7 +128,9 @@ Promote individual Work Items to Ready when:
 
 ### GRAPH-001: `package.metadata.nxrust` parser + tag lifting
 
-**Status: Merged** (PR #22, squash-merged 2026-06-08; ships in 0.2.0).
+**Status: Released** (PR #22, squash-merged 2026-06-08; released in
+**`@eddacraft/nxrust@0.2.0`** on 2026-06-10 — release commit `b8d7f4b`,
+tag `v0.2.0`).
 
 - **Intent:** Parse the `[package.metadata.nxrust]` table from each member
   `Cargo.toml` during `createNodesV2` and lift `metadata.nxrust.tags` into

@@ -1,5 +1,5 @@
 <!-- APS Module: 03-target-inference -->
-<!-- Status: Proposed -->
+<!-- Status: Ready -->
 
 # Target Inference
 
@@ -8,7 +8,7 @@ per-crate `project.json` files for the canonical case.
 
 | ID | Owner | Status |
 |----|-------|--------|
-| TARGETS | eddacraft | Proposed |
+| TARGETS | eddacraft | Ready (TARGETS-001 promoted 2026-06-10 via D-010) |
 
 ## Purpose
 
@@ -104,17 +104,78 @@ captures the `fmt` / `fmt-check` split called out in spec §6.3 and §8.1.
 
 Promote individual Work Items to Ready when:
 
-- [ ] A real consumer asks for the inference behaviour or hits a gap
-      (per D-007).
-- [ ] The desired inferred-target output is captured (Nx project JSON
-      slice).
-- [ ] A Work Item is drafted scoped to that gap.
-- [ ] The CHANGELOG entry shape is drafted (minor bump for additions).
+- [x] A real consumer asks for the inference behaviour or hits a gap
+      (per D-007). **Met 2026-06-10:** index D-010 — consumer demand
+      confirmed for the fully functioning adapter, satisfying the
+      trigger plan-wide.
+- [x] The desired inferred-target output is captured (Nx project JSON
+      slice). Captured in TARGETS-001's Expected Outcome.
+- [x] A Work Item is drafted scoped to that gap. TARGETS-001 below.
+- [x] The CHANGELOG entry shape is drafted (minor bump for additions).
+      Noted in TARGETS-001: minor bump per D-008, entry calls out the
+      new inferred target set.
 
 ## Work Items
 
-*No work items yet — module is Proposed. Items promote individually on
-real-consumer asks per D-007.*
+### TARGETS-001: Inferred default target set per crate
+
+**Status: Ready** (promoted 2026-06-10 via index D-010)
+**Packages:** `@eddacraft/nxrust`
+**Depends on:** GRAPH-001 (Released 0.2.0 — `package.metadata.nxrust`
+parser), module 04 named inputs (Complete).
+
+- **Intent:** Every inferred Rust project receives the canonical
+  Cargo-backed target set automatically — `check`, `build`, `test`,
+  `lint` (alias `clippy`), `fmt-check`, `fmt`, `run` (binary crates
+  only), `release-publish` — so the canonical case needs no per-crate
+  `project.json`. Includes the `fmt` / `fmt-check` split (D-T2).
+  Trigger: consumer demand for the fully functioning adapter (index
+  D-010, 2026-06-10).
+- **Expected Outcome:** A crate with no `project.json` reports the full
+  inferred target set via `nx show project <crate> --json`. Each
+  inferred target pins `package: <cargo-name>` in its options (D-T3),
+  references the module 04 named inputs (`rustSources`,
+  `rustWorkspace`), carries the conservative per-target `outputs` from
+  spec §6.4, and `build` / `test` carry `dependsOn` reflecting
+  cross-crate edges. `fmt-check` is cacheable; `fmt` is not
+  remote-cacheable. Existing consumer `project.json` targets take
+  precedence over inferred ones (D-T1). Inference is deterministic:
+  same workspace shape ⇒ same target set, options, and order. Ships as
+  a **minor** bump with a CHANGELOG entry (D-008).
+- **Validation:** Unit suite green via `pnpm test` (inference cases
+  covering target set, package pinning, precedence, determinism, and
+  binary-only `run`). E2e: `nx show project <crate> --json` in the
+  validation workspace lists the inferred targets for a crate with no
+  `project.json`, and the v0.1 consumer surface is unregressed (CI
+  smoke stays green).
+- **Scope/Non-scope:** In scope: inference of the default target set
+  and the `fmt` / `fmt-check` split. Out of scope:
+  `package.metadata.nxrust.targets.<name>` option overrides
+  (TARGETS-002), feature/profile plumbing (module 05), new executors,
+  and changes to generator `project.json` emission.
+
+### TARGETS-002: `package.metadata.nxrust.targets.<name>` overrides
+
+**Status: Proposed** (next in line per D-010 ordering)
+**Packages:** `@eddacraft/nxrust`
+**Depends on:** TARGETS-001.
+
+- **Intent:** Per-crate target option defaults declared in
+  `[package.metadata.nxrust.targets.<name>]` feed the inferred targets
+  (e.g. `[package.metadata.nxrust.targets.test] all-features = true`),
+  using the GRAPH-001 parser, so per-crate tuning needs no
+  `project.json` either.
+- **Expected Outcome:** A crate carrying a `targets.<name>` metadata
+  table yields inferred targets whose options reflect the declared
+  defaults; consumer-explicit `project.json` still wins (D-T1); unknown
+  keys warn rather than throw (routes via module 14's envelope when it
+  ships).
+- **Validation:** Unit suite green via `pnpm test`; e2e
+  `nx show project --json` reflects a metadata-declared option default.
+
+*Further items (plugin-option target-name coverage, generator
+`project.json` emission opt-out) promote in dependency order per
+D-010.*
 
 ## Risks & Mitigations
 

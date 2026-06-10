@@ -89,9 +89,25 @@ nx g @eddacraft/nxrust:library my-lib
 
 Generated crates are added to the root `Cargo.toml` `[workspace.members]`
 (comments preserved via `@ltd/j-toml`) and get a minimal `project.json`
-pre-wired to the plugin's executors. Future versions move toward
-zero-`project.json` inference — see
-[`plans/modules/03-target-inference.aps.md`](./plans/modules/03-target-inference.aps.md).
+pre-wired to the plugin's executors.
+
+## Inferred targets
+
+Every Cargo workspace member is inferred as an Nx project with a default
+target set — no `project.json` required for the canonical case:
+
+| Target | Wraps | Notes |
+| ------ | ----- | ----- |
+| `build`, `check`, `test` | `cargo build` / `check` / `test` | cacheable |
+| `clippy`, `lint` | `cargo clippy` | `lint` is an exact alias so `nx run-many -t lint` covers Rust crates |
+| `fmt-check` | `cargo fmt --check` | cacheable; the CI gate |
+| `fmt` | `cargo fmt` | mutates files, not cached |
+| `run` | `cargo run` | binary crates only |
+| `nx-release-publish` | `cargo publish` | publishable crates only; invoked by `nx release publish` |
+
+Every inferred target pins the cargo package name in its options, so the
+crate keeps working even when another plugin renames the Nx project.
+Targets declared in a `project.json` take precedence over inferred ones.
 
 ## Project graph
 

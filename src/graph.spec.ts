@@ -320,7 +320,7 @@ describe('inferred project targets', () => {
 
     const [, payload] = result[0];
     const project = payload.projects['crates/foo'];
-    const expected = ['build', 'check', 'clippy', 'fmt', 'fmt-check', 'test', 'run', 'nx-release-publish'];
+    const expected = ['build', 'check', 'clippy', 'lint', 'fmt', 'fmt-check', 'test', 'run', 'nx-release-publish'];
     for (const target of expected) {
       expect(
         project.targets[target]?.options?.package,
@@ -549,6 +549,118 @@ describe('inferred project targets', () => {
       '{options.target-dir}',
       '{workspaceRoot}/target',
     ]);
+  });
+});
+
+describe('inferred default target set (TARGETS-001)', () => {
+  beforeEach(async () => {
+    const { __resetGraphCacheForTests } = await load();
+    __resetGraphCacheForTests();
+    await setStatMtimes({
+      '/ws/Cargo.lock': 1,
+      '/ws/Cargo.toml': 1,
+      '/ws/crates/foo/Cargo.toml': 1,
+    });
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  type InferredProject = {
+    targets: Record<
+      string,
+      {
+        executor?: string;
+        cache?: boolean;
+        inputs?: unknown[];
+        outputs?: unknown[];
+        options?: Record<string, unknown>;
+      }
+    >;
+  };
+
+  async function inferProject(
+    metadataPkg: CargoMetadata['packages'][0],
+  ): Promise<InferredProject> {
+    await setMetadata(md([metadataPkg]));
+    const { createNodesV2 } = await load();
+    const fn = createNodesV2[1] as (
+      paths: readonly string[],
+      opts: unknown,
+      ctx: { workspaceRoot: string; nxJsonConfiguration: object },
+    ) => Promise<Array<[string, { projects: Record<string, InferredProject> }]>>;
+    const result = await fn([`crates/${metadataPkg.name}/Cargo.toml`], {}, {
+      workspaceRoot: ws,
+      nxJsonConfiguration: {},
+    });
+    const [, payload] = result[0];
+    return payload.projects[`crates/${metadataPkg.name}`];
+  }
+
+  const binPkg = () =>
+    pkg({
+      name: 'foo',
+      targets: [
+        { kind: ['bin'], crate_types: ['bin'], name: 'foo', src_path: '' },
+      ],
+    });
+
+  it('infers the full default target set for a publishable binary crate', async () => {
+    const project = await inferProject(binPkg());
+    expect(Object.keys(project.targets).sort()).toEqual(
+      [
+        'build',
+        'check',
+        'clippy',
+        'lint',
+        'fmt',
+        'fmt-check',
+        'test',
+        'run',
+        'nx-release-publish',
+      ].sort(),
+    );
+  });
+
+  it('omits run for library crates and nx-release-publish for private crates', async () => {
+    const project = await inferProject(
+      pkg({ name: 'foo', publish: [] }),
+    );
+    expect(project.targets.run).toBeUndefined();
+    expect(project.targets['nx-release-publish']).toBeUndefined();
+  });
+
+  it('infers lint as an exact alias of clippy (D-T4)', async () => {
+    const project = await inferProject(binPkg());
+    expect(project.targets.lint).toBeDefined();
+    expect(project.targets.lint).toEqual(project.targets.clippy);
+    expect(project.targets.lint.executor).toBe('@eddacraft/nxrust:clippy');
+    expect(project.targets.lint.options?.package).toBe('foo');
+  });
+
+  it('keeps fmt uncacheable and fmt-check cacheable (D-T2)', async () => {
+    const project = await inferProject(binPkg());
+    expect(project.targets.fmt.cache).toBeUndefined();
+    expect(project.targets.fmt.inputs).toBeUndefined();
+    expect(project.targets['fmt-check'].cache).toBe(true);
+    expect(project.targets['fmt-check'].options?.check).toBe(true);
+    expect(project.targets['fmt-check'].inputs).toContain('rustSources');
+  });
+
+  it('emits no dependsOn on build and test (cargo builds deps itself; ISS-001)', async () => {
+    const project = await inferProject(binPkg());
+    expect(project.targets.build).not.toHaveProperty('dependsOn');
+    expect(project.targets.test).not.toHaveProperty('dependsOn');
+  });
+
+  it('is deterministic: identical metadata yields identical projects, key order included', async () => {
+    const first = await inferProject(binPkg());
+    const { __resetGraphCacheForTests } = await load();
+    __resetGraphCacheForTests();
+    const second = await inferProject(binPkg());
+    expect(second).toEqual(first);
+    expect(Object.keys(second.targets)).toEqual(Object.keys(first.targets));
   });
 });
 

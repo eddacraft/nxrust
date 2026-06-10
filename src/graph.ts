@@ -321,6 +321,10 @@ function inferProjectConfig(
     build: buildTargetConfig(pkgOpts, cache, buildOutputs),
     check: checkTargetConfig(pkgOpts, cache),
     clippy: clippyTargetConfig(pkgOpts, cache),
+    // `lint` is an exact alias of `clippy` (D-T4) so ecosystem-wide
+    // invocations like `nx run-many -t lint` include Rust crates alongside
+    // JS projects. `clippy` stays the canonical name.
+    lint: clippyTargetConfig(pkgOpts, cache),
     // `fmt` rewrites files (uncached); `fmt-check` is the lint mode that
     // caches safely because its output is just an exit status.
     fmt: fmtTargetConfig(pkgOpts),

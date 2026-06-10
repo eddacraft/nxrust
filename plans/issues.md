@@ -54,9 +54,10 @@ adopter with a workspace-level `^build` test dependency inherits the
 
 | Field | Value |
 |-------|-------|
-| Status | Open |
+| Status | Resolved — not a regression (stale local deps) |
 | Discovered | 2026-06-08 |
-| Severity | High |
+| Resolved | 2026-06-10 |
+| Severity | High → none (environment artifact) |
 | Source | `pnpm test` on `main` (reproduced on clean HEAD) |
 | Related modules | 02-workspace-inference-and-graph |
 | Tracked | [eddacraft/nxrust#23](https://github.com/eddacraft/nxrust/issues/23) |
@@ -73,9 +74,16 @@ API drift — a known risk in the index risk table) or `07c12d3 Potential fix
 for pull request finding`. Not introduced by the WN-001 branch — verified by
 stashing all WN-001 changes and re-running the suite on clean HEAD.
 
-**Out of scope for WN-001** (module 10); this is graph/cache territory
-(module 02). Logged here for planning-level visibility; needs its own work
-item under 02-workspace-inference-and-graph.
+**Resolution (2026-06-10).** Root cause is **stale local `node_modules`, not a
+code regression.** The working tree had nx/`@nx/devkit` `22.6.5` installed
+while `pnpm-lock.yaml` pins `22.7.5` (the `4b98e3b` upgrade). Under the old
+`22.6.5` devkit the mtime-keyed cache did not dedupe across `createNodesV2`
+calls (13 invocations vs 1); a `pnpm install --frozen-lockfile` to the locked
+`22.7.5` makes all 152 tests pass. CI was always green because
+`--frozen-lockfile` installs `22.7.5` there. The earlier "reproduced on clean
+HEAD" reproduction was done with the same stale `node_modules`, not clean deps.
+No `graph.ts` change required. Follow-up: close nxrust#23 as a stale-deps false
+alarm; no work item needed under module 02.
 
 ## Questions
 

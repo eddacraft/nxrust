@@ -165,11 +165,15 @@ Promote individual Work Items to Ready when:
 
 ### WN-001: Cross-language test-seam contract helper (D-WN4)
 
-**Status: Merged** — implementation + 19 unit tests complete; PR
+**Status: Released-pending** — implementation + 19 unit tests complete; PR
 [#21](https://github.com/eddacraft/nxrust/pull/21) squash-merged to `main`
 (`67bd4f1`) on 2026-06-09. Helper shipped at `src/utils/cross-language-edges.ts`
-and exported from `src/index.ts`. Next: cut the minor release per the CHANGELOG
-entry to advance Merged → Released/Shipped.
+and exported from `src/index.ts`. Release `0.2.0` staged 2026-06-10: CHANGELOG
+dated, full gate green (build · 152 tests · e2e), commit `b8d7f4b` + tag
+`v0.2.0` created locally, package validated via `npm pack --dry-run`. Final
+`pnpm publish` to npm is blocked on npm auth (registry returns 401 in this
+env) — advances to Released/Shipped once `@eddacraft/nxrust@0.2.0` is on npm
+and the commit + tag are pushed.
 
 - **Intent:** Provide the reusable utility that enforces D-WN4 — given a JS
   project that depends on a Rust crate, sever the workspace-default

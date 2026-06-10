@@ -119,7 +119,8 @@ Promote individual Work Items to Ready when:
 
 ### TARGETS-001: Inferred default target set per crate
 
-**Status: Ready** (promoted 2026-06-10 via index D-010)
+**Status: In Progress** (promoted 2026-06-10 via index D-010; started
+2026-06-11)
 **Packages:** `@eddacraft/nxrust`
 **Depends on:** GRAPH-001 (Released 0.2.0 — `package.metadata.nxrust`
 parser), module 04 named inputs (Complete).
@@ -135,13 +136,31 @@ parser), module 04 named inputs (Complete).
   inferred target set via `nx show project <crate> --json`. Each
   inferred target pins `package: <cargo-name>` in its options (D-T3),
   references the module 04 named inputs (`rustSources`,
-  `rustWorkspace`), carries the conservative per-target `outputs` from
-  spec §6.4, and `build` / `test` carry `dependsOn` reflecting
-  cross-crate edges. `fmt-check` is cacheable; `fmt` is not
+  `rustWorkspace`), and carries the conservative per-target `outputs`
+  from spec §6.4. `fmt-check` is cacheable; `fmt` is not
   remote-cacheable. Existing consumer `project.json` targets take
   precedence over inferred ones (D-T1). Inference is deterministic:
   same workspace shape ⇒ same target set, options, and order. Ships as
   a **minor** bump with a CHANGELOG entry (D-008).
+  **Reconciled against code 2026-06-11** (code is fact, plan carries
+  intent): most of this outcome already shipped across v0.1 +
+  modules 04/06 + GRAPH-001 — `inferProjectConfig` in `src/graph.ts`
+  emits `build`, `check`, `clippy`, `fmt`, `fmt-check`, `test`, `run`
+  (binary crates only), and `nx-release-publish` (non-private crates)
+  with pinned package names, named inputs, toolchain runtime hashing,
+  and narrowed build outputs. The code gap this item closes is the
+  `lint` alias (D-T4) plus contract tests locking the full inferred
+  set and its determinism. Two drift corrections from the original
+  draft: (1) the publish target is **`nx-release-publish`** — the name
+  Nx's `nx release publish` invokes; it shipped in v0.1 and renaming
+  is a major bump — the draft's `release-publish` referred to the
+  executor, not the target name. (2) `build` / `test` carry **no
+  `dependsOn`**: cargo builds dependency crates itself (index
+  constraint: cargo stays the build engine), affected correctness
+  comes from the graph *edges* `createDependencies` already emits, and
+  a `^build` default would re-introduce the `target/`-lock
+  serialisation hazard (ISS-001 / D-009) within the module 04 cache
+  contract that shipped without it.
 - **Validation:** Unit suite green via `pnpm test` (inference cases
   covering target set, package pinning, precedence, determinism, and
   binary-only `run`). E2e: `nx show project <crate> --json` in the
@@ -194,15 +213,23 @@ D-010.*
   cacheable; `fmt` is not. *Accepted (inherits spec §6.3).*
 - **D-T3:** Every inferred target pins the cargo package name in its
   options. Inherits the v0.1.1 fix; documented as a contract. *Accepted.*
+- **D-T4:** `clippy` stays the canonical inferred lint target (matches
+  the executor name and the shipped v0.1 surface); `lint` is inferred
+  as an alias with an identical configuration so ecosystem-wide
+  invocations (`nx run-many -t lint`, `nx affected -t lint`) include
+  Rust crates alongside JS projects. Both cache independently; adding
+  the alias is a minor bump (D-008). *Accepted 2026-06-11
+  (TARGETS-001).*
 
 ## Open Questions
 
 - [ ] Should the generator-emitted `project.json` move to opt-in
       ("`--with-project-json`") once inference covers the canonical case?
       Defer to first promotion.
-- [ ] Should `lint` keep its alias to `clippy`, or should the canonical
-      name change to `clippy` with `lint` as the alias? v0.1 has both;
-      consumer convention varies.
+- [x] Should `lint` keep its alias to `clippy`, or should the canonical
+      name change to `clippy` with `lint` as the alias? **Resolved
+      2026-06-11 (D-T4):** `clippy` is canonical; `lint` is inferred as
+      an identical alias so `nx run-many -t lint` covers Rust crates.
 - [ ] Should `run` be inferred only when `[[bin]]` exists in
       `Cargo.toml`, or always inferred and emit a clean "not a binary
       crate" diagnostic on invocation? Latter is more uniform; former is

@@ -92,6 +92,30 @@ try {
     );
   }
   console.log(`e2e: inferred tags OK — ${JSON.stringify(project.tags)}`);
+
+  // TARGETS-001: the smoke crate is a publishable library with no
+  // project.json, so the inferred target set must surface EXACTLY — no
+  // missing targets, and no extras (`run` is binary-only and must NOT
+  // appear; an unexpected target is a contract change that needs a
+  // deliberate minor bump per D-008).
+  const expectedTargets = [
+    'build',
+    'check',
+    'clippy',
+    'lint',
+    'fmt',
+    'fmt-check',
+    'test',
+    'nx-release-publish',
+  ].sort();
+  const targetNames = Object.keys(project.targets ?? {}).sort();
+  if (JSON.stringify(targetNames) !== JSON.stringify(expectedTargets)) {
+    throw new Error(
+      `nx show project smoke inferred target set mismatch; ` +
+        `expected ${JSON.stringify(expectedTargets)}, got ${JSON.stringify(targetNames)}`,
+    );
+  }
+  console.log(`e2e: inferred target set OK — ${JSON.stringify(targetNames)}`);
 } catch (error) {
   console.error(String(error.message ?? error));
   process.exitCode = 1;

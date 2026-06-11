@@ -1,5 +1,5 @@
 <!-- APS Module: 03-target-inference -->
-<!-- Status: Proposed -->
+<!-- Status: Ready -->
 
 # Target Inference
 
@@ -8,7 +8,7 @@ per-crate `project.json` files for the canonical case.
 
 | ID | Owner | Status |
 |----|-------|--------|
-| TARGETS | eddacraft | Proposed |
+| TARGETS | eddacraft | Ready (TARGETS-001 promoted 2026-06-10 via D-010) |
 
 ## Purpose
 
@@ -104,17 +104,97 @@ captures the `fmt` / `fmt-check` split called out in spec §6.3 and §8.1.
 
 Promote individual Work Items to Ready when:
 
-- [ ] A real consumer asks for the inference behaviour or hits a gap
-      (per D-007).
-- [ ] The desired inferred-target output is captured (Nx project JSON
-      slice).
-- [ ] A Work Item is drafted scoped to that gap.
-- [ ] The CHANGELOG entry shape is drafted (minor bump for additions).
+- [x] A real consumer asks for the inference behaviour or hits a gap
+      (per D-007). **Met 2026-06-10:** index D-010 — consumer demand
+      confirmed for the fully functioning adapter, satisfying the
+      trigger plan-wide.
+- [x] The desired inferred-target output is captured (Nx project JSON
+      slice). Captured in TARGETS-001's Expected Outcome.
+- [x] A Work Item is drafted scoped to that gap. TARGETS-001 below.
+- [x] The CHANGELOG entry shape is drafted (minor bump for additions).
+      Noted in TARGETS-001: minor bump per D-008, entry calls out the
+      new inferred target set.
 
 ## Work Items
 
-*No work items yet — module is Proposed. Items promote individually on
-real-consumer asks per D-007.*
+### TARGETS-001: Inferred default target set per crate
+
+**Status: In Progress** (promoted 2026-06-10 via index D-010; started
+2026-06-11)
+**Packages:** `@eddacraft/nxrust`
+**Depends on:** GRAPH-001 (Released 0.2.0 — `package.metadata.nxrust`
+parser), module 04 named inputs (Complete).
+
+- **Intent:** Every inferred Rust project receives the canonical
+  Cargo-backed target set automatically — `check`, `build`, `test`,
+  `lint` (alias `clippy`), `fmt-check`, `fmt`, `run` (binary crates
+  only), `release-publish` — so the canonical case needs no per-crate
+  `project.json`. Includes the `fmt` / `fmt-check` split (D-T2).
+  Trigger: consumer demand for the fully functioning adapter (index
+  D-010, 2026-06-10).
+- **Expected Outcome:** A crate with no `project.json` reports the full
+  inferred target set via `nx show project <crate> --json`. Each
+  inferred target pins `package: <cargo-name>` in its options (D-T3),
+  references the module 04 named inputs (`rustSources`,
+  `rustWorkspace`), and carries the conservative per-target `outputs`
+  from spec §6.4. `fmt-check` is cacheable; `fmt` is not
+  remote-cacheable. Existing consumer `project.json` targets take
+  precedence over inferred ones (D-T1). Inference is deterministic:
+  same workspace shape ⇒ same target set, options, and order. Ships as
+  a **minor** bump with a CHANGELOG entry (D-008).
+  **Reconciled against code 2026-06-11** (code is fact, plan carries
+  intent): most of this outcome already shipped across v0.1 +
+  modules 04/06 + GRAPH-001 — `inferProjectConfig` in `src/graph.ts`
+  emits `build`, `check`, `clippy`, `fmt`, `fmt-check`, `test`, `run`
+  (binary crates only), and `nx-release-publish` (non-private crates)
+  with pinned package names, named inputs, toolchain runtime hashing,
+  and narrowed build outputs. The code gap this item closes is the
+  `lint` alias (D-T4) plus contract tests locking the full inferred
+  set and its determinism. Two drift corrections from the original
+  draft: (1) the publish target is **`nx-release-publish`** — the name
+  Nx's `nx release publish` invokes; it shipped in v0.1 and renaming
+  is a major bump — the draft's `release-publish` referred to the
+  executor, not the target name. (2) `build` / `test` carry **no
+  `dependsOn`**: cargo builds dependency crates itself (index
+  constraint: cargo stays the build engine), affected correctness
+  comes from the graph *edges* `createDependencies` already emits, and
+  a `^build` default would re-introduce the `target/`-lock
+  serialisation hazard (ISS-001 / D-009) within the module 04 cache
+  contract that shipped without it.
+- **Validation:** Unit suite green via `pnpm test` (inference cases
+  covering target set, package pinning, precedence, determinism, and
+  binary-only `run`). E2e: `nx show project <crate> --json` in the
+  validation workspace lists the inferred targets for a crate with no
+  `project.json`, and the v0.1 consumer surface is unregressed (CI
+  smoke stays green).
+- **Scope/Non-scope:** In scope: inference of the default target set
+  and the `fmt` / `fmt-check` split. Out of scope:
+  `package.metadata.nxrust.targets.<name>` option overrides
+  (TARGETS-002), feature/profile plumbing (module 05), new executors,
+  and changes to generator `project.json` emission.
+
+### TARGETS-002: `package.metadata.nxrust.targets.<name>` overrides
+
+**Status: Proposed** (next in line per D-010 ordering)
+**Packages:** `@eddacraft/nxrust`
+**Depends on:** TARGETS-001.
+
+- **Intent:** Per-crate target option defaults declared in
+  `[package.metadata.nxrust.targets.<name>]` feed the inferred targets
+  (e.g. `[package.metadata.nxrust.targets.test] all-features = true`),
+  using the GRAPH-001 parser, so per-crate tuning needs no
+  `project.json` either.
+- **Expected Outcome:** A crate carrying a `targets.<name>` metadata
+  table yields inferred targets whose options reflect the declared
+  defaults; consumer-explicit `project.json` still wins (D-T1); unknown
+  keys warn rather than throw (routes via module 14's envelope when it
+  ships).
+- **Validation:** Unit suite green via `pnpm test`; e2e
+  `nx show project --json` reflects a metadata-declared option default.
+
+*Further items (plugin-option target-name coverage, generator
+`project.json` emission opt-out) promote in dependency order per
+D-010.*
 
 ## Risks & Mitigations
 
@@ -133,15 +213,23 @@ real-consumer asks per D-007.*
   cacheable; `fmt` is not. *Accepted (inherits spec §6.3).*
 - **D-T3:** Every inferred target pins the cargo package name in its
   options. Inherits the v0.1.1 fix; documented as a contract. *Accepted.*
+- **D-T4:** `clippy` stays the canonical inferred lint target (matches
+  the executor name and the shipped v0.1 surface); `lint` is inferred
+  as an alias with an identical configuration so ecosystem-wide
+  invocations (`nx run-many -t lint`, `nx affected -t lint`) include
+  Rust crates alongside JS projects. Both cache independently; adding
+  the alias is a minor bump (D-008). *Accepted 2026-06-11
+  (TARGETS-001).*
 
 ## Open Questions
 
 - [ ] Should the generator-emitted `project.json` move to opt-in
       ("`--with-project-json`") once inference covers the canonical case?
       Defer to first promotion.
-- [ ] Should `lint` keep its alias to `clippy`, or should the canonical
-      name change to `clippy` with `lint` as the alias? v0.1 has both;
-      consumer convention varies.
+- [x] Should `lint` keep its alias to `clippy`, or should the canonical
+      name change to `clippy` with `lint` as the alias? **Resolved
+      2026-06-11 (D-T4):** `clippy` is canonical; `lint` is inferred as
+      an identical alias so `nx run-many -t lint` covers Rust crates.
 - [ ] Should `run` be inferred only when `[[bin]]` exists in
       `Cargo.toml`, or always inferred and emit a clean "not a binary
       crate" diagnostic on invocation? Latter is more uniform; former is

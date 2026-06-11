@@ -108,7 +108,7 @@ historical reference; full detail in
 |---|--------|--------|---------|--------|--------------|
 | 01 | [v0.1-shakedown](./modules/01-v0.1-shakedown.aps.md) | 3.1 | Prove the plugin end-to-end on a consumer workspace, ship first npm release | Complete | — |
 | 02 | [workspace-inference-and-graph](./modules/02-workspace-inference-and-graph.aps.md) | 6.1, 6.2 | Cargo workspace + project graph inference (members, globs, excludes, edges, external nodes, kind metadata) | Proposed (GRAPH-001 released 0.2.0) | 01 |
-| 03 | [target-inference](./modules/03-target-inference.aps.md) | 6.3 | Auto-inferred Nx targets per crate; zero `project.json`; `fmt` / `fmt-check` split | Proposed | 02 |
+| 03 | [target-inference](./modules/03-target-inference.aps.md) | 6.3 | Auto-inferred Nx targets per crate; zero `project.json`; `fmt` / `fmt-check` split | Ready (TARGETS-001 promoted 2026-06-10) | 02 |
 | 04 | [cache-semantics](./modules/04-cache-semantics.aps.md) | 6.4 | Named inputs, output narrowing, env-var hashing, per-target cache rules | Complete | 03 |
 | 05 | [cargo-features](./modules/05-cargo-features.aps.md) | 6.5 | Feature/profile/target options across executors; inferred configurations | Proposed | 03 |
 | 06 | [toolchain-awareness](./modules/06-toolchain-awareness.aps.md) | 6.6 | `rust-toolchain.toml`, `cargo +toolchain`, `rustc -Vv`/`cargo -V` hashing | Proposed | 04 |
@@ -130,6 +130,12 @@ request from a known downstream consumer (Anvil or external). Promotion is
 trigger fires, while the rest of the module stays Proposed. This is the
 same convention established by the original modules 02-monodon-parity and
 03-v0.2-polish (now folded into the modules above) and ratified as D-007.
+
+**Update 2026-06-10 (D-010):** consumer demand now covers the fully
+functioning adapter, satisfying the D-007 trigger plan-wide. Items no
+longer wait for individual asks; they promote in dependency/roadmap
+order (v0.2 → v0.3 → v0.4 → v1.0), one Ready slice at a time, which
+preserves D-007's no-speculative-builds discipline as an ordering rule.
 
 ## Roadmap milestones
 
@@ -189,7 +195,7 @@ items only ship when a real consumer ask promotes them.
 | Nx 22 project-graph plugin API drifts on minor upgrades | medium | Small public surface (`createNodesV2` + `createDependencies` only); CI smoke test pins the contract; semver-backed schemas land in `16-adoption-and-docs` for v1.0. |
 | `cargo metadata` performance on large workspaces | medium | Mtime-keyed `Cargo.lock` cache already in `graph.ts`; performance-tracking in `02-workspace-inference-and-graph` and `13-affected-refinement`. |
 | Consumer switchover breaks the consumer's pnpm graph mid-flight | medium | Switch only after the consumer's own CI smoke is green; keep a revert commit ready. Repeats per major version bump. |
-| Speculative builds outpace real demand | high | Per-item consumer-driven promotion (D-007); modules stay Proposed; Work Items only enter modules when a consumer asks. |
+| Speculative builds outpace real demand | high | Per-item consumer-driven promotion (D-007). **Updated 2026-06-10:** demand for the full adapter confirmed (D-010); promotion now proceeds in dependency/roadmap order, one Ready slice at a time, so build order still tracks the roadmap rather than speculation. |
 | Cache-key gaps cause silent miscompiles | high | Toolchain + env hashing is foundational (`04`, `06`) — these must land before any `target/`-aware caching expansion in later modules. |
 | Mixed-stack `^build` inheritance serialises JS tests on cargo `target/` lock | high | **Resolved 2026-05-20.** D-009 binds nxrust generators to never emit `^build` on cross-language edges; canonical recipe at `docs/recipes/javascript-rust-test-seams.md` covers consumer-side remediation for workspaces hitting the failure mode via `@nx/js` auto-deps. |
 
@@ -276,3 +282,15 @@ items only ship when a real consumer ask promotes them.
   *Accepted 2026-05-20 (consumer-driven via Anvil; ratified upstream
   after anvil agent confirmed the upstream contract is the more elegant
   fix than per-consumer script splits).*
+- **D-010:** Consumer demand for the fully functioning adapter is
+  confirmed (plan-owner declaration, 2026-06-10). This satisfies the
+  D-007 per-item trigger across the whole v0.2 → v1.0 surface: work
+  items no longer wait on individual downstream asks. D-007's
+  discipline survives as an ordering rule — items promote in
+  dependency/roadmap order (v0.2 → v0.3 → v0.4 → v1.0), one Ready
+  slice at a time, smallest coherent item first. First promotion under
+  this decision: TARGETS-001 in
+  [`03-target-inference`](./modules/03-target-inference.aps.md) — the
+  zero-`project.json` DX core, whose stated dependencies (GRAPH-001
+  parser, released 0.2.0; module 04 named inputs, Complete) have all
+  shipped. *Accepted 2026-06-10.*

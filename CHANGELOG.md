@@ -1,5 +1,17 @@
 # Changelog
 
+## Unreleased
+
+- Infer a `lint` target on every Rust crate as an exact alias of `clippy`
+  (D-T4), so ecosystem-wide invocations like `nx run-many -t lint` and
+  `nx affected -t lint` cover Rust crates alongside JS projects. `clippy`
+  stays the canonical name; both targets share the same executor, cache
+  inputs, and pinned package. Adding an inferred target name is a **minor**
+  bump (D-008). This completes the inferred default target set for the
+  canonical zero-`project.json` case: `build`, `check`, `clippy`, `lint`,
+  `fmt`, `fmt-check`, `test`, `run` (binary crates), and
+  `nx-release-publish` (publishable crates).
+
 ## 0.2.0 — 2026-06-10
 
 - Infer Nx project `tags` from `[package.metadata.nxrust] tags = [...]` in a

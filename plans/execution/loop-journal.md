@@ -30,3 +30,29 @@ for the user. See `.claude/skills/fable5-aps-loop` for the cycle format.
   modules 02–16 stays Proposed until a real downstream ask promotes it.
   The plan explicitly contains no justifiable next slice without a
   consumer trigger.
+
+## Cycle 2 — 2026-06-10
+
+- Item: none executed — replan cycle. Plan owner declared consumer
+  demand for the fully functioning adapter; the D-007 trigger is met
+  plan-wide.
+- Outcome: replanned
+  - New index decision **D-010** records the demand event and converts
+    promotion from ask-gated to dependency/roadmap-ordered (v0.2 →
+    v1.0), one Ready slice at a time.
+  - Module 03 (target-inference) promoted Proposed → Ready: all stated
+    dependencies have shipped (GRAPH-001 parser released in 0.2.0;
+    module 04 named inputs Complete). **TARGETS-001** (inferred default
+    target set + `fmt`/`fmt-check` split) drafted and Ready;
+    **TARGETS-002** (metadata target overrides) drafted Proposed,
+    next in line.
+  - Index Modules table, promotion-rule note, and the
+    speculative-builds risk row updated to reflect D-010.
+  - Modules deliberately NOT promoted yet: 02's hardening items (no
+    specific failing input on record), 13 (needs 02's dep-kind/feature
+    edge metadata first), 14 (cross-cutting; diagnostic codes land with
+    the features that need them), 06 (both drafted items Complete;
+    remaining surface — `rustc -Vv` session caching, `RUSTUP_TOOLCHAIN`
+    — reassess after 03 lands).
+- Checkpoints raised: none
+- Next: run `fable5-dev-workflow` on TARGETS-001.

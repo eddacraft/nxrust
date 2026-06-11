@@ -56,3 +56,30 @@ for the user. See `.claude/skills/fable5-aps-loop` for the cycle format.
     — reassess after 03 lands).
 - Checkpoints raised: none
 - Next: run `fable5-dev-workflow` on TARGETS-001.
+
+## Cycle 3 — 2026-06-11
+
+- Item: TARGETS-001 (03-target-inference)
+- Outcome: complete — PR #24 squash-merged as `66a0fa2`
+  - Code: inferred `lint` target as an exact alias of `clippy` (D-T4);
+    contract tests lock the full inferred default target set, the
+    `fmt`/`fmt-check` cache split, no `dependsOn` on `build`/`test`,
+    and inference determinism; e2e asserts the exact target set via
+    `nx show project smoke --json`; README inferred-targets table;
+    CHANGELOG § Unreleased (minor per D-008 — not yet released to npm).
+  - Review: Copilot flagged the e2e's subset assertion (extras passed
+    silently) — valid; fixed to exact-set equality in `5c57f72`,
+    thread resolved.
+  - Merge friction: a misconfigured repo ruleset (branch-name pattern
+    applying to `main`) blocked all merges; user removed it. Remaining
+    ruleset requires PRs + resolved threads on `main`, so direct
+    pushes of APS bookkeeping no longer work — bookkeeping now goes
+    via PR too.
+- Plan changes: TARGETS-001 → Complete; TARGETS-002 → Ready (next
+  slice per D-010); module 03 → In Progress; index table updated.
+- Lesson: the feature branch was forked from local main carrying
+  unpushed docs(aps) commits, so the squash-merge silently bundled
+  APS bookkeeping into the feature PR (gate-6 violation) and the
+  local main rebase conflicted afterwards. Branch from `origin/main`
+  (or land bookkeeping first) when main carries unpushed commits.
+- Next: TARGETS-002 is Ready — metadata target-option overrides.

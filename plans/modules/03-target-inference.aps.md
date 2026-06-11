@@ -1,5 +1,5 @@
 <!-- APS Module: 03-target-inference -->
-<!-- Status: Ready -->
+<!-- Status: In Progress -->
 
 # Target Inference
 
@@ -8,7 +8,7 @@ per-crate `project.json` files for the canonical case.
 
 | ID | Owner | Status |
 |----|-------|--------|
-| TARGETS | eddacraft | Ready (TARGETS-001 promoted 2026-06-10 via D-010) |
+| TARGETS | eddacraft | In Progress (TARGETS-001 Complete 2026-06-11; TARGETS-002 Ready) |
 
 ## Purpose
 
@@ -119,8 +119,12 @@ Promote individual Work Items to Ready when:
 
 ### TARGETS-001: Inferred default target set per crate
 
-**Status: In Progress** (promoted 2026-06-10 via index D-010; started
-2026-06-11)
+**Status: Complete: 2026-06-11** — PR #24 squash-merged as `66a0fa2`
+(all CI checks green; 158/158 unit tests; e2e asserts the exact
+inferred target set end-to-end). Unreleased: ships in the next minor
+per D-008 (CHANGELOG § Unreleased). The Copilot review finding
+(subset assertion let unexpected extra targets pass) was fixed in the
+same PR — the e2e now requires exact set equality.
 **Packages:** `@eddacraft/nxrust`
 **Depends on:** GRAPH-001 (Released 0.2.0 — `package.metadata.nxrust`
 parser), module 04 named inputs (Complete).
@@ -175,9 +179,10 @@ parser), module 04 named inputs (Complete).
 
 ### TARGETS-002: `package.metadata.nxrust.targets.<name>` overrides
 
-**Status: Proposed** (next in line per D-010 ordering)
+**Status: Ready** (promoted 2026-06-11 — next slice per D-010 ordering;
+its dependency TARGETS-001 is Complete)
 **Packages:** `@eddacraft/nxrust`
-**Depends on:** TARGETS-001.
+**Depends on:** TARGETS-001 (Complete: 2026-06-11).
 
 - **Intent:** Per-crate target option defaults declared in
   `[package.metadata.nxrust.targets.<name>]` feed the inferred targets

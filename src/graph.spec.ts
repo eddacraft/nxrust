@@ -664,6 +664,188 @@ describe('inferred default target set (TARGETS-001)', () => {
   });
 });
 
+describe('inferred target option overrides (TARGETS-002)', () => {
+  beforeEach(async () => {
+    const { __resetGraphCacheForTests } = await load();
+    __resetGraphCacheForTests();
+    await setStatMtimes({
+      '/ws/Cargo.lock': 1,
+      '/ws/Cargo.toml': 1,
+      '/ws/crates/foo/Cargo.toml': 1,
+    });
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  type InferredProject = {
+    targets: Record<
+      string,
+      {
+        executor?: string;
+        cache?: boolean;
+        inputs?: unknown[];
+        outputs?: unknown[];
+        options?: Record<string, unknown>;
+      }
+    >;
+  };
+
+  async function inferWithMeta(
+    nxrust: unknown,
+    over: Partial<CargoMetadata['packages'][0]> = {},
+  ): Promise<InferredProject> {
+    await setMetadata(
+      md([pkg({ name: 'foo', metadata: { nxrust }, ...over })]),
+    );
+    const { createNodesV2 } = await load();
+    const fn = createNodesV2[1] as (
+      paths: readonly string[],
+      opts: unknown,
+      ctx: { workspaceRoot: string; nxJsonConfiguration: object },
+    ) => Promise<Array<[string, { projects: Record<string, InferredProject> }]>>;
+    const result = await fn(['crates/foo/Cargo.toml'], {}, {
+      workspaceRoot: ws,
+      nxJsonConfiguration: {},
+    });
+    const [, payload] = result[0];
+    return payload.projects['crates/foo'];
+  }
+
+  it('feeds targets.<name> option defaults into the inferred target', async () => {
+    const project = await inferWithMeta({
+      targets: { test: { 'all-features': true } },
+    });
+    expect(project.targets.test.options?.['all-features']).toBe(true);
+    expect(project.targets.test.options?.package).toBe('foo');
+    // Other targets are untouched.
+    expect(project.targets.build.options).toEqual({ package: 'foo' });
+  });
+
+  it('never lets metadata override the pinned cargo package name (D-T3)', async () => {
+    const warn = vi.spyOn(logger, 'warn').mockImplementation(() => {});
+    const project = await inferWithMeta({
+      targets: { test: { package: 'evil', 'all-features': true } },
+    });
+    expect(project.targets.test.options?.package).toBe('foo');
+    expect(project.targets.test.options?.['all-features']).toBe(true);
+    expect(warn).toHaveBeenCalledOnce();
+  });
+
+  it('warns and skips an unknown target name, applying valid siblings', async () => {
+    const warn = vi.spyOn(logger, 'warn').mockImplementation(() => {});
+    const project = await inferWithMeta({
+      targets: { tset: { 'all-features': true }, check: { locked: true } },
+    });
+    expect(project.targets.check.options?.locked).toBe(true);
+    expect(warn).toHaveBeenCalledOnce();
+    expect(String(warn.mock.calls[0][0])).toContain('tset');
+  });
+
+  it('warns and skips run overrides on a library crate (target not inferred)', async () => {
+    const warn = vi.spyOn(logger, 'warn').mockImplementation(() => {});
+    const project = await inferWithMeta({ targets: { run: { release: true } } });
+    expect(project.targets.run).toBeUndefined();
+    expect(warn).toHaveBeenCalledOnce();
+  });
+
+  it('warns and ignores a non-table targets value', async () => {
+    const warn = vi.spyOn(logger, 'warn').mockImplementation(() => {});
+    const project = await inferWithMeta({ targets: ['test'] });
+    expect(project.targets.test.options).toEqual({ package: 'foo' });
+    expect(warn).toHaveBeenCalledOnce();
+  });
+
+  it('warns and ignores a non-table target entry, applying valid siblings', async () => {
+    const warn = vi.spyOn(logger, 'warn').mockImplementation(() => {});
+    const project = await inferWithMeta({
+      targets: { test: 'yes', check: { locked: true } },
+    });
+    expect(project.targets.test.options).toEqual({ package: 'foo' });
+    expect(project.targets.check.options?.locked).toBe(true);
+    expect(warn).toHaveBeenCalledOnce();
+  });
+
+  it('applies the clippy table to both clippy and lint (D-T4 alias fidelity)', async () => {
+    const project = await inferWithMeta({
+      targets: { clippy: { 'all-features': true } },
+    });
+    expect(project.targets.clippy.options?.['all-features']).toBe(true);
+    expect(project.targets.lint).toEqual(project.targets.clippy);
+  });
+
+  it('warns and ignores a targets.lint table, pointing at clippy as canonical', async () => {
+    const warn = vi.spyOn(logger, 'warn').mockImplementation(() => {});
+    const project = await inferWithMeta({
+      targets: { lint: { 'all-features': true } },
+    });
+    expect(project.targets.lint.options).toEqual({ package: 'foo' });
+    expect(project.targets.lint).toEqual(project.targets.clippy);
+    expect(warn).toHaveBeenCalledOnce();
+    expect(String(warn.mock.calls[0][0])).toContain('clippy');
+  });
+
+  it('strips check from fmt-check overrides so the cacheable target cannot mutate', async () => {
+    const warn = vi.spyOn(logger, 'warn').mockImplementation(() => {});
+    const project = await inferWithMeta({
+      targets: { 'fmt-check': { check: false, locked: true } },
+    });
+    expect(project.targets['fmt-check'].options?.check).toBe(true);
+    expect(project.targets['fmt-check'].options?.locked).toBe(true);
+    expect(warn).toHaveBeenCalledOnce();
+  });
+
+  it('bakes a target-level toolchain into the option and the cache runtime inputs', async () => {
+    const project = await inferWithMeta({
+      targets: { test: { toolchain: 'nightly' } },
+    });
+    expect(project.targets.test.options?.toolchain).toBe('nightly');
+    expect(project.targets.test.inputs).toContainEqual({
+      runtime: 'rustup run nightly rustc -Vv',
+    });
+    // Targets without the override keep the default resolution.
+    expect(project.targets.build.inputs).toContainEqual({ runtime: 'rustc -Vv' });
+    expect(project.targets.build.options?.toolchain).toBeUndefined();
+  });
+
+  it('applies a package-level toolchain to all targets, with target-level winning', async () => {
+    const project = await inferWithMeta({
+      toolchain: 'beta',
+      targets: { test: { toolchain: 'nightly' } },
+    });
+    expect(project.targets.build.options?.toolchain).toBe('beta');
+    expect(project.targets.build.inputs).toContainEqual({
+      runtime: 'rustup run beta rustc -Vv',
+    });
+    expect(project.targets.test.options?.toolchain).toBe('nightly');
+    expect(project.targets.test.inputs).toContainEqual({
+      runtime: 'rustup run nightly rustc -Vv',
+    });
+  });
+
+  it('warns and falls back to default resolution on an invalid toolchain literal', async () => {
+    const warn = vi.spyOn(logger, 'warn').mockImplementation(() => {});
+    const project = await inferWithMeta({
+      targets: { test: { toolchain: 'a;b' } },
+    });
+    expect(project.targets.test.options?.toolchain).toBeUndefined();
+    expect(project.targets.test.inputs).toContainEqual({ runtime: 'rustc -Vv' });
+    expect(warn).toHaveBeenCalledOnce();
+  });
+
+  it('widens build outputs when metadata sets a profile (narrowing precondition lost)', async () => {
+    const project = await inferWithMeta({
+      targets: { build: { profile: 'fast' } },
+    });
+    expect(project.targets.build.options?.profile).toBe('fast');
+    expect(project.targets.build.outputs).toEqual([
+      '{options.target-dir}',
+      '{workspaceRoot}/target',
+    ]);
+  });
+});
+
 describe('graph cache invalidation', () => {
   beforeEach(async () => {
     const { __resetGraphCacheForTests } = await load();

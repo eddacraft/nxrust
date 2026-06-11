@@ -21,7 +21,7 @@ import type {
   CargoPackage,
 } from './models/cargo-metadata';
 import { cargoMetadata, isExternal } from './utils/cargo';
-import { resolveToolchain } from './utils/rust-toolchain';
+import { resolveToolchain, validateChannelLiteral } from './utils/rust-toolchain';
 import {
   buildTargetConfig,
   checkTargetConfig,
@@ -310,37 +310,74 @@ function inferProjectConfig(
   if (pluginOptions.narrowBuildOutputs === false) {
     buildOutputs.narrowBuildOutputs = false;
   }
-  const cache = {
-    resolvedToolchain: resolveToolchain({
-      projectRoot: join(workspaceRoot, root),
-      workspaceRoot,
-    }).channel,
-  };
+  // File-walk resolution happens once per crate; metadata toolchain overrides
+  // (D-TC2 steps 3-4) are validated literals layered on top per target, so no
+  // extra filesystem walks are needed.
+  const baseToolchain = resolveToolchain({
+    projectRoot: join(workspaceRoot, root),
+    workspaceRoot,
+  }).channel;
+
+  const inferredNames = [
+    'build',
+    'check',
+    'clippy',
+    'fmt',
+    'fmt-check',
+    'test',
+    ...(hasBin ? ['run'] : []),
+    ...(isPrivate ? [] : ['nx-release-publish']),
+  ];
+  const overrides = inferTargetOverrides(pkg, inferredNames);
+  const packageToolchain = packageLevelToolchain(pkg);
+
+  // Merged executor options for one inferred target: sanitised metadata
+  // defaults first, the package pin last so it can never be overridden
+  // (D-T3). An explicitly overridden toolchain (target > package, D-TC2)
+  // lands in the options so the executor invokes `cargo +<channel>`; the
+  // file-walk channel does not — rustup applies it natively at run time.
+  function optsFor(name: string): Record<string, unknown> {
+    const table = { ...(overrides[name] ?? {}) };
+    const effective = (table.toolchain as string | undefined) ?? packageToolchain;
+    if (effective !== undefined) table.toolchain = effective;
+    return { ...table, ...pkgOpts };
+  }
+
+  // Cache inputs for one inferred target. The overridden channel must also
+  // drive the `rustup run <channel> rustc -Vv` runtime input — hashing the
+  // default toolchain's version while running another channel would let
+  // toolchain updates slip past the cache key (D-TC3).
+  function cacheFor(name: string): { resolvedToolchain: string } {
+    const effective =
+      (overrides[name]?.toolchain as string | undefined) ?? packageToolchain;
+    return { resolvedToolchain: effective ?? baseToolchain };
+  }
 
   const targets: ProjectConfiguration['targets'] = {
-    build: buildTargetConfig(pkgOpts, cache, buildOutputs),
-    check: checkTargetConfig(pkgOpts, cache),
-    clippy: clippyTargetConfig(pkgOpts, cache),
+    build: buildTargetConfig(optsFor('build'), cacheFor('build'), buildOutputs),
+    check: checkTargetConfig(optsFor('check'), cacheFor('check')),
+    clippy: clippyTargetConfig(optsFor('clippy'), cacheFor('clippy')),
     // `lint` is an exact alias of `clippy` (D-T4) so ecosystem-wide
     // invocations like `nx run-many -t lint` include Rust crates alongside
-    // JS projects. `clippy` stays the canonical name.
-    lint: clippyTargetConfig(pkgOpts, cache),
+    // JS projects. `clippy` stays the canonical name; its metadata table
+    // drives both targets so the alias never diverges.
+    lint: clippyTargetConfig(optsFor('clippy'), cacheFor('clippy')),
     // `fmt` rewrites files (uncached); `fmt-check` is the lint mode that
     // caches safely because its output is just an exit status.
-    fmt: fmtTargetConfig(pkgOpts),
-    'fmt-check': fmtCheckTargetConfig(pkgOpts, cache),
-    test: testTargetConfig(pkgOpts, cache),
+    fmt: fmtTargetConfig(optsFor('fmt')),
+    'fmt-check': fmtCheckTargetConfig(optsFor('fmt-check'), cacheFor('fmt-check')),
+    test: testTargetConfig(optsFor('test'), cacheFor('test')),
   };
 
   if (hasBin) {
-    targets.run = runTargetConfig(pkgOpts);
+    targets.run = runTargetConfig(optsFor('run'));
   }
 
   if (!isPrivate) {
     targets['nx-release-publish'] = {
       dependsOn: ['^nx-release-publish'],
       executor: '@eddacraft/nxrust:release-publish',
-      options: { ...pkgOpts },
+      options: optsFor('nx-release-publish'),
     };
   }
 
@@ -409,6 +446,122 @@ function inferTags(pkg: CargoPackage): string[] | undefined {
 
   const unique = [...new Set(tags as string[])];
   return unique.length > 0 ? unique : undefined;
+}
+
+/**
+ * Read and sanitise `package.metadata.nxrust.targets.<name>` tables into
+ * per-target executor option defaults (TARGETS-002). Inherits GRAPH-001's
+ * resilience contract: malformed shapes warn and are ignored — one bad
+ * manifest never breaks graph construction for the whole workspace.
+ *
+ * Sanitisation rules:
+ * - A target name that is not inferred for this crate (typo, or `run` on a
+ *   library crate) warns and is skipped.
+ * - `lint` warns and is skipped: it mirrors `clippy` (D-T4), so the `clippy`
+ *   table drives both and the alias can never diverge.
+ * - `package` is stripped everywhere: the cargo package pin is a contract
+ *   (D-T3), not a default.
+ * - `check` is stripped from `fmt-check`: the target is cacheable, and a
+ *   `check = false` would turn it into a file-mutating cached target.
+ * - A non-string `toolchain` or one that fails channel-literal validation
+ *   warns and is stripped (the cache key would otherwise embed an unusable
+ *   `rustup run` invocation).
+ */
+function inferTargetOverrides(
+  pkg: CargoPackage,
+  inferredNames: readonly string[],
+): Record<string, Record<string, unknown>> {
+  const nxrust = nxrustMetadata(pkg);
+  const targets = nxrust?.targets;
+  if (targets === undefined) return {};
+  if (!targets || typeof targets !== 'object' || Array.isArray(targets)) {
+    logger.warn(
+      `[nxrust] ${pkg.name}: ignoring \`package.metadata.nxrust.targets\` — ` +
+        `expected a table of per-target option tables.`,
+    );
+    return {};
+  }
+
+  const out: Record<string, Record<string, unknown>> = {};
+  for (const [name, value] of Object.entries(targets)) {
+    if (name === 'lint') {
+      logger.warn(
+        `[nxrust] ${pkg.name}: ignoring \`package.metadata.nxrust.targets.lint\` — ` +
+          `\`lint\` mirrors \`clippy\`; customise \`targets.clippy\` instead.`,
+      );
+      continue;
+    }
+    if (!inferredNames.includes(name)) {
+      logger.warn(
+        `[nxrust] ${pkg.name}: ignoring \`package.metadata.nxrust.targets.${name}\` — ` +
+          `no inferred target with that name on this crate.`,
+      );
+      continue;
+    }
+    if (!value || typeof value !== 'object' || Array.isArray(value)) {
+      logger.warn(
+        `[nxrust] ${pkg.name}: ignoring \`package.metadata.nxrust.targets.${name}\` — ` +
+          `expected a table of option defaults.`,
+      );
+      continue;
+    }
+
+    const table = { ...(value as Record<string, unknown>) };
+    if ('package' in table) {
+      logger.warn(
+        `[nxrust] ${pkg.name}: ignoring \`package\` in ` +
+          `\`package.metadata.nxrust.targets.${name}\` — the cargo package ` +
+          `name is pinned and cannot be overridden.`,
+      );
+      delete table.package;
+    }
+    if (name === 'fmt-check' && 'check' in table) {
+      logger.warn(
+        `[nxrust] ${pkg.name}: ignoring \`check\` in ` +
+          `\`package.metadata.nxrust.targets.fmt-check\` — the target is ` +
+          `cacheable and must not mutate files.`,
+      );
+      delete table.check;
+    }
+    if ('toolchain' in table && !validToolchainOverride(pkg, table.toolchain, `targets.${name}`)) {
+      delete table.toolchain;
+    }
+    out[name] = table;
+  }
+  return out;
+}
+
+/** `package.metadata.nxrust.toolchain` — D-TC2 step 4 — if present and valid. */
+function packageLevelToolchain(pkg: CargoPackage): string | undefined {
+  const nxrust = nxrustMetadata(pkg);
+  if (!nxrust || !('toolchain' in nxrust)) return undefined;
+  return validToolchainOverride(pkg, nxrust.toolchain, 'toolchain')
+    ? (nxrust.toolchain as string)
+    : undefined;
+}
+
+function validToolchainOverride(
+  pkg: CargoPackage,
+  value: unknown,
+  key: string,
+): value is string {
+  if (typeof value !== 'string') {
+    logger.warn(
+      `[nxrust] ${pkg.name}: ignoring \`package.metadata.nxrust.${key}\` ` +
+        `toolchain — expected a string channel literal.`,
+    );
+    return false;
+  }
+  try {
+    validateChannelLiteral(value, `package.metadata.nxrust.${key}`);
+    return true;
+  } catch (error) {
+    logger.warn(
+      `[nxrust] ${pkg.name}: ignoring \`package.metadata.nxrust.${key}\` ` +
+        `toolchain — ${error instanceof Error ? error.message : String(error)}`,
+    );
+    return false;
+  }
 }
 
 // Cargo target `kind` values that denote a library artefact (as opposed to

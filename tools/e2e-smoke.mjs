@@ -116,6 +116,19 @@ try {
     );
   }
   console.log(`e2e: inferred target set OK — ${JSON.stringify(targetNames)}`);
+
+  // TARGETS-002: the smoke crate declares
+  // `[package.metadata.nxrust.targets.test] all-features = true`; that
+  // default must reach the inferred test target's options, while the cargo
+  // package pin stays in place.
+  const testOptions = project.targets.test.options ?? {};
+  if (testOptions['all-features'] !== true || testOptions.package !== 'smoke') {
+    throw new Error(
+      `nx show project smoke test target options missing metadata defaults; ` +
+        `got ${JSON.stringify(testOptions)}`,
+    );
+  }
+  console.log(`e2e: inferred target option overrides OK — ${JSON.stringify(testOptions)}`);
 } catch (error) {
   console.error(String(error.message ?? error));
   process.exitCode = 1;

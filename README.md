@@ -109,6 +109,23 @@ Every inferred target pins the cargo package name in its options, so the
 crate keeps working even when another plugin renames the Nx project.
 Targets declared in a `project.json` take precedence over inferred ones.
 
+Per-crate option defaults live in `Cargo.toml` — no `project.json` needed:
+
+```toml
+[package.metadata.nxrust.targets.test]
+all-features = true
+
+[package.metadata.nxrust.targets.build]
+toolchain = "nightly"
+```
+
+Any option the target's executor accepts can be defaulted this way. A
+`toolchain` set here (or crate-wide via `package.metadata.nxrust.toolchain`)
+also feeds the target's cache key, so toolchain updates invalidate correctly.
+The cargo `package` pin cannot be overridden, and `lint` follows the
+`clippy` table so the alias never diverges. Unknown or malformed entries
+warn and are ignored.
+
 ## Project graph
 
 The plugin runs `cargo metadata --format-version=1` and emits:

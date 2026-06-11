@@ -11,3 +11,8 @@ path = "src/lib.rs"
 # surfaces them.
 [package.metadata.nxrust]
 tags = ["cargo", "scope:smoke"]
+
+# Exercises TARGETS-002 option overrides: this default must appear on the
+# inferred test target's options end-to-end.
+[package.metadata.nxrust.targets.test]
+all-features = true

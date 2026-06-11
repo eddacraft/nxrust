@@ -2,6 +2,20 @@
 
 ## Unreleased
 
+- Per-crate target option defaults via `[package.metadata.nxrust.targets.<name>]`
+  in `Cargo.toml` (e.g. `[package.metadata.nxrust.targets.test]
+  all-features = true`), so per-crate tuning needs no `project.json`. A
+  `toolchain` declared this way (or package-wide via
+  `package.metadata.nxrust.toolchain`) feeds both the executor invocation
+  (`cargo +<channel>`) and the target's cache-key runtime input
+  (`rustup run <channel> rustc -Vv`), keeping toolchain updates
+  cache-correct. Guard rails: the cargo `package` pin cannot be overridden,
+  `fmt-check` cannot be flipped into a mutating cached target, `lint`
+  follows the `clippy` table so the alias never diverges, and malformed or
+  unknown entries warn and are ignored rather than breaking the graph.
+  Consumer-explicit `project.json` targets still take precedence. **Minor**
+  bump (D-008).
+
 - Infer a `lint` target on every Rust crate as an exact alias of `clippy`
   (D-T4), so ecosystem-wide invocations like `nx run-many -t lint` and
   `nx affected -t lint` cover Rust crates alongside JS projects. `clippy`

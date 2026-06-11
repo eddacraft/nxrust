@@ -83,3 +83,30 @@ for the user. See `.claude/skills/fable5-aps-loop` for the cycle format.
   local main rebase conflicted afterwards. Branch from `origin/main`
   (or land bookkeeping first) when main carries unpushed commits.
 - Next: TARGETS-002 is Ready — metadata target-option overrides.
+
+## Cycle 4 — 2026-06-11
+
+- Item: TARGETS-002 (03-target-inference)
+- Outcome: complete — PR #26 squash-merged as `cef81ff`
+  - Code: `[package.metadata.nxrust.targets.<name>]` tables feed
+    inferred target options (13 new contract tests; 171/171 green;
+    e2e asserts the metadata default end-to-end). A metadata
+    `toolchain` feeds both the executor option and the cache runtime
+    input via TOOLCHAIN-002's hierarchy — passing it through as a
+    plain option would have let toolchain updates slip past the cache
+    key (D-TC3). Guard rails: `package` pin not overridable (D-T3),
+    `check` stripped from `fmt-check`, `lint` follows the `clippy`
+    table (D-T4), malformed/unknown entries warn-and-ignore.
+  - Process: branched from `origin/main` (cycle-3 lesson applied — no
+    bookkeeping bundling this time); merge was CLEAN with no review
+    threads; no friction.
+- Plan changes: TARGETS-002 → Complete; module 03 → Proposed (both
+  promoted items shipped; further items promote per D-010); index
+  table updated.
+- Checkpoints raised: none
+- Next: suggest a **0.3.0 release** — two consumer-visible minors'
+  worth of target-inference work (lint alias, metadata overrides)
+  sits in CHANGELOG § Unreleased. After release, the next D-010 slice
+  candidates are module 03's remainder (plugin-option target-name
+  coverage, generator `project.json` emission opt-out) or module 02
+  hardening; pick at next planning pass.

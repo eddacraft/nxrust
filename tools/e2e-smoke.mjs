@@ -94,8 +94,10 @@ try {
   console.log(`e2e: inferred tags OK — ${JSON.stringify(project.tags)}`);
 
   // TARGETS-001: the smoke crate is a publishable library with no
-  // project.json, so the full inferred default target set must surface
-  // (`run` is binary-only and must NOT appear).
+  // project.json, so the inferred target set must surface EXACTLY — no
+  // missing targets, and no extras (`run` is binary-only and must NOT
+  // appear; an unexpected target is a contract change that needs a
+  // deliberate minor bump per D-008).
   const expectedTargets = [
     'build',
     'check',
@@ -105,18 +107,12 @@ try {
     'fmt-check',
     'test',
     'nx-release-publish',
-  ];
-  const targetNames = Object.keys(project.targets ?? {});
-  const missingTargets = expectedTargets.filter((t) => !targetNames.includes(t));
-  if (missingTargets.length > 0) {
+  ].sort();
+  const targetNames = Object.keys(project.targets ?? {}).sort();
+  if (JSON.stringify(targetNames) !== JSON.stringify(expectedTargets)) {
     throw new Error(
-      `nx show project smoke is missing inferred targets ${JSON.stringify(missingTargets)}; ` +
-        `got ${JSON.stringify(targetNames)}`,
-    );
-  }
-  if (targetNames.includes('run')) {
-    throw new Error(
-      'nx show project smoke infers a `run` target for a library crate; run is binary-only',
+      `nx show project smoke inferred target set mismatch; ` +
+        `expected ${JSON.stringify(expectedTargets)}, got ${JSON.stringify(targetNames)}`,
     );
   }
   console.log(`e2e: inferred target set OK — ${JSON.stringify(targetNames)}`);

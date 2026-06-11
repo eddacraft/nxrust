@@ -1,5 +1,5 @@
 <!-- APS Module: 03-target-inference -->
-<!-- Status: In Progress -->
+<!-- Status: Proposed -->
 
 # Target Inference
 
@@ -8,7 +8,7 @@ per-crate `project.json` files for the canonical case.
 
 | ID | Owner | Status |
 |----|-------|--------|
-| TARGETS | eddacraft | In Progress (TARGETS-001 Complete 2026-06-11; TARGETS-002 Ready) |
+| TARGETS | eddacraft | Proposed (TARGETS-001 + TARGETS-002 Complete 2026-06-11, unreleased; further items promote per D-010) |
 
 ## Purpose
 
@@ -179,8 +179,17 @@ parser), module 04 named inputs (Complete).
 
 ### TARGETS-002: `package.metadata.nxrust.targets.<name>` overrides
 
-**Status: Ready** (promoted 2026-06-11 — next slice per D-010 ordering;
-its dependency TARGETS-001 is Complete)
+**Status: Complete: 2026-06-11** — PR #26 squash-merged as `cef81ff`
+(all CI checks green; 171/171 unit tests; e2e asserts the metadata
+default reaches the inferred test target end-to-end). Unreleased:
+ships in the next minor per D-008 (CHANGELOG § Unreleased, alongside
+TARGETS-001's `lint` alias). Implementation notes: a metadata
+`toolchain` feeds both the executor option and the cache runtime
+input via the TOOLCHAIN-002 hierarchy (D-TC2 steps 3-4) so toolchain
+updates stay cache-correct (D-TC3); guard rails — `package` pin not
+overridable, `check` stripped from `fmt-check`, `lint` follows the
+`clippy` table (D-T4), malformed/unknown entries warn and are
+ignored.
 **Packages:** `@eddacraft/nxrust`
 **Depends on:** TARGETS-001 (Complete: 2026-06-11).
 

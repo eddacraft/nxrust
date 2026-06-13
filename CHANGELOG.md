@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.3.0 — 2026-06-14
 
 - Per-crate target option defaults via `[package.metadata.nxrust.targets.<name>]`
   in `Cargo.toml` (e.g. `[package.metadata.nxrust.targets.test]

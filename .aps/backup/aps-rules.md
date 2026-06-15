@@ -2,8 +2,6 @@
 
 > This file guides AI agents working with APS specs in this repository.
 > Keep it in `plans/` so agents discover it when exploring the planning directory.
-> **APS-managed** — safe to update via `aps update`. Project-specific context
-> lives in `plans/project-context.md` (user-owned, never overwritten).
 
 ## Core Principle
 
@@ -43,7 +41,7 @@ Actions translate work item intent into **observable checkpoints**. They are NOT
 ### Anti-Patterns (NEVER do this)
 
 ```markdown
-# BAD: Implementation tutorial disguised as action
+# ❌ BAD: Implementation tutorial disguised as action
 
 ### 1. Create authentication middleware
 
@@ -57,7 +55,7 @@ Actions translate work item intent into **observable checkpoints**. They are NOT
 ```
 
 ```markdown
-# GOOD: Observable checkpoint only
+# ✅ GOOD: Observable checkpoint only
 
 ### 1. Create authentication middleware
 
@@ -91,7 +89,7 @@ Work items are **execution authority** — permission to make changes.
 
 ### Work Item Anti-Patterns
 
-| Don't                                      | Do                                    |
+| ❌ Don't                                   | ✅ Do                                 |
 | ------------------------------------------ | ------------------------------------- |
 | "Implement JWT auth using jsonwebtoken"    | "Add token-based authentication"      |
 | "Create UserService class with methods..." | "User operations are encapsulated"    |
@@ -134,7 +132,20 @@ Actions support optional execution metadata:
 
 - Simple work items (< 4 actions)
 - All actions modify the same files
-- Actions are inherently sequential (schema -> migration -> seed)
+- Actions are inherently sequential (schema → migration → seed)
+
+### Anti-Pattern
+
+```markdown
+# ❌ BAD: Everything in one wave to look fast
+
+## Waves
+
+| Wave | Actions | Gate |
+| 1 | 1, 2, 3, 4, 5 | All pass |
+```
+
+If all actions are truly independent, they probably belong in separate work items.
 
 ## Naming Conventions
 
@@ -151,7 +162,7 @@ modules/
 ```
 
 - Use zero-padded numbers (`01-`, `02-`, not `1-`, `2-`)
-- Order matches dependency flow (foundational -> dependent)
+- Order matches dependency flow (foundational → dependent)
 - Order should reflect the Modules table in `index.aps.md`
 
 ### Work Item IDs
@@ -179,27 +190,27 @@ Work items use the module's ID prefix: `AUTH-001`, `AUTH-002`, `CORE-001`, etc.
 ## File Locations
 
 ```text
+designs/                       # Technical designs (optional, project root)
+└── YYYY-MM-DD-slug.design.md  # Architecture/approach documents
+
 plans/
-├── aps-rules.md           # This file (APS-managed agent guidance)
-├── project-context.md     # Project-specific context (user-owned)
+├── aps-rules.md           # This file (agent guidance)
 ├── index.aps.md           # Root plan
-├── issues.md              # Development-time discoveries
+├── issues.md              # Development-time discoveries (issues & questions, create manually)
 ├── modules/               # Module specs (numbered by dependency order)
 │   ├── 01-core.aps.md
 │   └── 02-auth.aps.md
 ├── execution/                 # Action plans
 │   ├── [WORK-ITEM-ID].actions.md  # Per-work-item (complex projects)
 │   └── [MODULE].actions.md        # Per-module (simple projects)
-├── decisions/             # ADRs (optional)
-│   └── [NNN]-[title].md
-└── designs/               # Technical designs (optional)
-    └── YYYY-MM-DD-slug.design.md
+└── decisions/             # ADRs (optional)
+    └── [NNN]-[title].md
 ```
 
 ## Design Documents
 
-Design docs live in `plans/designs/`. They capture architectural thinking
-**before** committing to modules and work items.
+Design docs live in `designs/` at the project root. They capture architectural
+thinking **before** committing to modules and work items.
 
 ### When to Create
 
@@ -216,7 +227,7 @@ Design docs live in `plans/designs/`. They capture architectural thinking
 
 ### Naming
 
-`plans/designs/YYYY-MM-DD-slug.design.md` — date-prefixed, descriptive slug.
+`designs/YYYY-MM-DD-slug.design.md` — date-prefixed, descriptive slug.
 
 ### Linking
 
@@ -225,8 +236,11 @@ Reference designs from the Index or Module metadata:
 ```markdown
 ## Designs
 
-- [Auth Architecture](designs/2025-01-05-auth-architecture.design.md)
+- [Auth Architecture](../designs/2025-01-05-auth-architecture.design.md)
 ```
+
+A design can cover one module or span multiple — the `Modules` field in the
+design's metadata table links to the relevant module files.
 
 ### Accept-Then-Normalise
 

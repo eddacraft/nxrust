@@ -6,7 +6,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "./aps-planning/scripts/pre-tool-check.sh"
+            "command": "./.aps/scripts/pre-tool-check.sh"
           }
         ]
       }
@@ -17,7 +17,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "./aps-planning/scripts/post-tool-nudge.sh"
+            "command": "./.aps/scripts/post-tool-nudge.sh"
           }
         ]
       }
@@ -27,7 +27,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "./aps-planning/scripts/check-complete.sh"
+            "command": "./.aps/scripts/check-complete.sh"
           }
         ]
       },
@@ -35,7 +35,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "./aps-planning/scripts/enforce-plan-update.sh"
+            "command": "./.aps/scripts/enforce-plan-update.sh"
           }
         ]
       }
@@ -45,7 +45,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "./aps-planning/scripts/init-session.sh"
+            "command": "./.aps/scripts/init-session.sh"
           }
         ]
       }

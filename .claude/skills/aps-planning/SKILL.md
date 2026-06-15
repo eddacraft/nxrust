@@ -27,8 +27,8 @@ is disk (persistent, unlimited). Anything important gets written to APS files.
 4. **Never skip validation.** Every work item has a Validation field. Run it
    before marking anything complete.
 
-5. **Specs describe intent, not implementation.** Write _what_ and _why_, never
-   _how_. Implementation emerges from code patterns and agent judgment.
+5. **Specs describe intent, not implementation.** Write *what* and *why*, never
+   *how*. Implementation emerges from code patterns and agent judgment.
 
 ## When to Trigger APS Planning
 
@@ -55,40 +55,45 @@ Before planning, understand what exists:
 
 ```
 1. Check: Does plans/ directory exist?
-2. Check: Does plans/index.aps.md exist?
-3. Check: Are there module files in plans/modules/?
-4. Check: Are there design docs in designs/?
-5. Read plans/aps-rules.md if present (agent guidance)
-6. Identify: Is this new work or continuing existing work?
+2. If plans/ does not exist → run: aps init
+   (This bootstraps the APS structure. If aps is not on PATH, check bin/aps in the anvil-plan-spec repo or run: curl -fsSL https://raw.githubusercontent.com/EddaCraft/anvil-plan-spec/main/install.sh | sh)
+   After init completes, continue to step 3.
+3. Check: Does plans/.aps-version exist?
+   If it exists, read the version. Current APS version is 0.2.0.
+   If the version in .aps-version is lower than 0.2.0 → run: aps update
+   After update completes, continue to step 4.
+4. Check: Does plans/index.aps.md exist?
+5. Check: Are there module files in plans/modules/?
+6. Check: Are there design docs in designs/?
+7. Read plans/aps-rules.md if present (agent guidance)
+8. Identify: Is this new work or continuing existing work?
 ```
 
 ### 2. Plan (pick the right template)
 
-| Situation                           | Action                            |
-| ----------------------------------- | --------------------------------- |
+| Situation | Action |
+|-----------|--------|
 | Complex architecture needing review | Create a Design doc in `designs/` |
-| Quick feature (1-3 items)           | Create a Simple spec              |
-| Bounded work area with interfaces   | Create a Module spec              |
-| Multi-module initiative             | Create an Index + Modules         |
-| Complex work item needing breakdown | Create an Action Plan             |
+| Quick feature (1-3 items) | Create a Simple spec |
+| Bounded work area with interfaces | Create a Module spec |
+| Multi-module initiative | Create an Index + Modules |
+| Complex work item needing breakdown | Create an Action Plan |
 
 **Simple spec** — for self-contained features:
 
 ```markdown
 # [Feature Name]
 
-| ID   | Owner | Status |
-| ---- | ----- | ------ |
-| FEAT | @user | Draft  |
+| ID | Owner | Status |
+|----|-------|--------|
+| FEAT | @user | Draft |
 
 ## Purpose
-
 [What problem this solves]
 
 ## Work Items
 
 ### FEAT-001: [Title]
-
 - **Intent:** [What this achieves]
 - **Expected Outcome:** [Testable result]
 - **Validation:** `[command]`
@@ -99,22 +104,19 @@ Before planning, understand what exists:
 ```markdown
 # [Module Title]
 
-| ID   | Owner | Priority | Status |
-| ---- | ----- | -------- | ------ |
-| AUTH | @user | medium   | Draft  |
+| ID | Owner | Priority | Status |
+|----|-------|----------|--------|
+| AUTH | @user | medium | Draft |
 
 ## Purpose
-
 [Why this module exists]
 
 ## In Scope
-
 - [What this module handles]
 
 ## Work Items
 
 ### AUTH-001: [Title]
-
 - **Intent:** [One sentence]
 - **Expected Outcome:** [Observable result]
 - **Validation:** `[command]`
@@ -127,21 +129,17 @@ Before planning, understand what exists:
 # [Plan Title]
 
 ## Overview
-
 [What this plan covers]
 
 ## Problem & Success Criteria
-
 **Problem:** [What we're solving]
 **Success Criteria:**
-
 - [ ] [Measurable outcome]
 
 ## Modules
-
-| Module                        | Purpose        | Status |
-| ----------------------------- | -------------- | ------ |
-| [auth](./modules/auth.aps.md) | Authentication | Draft  |
+| Module | Purpose | Status |
+|--------|---------|--------|
+| [auth](./modules/auth.aps.md) | Authentication | Draft |
 ```
 
 ### 3. Execute
@@ -250,7 +248,6 @@ Optional fields: Confidence, Dependencies, Files, Non-scope, Status.
 ## Actions
 
 ### Action 1 — [Verb] [target]
-
 **Purpose:** [Why]
 **Produces:** [Artefacts]
 **Checkpoint:** [Observable state — max 12 words]
@@ -277,11 +274,11 @@ If the `aps` CLI is available, validate your specs:
 
 ## Anti-Patterns
 
-| Don't                                         | Do                                      |
-| --------------------------------------------- | --------------------------------------- |
-| Start coding without a spec                   | Create at least a Simple spec first     |
-| Write implementation details in specs         | Write intent and outcomes only          |
-| Forget to update status after completing work | Update immediately                      |
-| Expand scope mid-work-item                    | Add a new Draft item instead            |
-| Skip validation commands                      | Always run them before marking complete |
-| Stuff everything in context                   | Write findings to APS files             |
+| Don't | Do |
+|-------|-----|
+| Start coding without a spec | Create at least a Simple spec first |
+| Write implementation details in specs | Write intent and outcomes only |
+| Forget to update status after completing work | Update immediately |
+| Expand scope mid-work-item | Add a new Draft item instead |
+| Skip validation commands | Always run them before marking complete |
+| Stuff everything in context | Write findings to APS files |

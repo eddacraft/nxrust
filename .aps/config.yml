@@ -1,0 +1,21 @@
+# Inferred by aps migrate — review and adjust if needed
+# .aps/config.yml — written by installer, read by updater
+aps:
+  version: "0.3.0"
+  config_schema: 1
+  installed: "2026-06-15"
+  updated: "2026-06-15"
+
+project:
+  type: simple
+  monorepo_tool: ~
+  profile: solo
+
+tools:
+  - name: claude-code
+    skill: .claude/skills/aps-planning
+    hooks: full
+    agents:
+      - aps-planner
+      - aps-librarian
+      - aps-conductor

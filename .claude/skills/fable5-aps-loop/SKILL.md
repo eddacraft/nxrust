@@ -92,13 +92,13 @@ assumptions confirmed or broken, lessons recorded — update the plan files:
 
 ### Authority
 
-| Change | Loop may apply autonomously |
-| --- | --- |
-| Item statuses, `Files:` fields, drift corrections, action plans | yes |
-| New `Proposed` items and modules within the index's stated scope | yes |
-| Splitting, merging, retiring items (rationale recorded) | yes |
-| Index Problem, Success Criteria, Constraints; accepted ADRs | no — checkpoint |
-| Deleting modules or abandoning a milestone | no — checkpoint |
+| Change                                                           | Loop may apply autonomously |
+| ---------------------------------------------------------------- | --------------------------- |
+| Item statuses, `Files:` fields, drift corrections, action plans  | yes                         |
+| New `Proposed` items and modules within the index's stated scope | yes                         |
+| Splitting, merging, retiring items (rationale recorded)          | yes                         |
+| Index Problem, Success Criteria, Constraints; accepted ADRs      | no — checkpoint             |
+| Deleting modules or abandoning a milestone                       | no — checkpoint             |
 
 A checkpoint means: record the proposal in the journal, surface it in your
 report (or via the harness's send-to-user mechanism if one exists), and

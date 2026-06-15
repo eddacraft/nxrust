@@ -2,14 +2,14 @@
 // Copies non-TS assets (schema.json files, generator template trees) from
 // src/ into dist/ so the compiled plugin has the companion files executors
 // and generators expect at runtime.
-import { copyFile, mkdir, readdir, stat } from 'node:fs/promises';
-import { dirname, join, relative, sep } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { copyFile, mkdir, readdir, stat } from "node:fs/promises";
+import { dirname, join, relative, sep } from "node:path";
+import { fileURLToPath } from "node:url";
 
-const here = fileURLToPath(new URL('.', import.meta.url));
-const root = join(here, '..');
-const srcDir = join(root, 'src');
-const distDir = join(root, 'dist');
+const here = fileURLToPath(new URL(".", import.meta.url));
+const root = join(here, "..");
+const srcDir = join(root, "src");
+const distDir = join(root, "dist");
 
 async function* walk(dir) {
   for (const entry of await readdir(dir)) {
@@ -24,9 +24,9 @@ async function* walk(dir) {
 }
 
 const keep = (p) => {
-  if (p.endsWith('.json')) return true;
-  if (p.endsWith('.md')) return true;
-  if (p.split(sep).includes('files')) return true;
+  if (p.endsWith(".json")) return true;
+  if (p.endsWith(".md")) return true;
+  if (p.split(sep).includes("files")) return true;
   return false;
 };
 

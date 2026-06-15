@@ -12,10 +12,7 @@
     "release": { "type": "boolean", "default": false },
     "target-dir": { "type": "string" },
     "features": {
-      "oneOf": [
-        { "type": "string" },
-        { "type": "array", "items": { "type": "string" } }
-      ]
+      "oneOf": [{ "type": "string" }, { "type": "array", "items": { "type": "string" } }]
     },
     "all-features": { "type": "boolean", "default": false },
     "no-default-features": { "type": "boolean", "default": false },
@@ -26,27 +23,18 @@
     "doc": { "type": "boolean", "default": false, "description": "Run only doctests." },
     "lib": { "type": "boolean", "default": false },
     "bin": {
-      "oneOf": [
-        { "type": "string" },
-        { "type": "array", "items": { "type": "string" } }
-      ]
+      "oneOf": [{ "type": "string" }, { "type": "array", "items": { "type": "string" } }]
     },
     "bins": { "type": "boolean", "default": false },
     "test": {
-      "oneOf": [
-        { "type": "string" },
-        { "type": "array", "items": { "type": "string" } }
-      ]
+      "oneOf": [{ "type": "string" }, { "type": "array", "items": { "type": "string" } }]
     },
     "tests": { "type": "boolean", "default": false },
     "all-targets": { "type": "boolean", "default": false },
     "no-run": { "type": "boolean", "default": false },
     "no-fail-fast": { "type": "boolean", "default": false },
     "args": {
-      "oneOf": [
-        { "type": "string" },
-        { "type": "array", "items": { "type": "string" } }
-      ],
+      "oneOf": [{ "type": "string" }, { "type": "array", "items": { "type": "string" } }],
       "description": "Arguments forwarded to the test binary after `--` (e.g. --nocapture, filter strings)."
     }
   },

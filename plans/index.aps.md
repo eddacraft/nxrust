@@ -3,13 +3,13 @@
 
 # nxrust — Cargo-native Nx plugin for Rust
 
-| Field | Value |
-|-------|-------|
-| Status | In Progress |
-| Owner | eddacraft |
-| Created | 2026-04-21 |
+| Field         | Value                           |
+| ------------- | ------------------------------- |
+| Status        | In Progress                     |
+| Owner         | eddacraft                       |
+| Created       | 2026-04-21                      |
 | Last reframed | 2026-05-17 (adopt product spec) |
-| Licence | Apache-2.0 |
+| Licence       | Apache-2.0                      |
 
 ## Vision
 
@@ -104,24 +104,24 @@ historical reference; full detail in
 
 ## Modules
 
-| # | Module | Spec § | Purpose | Status | Dependencies |
-|---|--------|--------|---------|--------|--------------|
-| 01 | [v0.1-shakedown](./modules/01-v0.1-shakedown.aps.md) | 3.1 | Prove the plugin end-to-end on a consumer workspace, ship first npm release | Complete | — |
-| 02 | [workspace-inference-and-graph](./modules/02-workspace-inference-and-graph.aps.md) | 6.1, 6.2 | Cargo workspace + project graph inference (members, globs, excludes, edges, external nodes, kind metadata) | Proposed (GRAPH-001 released 0.2.0) | 01 |
-| 03 | [target-inference](./modules/03-target-inference.aps.md) | 6.3 | Auto-inferred Nx targets per crate; zero `project.json`; `fmt` / `fmt-check` split | Proposed (TARGETS-001 + 002 merged 2026-06-11, unreleased) | 02 |
-| 04 | [cache-semantics](./modules/04-cache-semantics.aps.md) | 6.4 | Named inputs, output narrowing, env-var hashing, per-target cache rules | Complete | 03 |
-| 05 | [cargo-features](./modules/05-cargo-features.aps.md) | 6.5 | Feature/profile/target options across executors; inferred configurations | Proposed | 03 |
-| 06 | [toolchain-awareness](./modules/06-toolchain-awareness.aps.md) | 6.6 | `rust-toolchain.toml`, `cargo +toolchain`, `rustc -Vv`/`cargo -V` hashing | Proposed | 04 |
-| 07 | [generators](./modules/07-generators.aps.md) | 6.7 | Generator inventory: CLI, service, TUI, ffi, bench, xtask, policy preset | Proposed | 03 |
-| 08 | [release-support](./modules/08-release-support.aps.md) | 6.8 | Cargo-aware Nx release: version, internal deps, dry-run, registries, fixed/independent modes | Proposed | 03 |
-| 09 | [supply-chain](./modules/09-supply-chain.aps.md) | 6.9 | `audit`, `deny`, `outdated`, `vet`, `sbom`, `licenses` | Proposed | 03 |
-| 10 | [wasm-napi](./modules/10-wasm-napi.aps.md) | 6.10 | `napi`, `wasm-pack` executors and generators (Monodon-parity surface) | Proposed (WN-001 released 0.2.0) | 03, 07 |
-| 11 | [nextest](./modules/11-nextest.aps.md) | 6.11 | `cargo nextest` executor with profiles, partitions, archive-file | Proposed | 03 |
-| 12 | [workspace-synthetic-project](./modules/12-workspace-synthetic-project.aps.md) | 6.12 | Synthetic `rust-workspace` project for workspace-level targets | Proposed | 02 |
-| 13 | [affected-refinement](./modules/13-affected-refinement.aps.md) | 6.13 | Lockfile / toolchain / manifest / feature-aware affected behaviour | Proposed | 02, 04 |
-| 14 | [diagnostics](./modules/14-diagnostics.aps.md) | 6.14 | Actionable error messages for cargo / toolchain / tool-missing failures | Proposed | — |
-| 15 | [monodon-migration](./modules/15-monodon-migration.aps.md) | 6.15 | `migrate-from-monodon` generator + compatibility aliases | Proposed | 03, 07 |
-| 16 | [adoption-and-docs](./modules/16-adoption-and-docs.aps.md) | 8.3, 8.4 | `create-nx-workspace` preset, docs site, examples, Nx Console schemas, v1.0 stable contract | Proposed | most |
+| #   | Module                                                                             | Spec §   | Purpose                                                                                                    | Status                                                     | Dependencies |
+| --- | ---------------------------------------------------------------------------------- | -------- | ---------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------- | ------------ |
+| 01  | [v0.1-shakedown](./modules/01-v0.1-shakedown.aps.md)                               | 3.1      | Prove the plugin end-to-end on a consumer workspace, ship first npm release                                | Complete                                                   | —            |
+| 02  | [workspace-inference-and-graph](./modules/02-workspace-inference-and-graph.aps.md) | 6.1, 6.2 | Cargo workspace + project graph inference (members, globs, excludes, edges, external nodes, kind metadata) | Proposed (GRAPH-001 released 0.2.0)                        | 01           |
+| 03  | [target-inference](./modules/03-target-inference.aps.md)                           | 6.3      | Auto-inferred Nx targets per crate; zero `project.json`; `fmt` / `fmt-check` split                         | Proposed (TARGETS-001 + 002 merged 2026-06-11, unreleased) | 02           |
+| 04  | [cache-semantics](./modules/04-cache-semantics.aps.md)                             | 6.4      | Named inputs, output narrowing, env-var hashing, per-target cache rules                                    | Complete                                                   | 03           |
+| 05  | [cargo-features](./modules/05-cargo-features.aps.md)                               | 6.5      | Feature/profile/target options across executors; inferred configurations                                   | Proposed                                                   | 03           |
+| 06  | [toolchain-awareness](./modules/06-toolchain-awareness.aps.md)                     | 6.6      | `rust-toolchain.toml`, `cargo +toolchain`, `rustc -Vv`/`cargo -V` hashing                                  | Proposed                                                   | 04           |
+| 07  | [generators](./modules/07-generators.aps.md)                                       | 6.7      | Generator inventory: CLI, service, TUI, ffi, bench, xtask, policy preset                                   | Proposed                                                   | 03           |
+| 08  | [release-support](./modules/08-release-support.aps.md)                             | 6.8      | Cargo-aware Nx release: version, internal deps, dry-run, registries, fixed/independent modes               | Proposed                                                   | 03           |
+| 09  | [supply-chain](./modules/09-supply-chain.aps.md)                                   | 6.9      | `audit`, `deny`, `outdated`, `vet`, `sbom`, `licenses`                                                     | Proposed                                                   | 03           |
+| 10  | [wasm-napi](./modules/10-wasm-napi.aps.md)                                         | 6.10     | `napi`, `wasm-pack` executors and generators (Monodon-parity surface)                                      | Proposed (WN-001 released 0.2.0)                           | 03, 07       |
+| 11  | [nextest](./modules/11-nextest.aps.md)                                             | 6.11     | `cargo nextest` executor with profiles, partitions, archive-file                                           | Proposed                                                   | 03           |
+| 12  | [workspace-synthetic-project](./modules/12-workspace-synthetic-project.aps.md)     | 6.12     | Synthetic `rust-workspace` project for workspace-level targets                                             | Proposed                                                   | 02           |
+| 13  | [affected-refinement](./modules/13-affected-refinement.aps.md)                     | 6.13     | Lockfile / toolchain / manifest / feature-aware affected behaviour                                         | Proposed                                                   | 02, 04       |
+| 14  | [diagnostics](./modules/14-diagnostics.aps.md)                                     | 6.14     | Actionable error messages for cargo / toolchain / tool-missing failures                                    | Proposed                                                   | —            |
+| 15  | [monodon-migration](./modules/15-monodon-migration.aps.md)                         | 6.15     | `migrate-from-monodon` generator + compatibility aliases                                                   | Proposed                                                   | 03, 07       |
+| 16  | [adoption-and-docs](./modules/16-adoption-and-docs.aps.md)                         | 8.3, 8.4 | `create-nx-workspace` preset, docs site, examples, Nx Console schemas, v1.0 stable contract                | Proposed                                                   | most         |
 
 **Promotion rule.** Modules 02-16 stay Proposed until at least one of their
 items has a real downstream ask — an issue, a Slack ping, or a direct
@@ -189,15 +189,15 @@ items only ship when a real consumer ask promotes them.
 
 ## Risks
 
-| Risk | Impact | Mitigation |
-|------|--------|------------|
-| `target/` caching yields stale artefacts under remote cache | high | Narrow `outputs` per target; cache reports not whole `target/` subtrees. **Resolved 2026-05-12** for `test` (now `outputs: []`) and **2026-05-29** for `build` (narrowed to per-binary/per-rlib paths via CACHE-002, with a `narrowBuildOutputs: false` escape hatch for target-dir/custom-profile/unsupported crate types). Contract closed in `04-cache-semantics` (Complete). |
-| Nx 22 project-graph plugin API drifts on minor upgrades | medium | Small public surface (`createNodesV2` + `createDependencies` only); CI smoke test pins the contract; semver-backed schemas land in `16-adoption-and-docs` for v1.0. |
-| `cargo metadata` performance on large workspaces | medium | Mtime-keyed `Cargo.lock` cache already in `graph.ts`; performance-tracking in `02-workspace-inference-and-graph` and `13-affected-refinement`. |
-| Consumer switchover breaks the consumer's pnpm graph mid-flight | medium | Switch only after the consumer's own CI smoke is green; keep a revert commit ready. Repeats per major version bump. |
-| Speculative builds outpace real demand | high | Per-item consumer-driven promotion (D-007). **Updated 2026-06-10:** demand for the full adapter confirmed (D-010); promotion now proceeds in dependency/roadmap order, one Ready slice at a time, so build order still tracks the roadmap rather than speculation. |
-| Cache-key gaps cause silent miscompiles | high | Toolchain + env hashing is foundational (`04`, `06`) — these must land before any `target/`-aware caching expansion in later modules. |
-| Mixed-stack `^build` inheritance serialises JS tests on cargo `target/` lock | high | **Resolved 2026-05-20.** D-009 binds nxrust generators to never emit `^build` on cross-language edges; canonical recipe at `docs/recipes/javascript-rust-test-seams.md` covers consumer-side remediation for workspaces hitting the failure mode via `@nx/js` auto-deps. |
+| Risk                                                                         | Impact | Mitigation                                                                                                                                                                                                                                                                                                                                                                       |
+| ---------------------------------------------------------------------------- | ------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `target/` caching yields stale artefacts under remote cache                  | high   | Narrow `outputs` per target; cache reports not whole `target/` subtrees. **Resolved 2026-05-12** for `test` (now `outputs: []`) and **2026-05-29** for `build` (narrowed to per-binary/per-rlib paths via CACHE-002, with a `narrowBuildOutputs: false` escape hatch for target-dir/custom-profile/unsupported crate types). Contract closed in `04-cache-semantics` (Complete). |
+| Nx 22 project-graph plugin API drifts on minor upgrades                      | medium | Small public surface (`createNodesV2` + `createDependencies` only); CI smoke test pins the contract; semver-backed schemas land in `16-adoption-and-docs` for v1.0.                                                                                                                                                                                                              |
+| `cargo metadata` performance on large workspaces                             | medium | Mtime-keyed `Cargo.lock` cache already in `graph.ts`; performance-tracking in `02-workspace-inference-and-graph` and `13-affected-refinement`.                                                                                                                                                                                                                                   |
+| Consumer switchover breaks the consumer's pnpm graph mid-flight              | medium | Switch only after the consumer's own CI smoke is green; keep a revert commit ready. Repeats per major version bump.                                                                                                                                                                                                                                                              |
+| Speculative builds outpace real demand                                       | high   | Per-item consumer-driven promotion (D-007). **Updated 2026-06-10:** demand for the full adapter confirmed (D-010); promotion now proceeds in dependency/roadmap order, one Ready slice at a time, so build order still tracks the roadmap rather than speculation.                                                                                                               |
+| Cache-key gaps cause silent miscompiles                                      | high   | Toolchain + env hashing is foundational (`04`, `06`) — these must land before any `target/`-aware caching expansion in later modules.                                                                                                                                                                                                                                            |
+| Mixed-stack `^build` inheritance serialises JS tests on cargo `target/` lock | high   | **Resolved 2026-05-20.** D-009 binds nxrust generators to never emit `^build` on cross-language edges; canonical recipe at `docs/recipes/javascript-rust-test-seams.md` covers consumer-side remediation for workspaces hitting the failure mode via `@nx/js` auto-deps.                                                                                                         |
 
 ## Open Questions
 
@@ -238,31 +238,31 @@ items only ship when a real consumer ask promotes them.
   from `@monodon/rust` (MIT) is permitted where it saves real time;
   borrowed code gets a top-of-file attribution comment and a
   `THIRD-PARTY-NOTICES.md` entry preserving the MIT notice.
-  *Revised 2026-04-21 — previously "clean-room only".*
+  _Revised 2026-04-21 — previously "clean-room only"._
 - **D-002:** Licence — Apache-2.0 (not MIT). Explicit patent grant.
-  *Accepted.*
+  _Accepted._
 - **D-003:** Nx version floor — `@nx/devkit ^22.6.5`. No back-support
-  for Nx 19/20/21 in the v0.x line. *Accepted.*
+  for Nx 19/20/21 in the v0.x line. _Accepted._
 - **D-004:** Build target — CommonJS to `./dist`. Nx devkit plugins are
-  consumed by Nx's Node runtime; ESM offers no win here. *Accepted.*
+  consumed by Nx's Node runtime; ESM offers no win here. _Accepted._
 - **D-005:** Distribution channel — publish `@eddacraft/nxrust` to npm,
-  not crates.io. *Accepted 2026-05-07.*
+  not crates.io. _Accepted 2026-05-07._
 - **D-006:** Adopt [`docs/product-spec.md`](../docs/product-spec.md) as
   the source of truth for the v0.2 → v1.0 roadmap. The Modules table
   above is a structural decomposition of spec §6 + §8. Refactored the
   original `02-monodon-parity` and `03-v0.2-polish` modules into
   capability-area modules (one per spec sub-section). The old modules
   are removed; their content is preserved in the new modules where it
-  applies. *Accepted 2026-05-17.*
+  applies. _Accepted 2026-05-17._
 - **D-007:** Per-item, consumer-driven promotion. Modules 02-16 stay
   Proposed; individual Work Items promote to Ready only when a real
   downstream consumer asks. No speculative builds. Inherits the rule
   established by the original 02-monodon-parity and 03-v0.2-polish
-  modules. *Accepted 2026-05-17 (formalised at index level).*
+  modules. _Accepted 2026-05-17 (formalised at index level)._
 - **D-008:** Graph-behaviour-changing fixes bump the **minor** version,
   not patch. Consumers should be able to pin patch versions and trust
   that graph shape is stable within a minor line. Inherits from the
-  original 03-v0.2-polish module. *Accepted 2026-05-17.*
+  original 03-v0.2-polish module. _Accepted 2026-05-17._
 - **D-009:** nxrust generators **never emit `^build` on cross-language
   edges by default.** Any generator that wires a JS↔Rust edge (current:
   `add-wasm-reference`, `add-napi`; future: any cross-stack glue under
@@ -279,9 +279,9 @@ items only ship when a real consumer ask promotes them.
   [`10-wasm-napi`](./modules/10-wasm-napi.aps.md). Consumer recipe:
   [`docs/recipes/javascript-rust-test-seams.md`](../docs/recipes/javascript-rust-test-seams.md).
   Full risk context: ISS-001 in [`plans/issues.md`](./issues.md).
-  *Accepted 2026-05-20 (consumer-driven via Anvil; ratified upstream
+  _Accepted 2026-05-20 (consumer-driven via Anvil; ratified upstream
   after anvil agent confirmed the upstream contract is the more elegant
-  fix than per-consumer script splits).*
+  fix than per-consumer script splits)._
 - **D-010:** Consumer demand for the fully functioning adapter is
   confirmed (plan-owner declaration, 2026-06-10). This satisfies the
   D-007 per-item trigger across the whole v0.2 → v1.0 surface: work
@@ -293,4 +293,4 @@ items only ship when a real consumer ask promotes them.
   [`03-target-inference`](./modules/03-target-inference.aps.md) — the
   zero-`project.json` DX core, whose stated dependencies (GRAPH-001
   parser, released 0.2.0; module 04 named inputs, Complete) have all
-  shipped. *Accepted 2026-06-10.*
+  shipped. _Accepted 2026-06-10._

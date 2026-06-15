@@ -1,10 +1,10 @@
-import type { TargetConfiguration } from '@nx/devkit';
+import type { TargetConfiguration } from "@nx/devkit";
 import {
   buildCacheInputs,
   buildCacheOutputs,
   type BuildCacheInputsOptions,
   type BuildCacheOutputsOptions,
-} from './cache-inputs';
+} from "./cache-inputs";
 
 /**
  * Pre-fabricated `TargetConfiguration` blobs so generators don't duplicate
@@ -22,7 +22,7 @@ import {
 type AnyOpts = Record<string, unknown>;
 
 type CacheOpts = BuildCacheInputsOptions;
-type BuildOutputOpts = Omit<BuildCacheOutputsOptions, 'target'>;
+type BuildOutputOpts = Omit<BuildCacheOutputsOptions, "target">;
 
 export function buildTargetConfig(
   options: AnyOpts = {},
@@ -30,14 +30,14 @@ export function buildTargetConfig(
   outputs: BuildOutputOpts = {},
 ): TargetConfiguration {
   return {
-    executor: '@eddacraft/nxrust:build',
+    executor: "@eddacraft/nxrust:build",
     cache: true,
     inputs: buildCacheInputs(cache),
     outputs: buildCacheOutputs({
-      target: 'build',
+      target: "build",
       ...outputs,
       narrowBuildOutputs:
-        options.target || options['target-dir'] || options.profile
+        options.target || options["target-dir"] || options.profile
           ? false
           : outputs.narrowBuildOutputs,
     }),
@@ -53,7 +53,7 @@ export function checkTargetConfig(
   cache: CacheOpts = {},
 ): TargetConfiguration {
   return {
-    executor: '@eddacraft/nxrust:check',
+    executor: "@eddacraft/nxrust:check",
     cache: true,
     inputs: buildCacheInputs(cache),
     outputs: [],
@@ -66,7 +66,7 @@ export function clippyTargetConfig(
   cache: CacheOpts = {},
 ): TargetConfiguration {
   return {
-    executor: '@eddacraft/nxrust:clippy',
+    executor: "@eddacraft/nxrust:clippy",
     cache: true,
     inputs: buildCacheInputs(cache),
     outputs: [],
@@ -78,11 +78,9 @@ export function clippyTargetConfig(
  * Reformatting target — rewrites source files in place, so it is NOT safely
  * cacheable. Pair with `fmtCheckTargetConfig` for CI lint runs.
  */
-export function fmtTargetConfig(
-  options: AnyOpts = {},
-): TargetConfiguration {
+export function fmtTargetConfig(options: AnyOpts = {}): TargetConfiguration {
   return {
-    executor: '@eddacraft/nxrust:fmt',
+    executor: "@eddacraft/nxrust:fmt",
     options,
   };
 }
@@ -96,7 +94,7 @@ export function fmtCheckTargetConfig(
   cache: CacheOpts = {},
 ): TargetConfiguration {
   return {
-    executor: '@eddacraft/nxrust:fmt',
+    executor: "@eddacraft/nxrust:fmt",
     cache: true,
     inputs: buildCacheInputs(cache),
     outputs: [],
@@ -109,7 +107,7 @@ export function testTargetConfig(
   cache: CacheOpts = {},
 ): TargetConfiguration {
   return {
-    executor: '@eddacraft/nxrust:test',
+    executor: "@eddacraft/nxrust:test",
     cache: true,
     inputs: buildCacheInputs(cache),
     outputs: [],
@@ -120,11 +118,9 @@ export function testTargetConfig(
   };
 }
 
-export function runTargetConfig(
-  options: AnyOpts = {},
-): TargetConfiguration {
+export function runTargetConfig(options: AnyOpts = {}): TargetConfiguration {
   return {
-    executor: '@eddacraft/nxrust:run',
+    executor: "@eddacraft/nxrust:run",
     options,
     configurations: {
       production: { release: true },

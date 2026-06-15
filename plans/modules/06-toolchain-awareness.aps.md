@@ -6,8 +6,8 @@
 Read `rust-toolchain.toml`, respect `cargo +toolchain`, and hash the actual
 Rust toolchain into the cache key.
 
-| ID | Owner | Status |
-|----|-------|--------|
+| ID        | Owner     | Status   |
+| --------- | --------- | -------- |
 | TOOLCHAIN | eddacraft | Proposed |
 
 ## Purpose
@@ -163,22 +163,22 @@ unblocks the cache + toolchain design promotion chain
 
 **Fixture matrix** (each case is a `.spec.ts` test):
 
-| Case | Expected |
-|------|----------|
-| Workspace-root `rust-toolchain.toml` with `[toolchain] channel = "stable"` | `{ channel: "stable", source: "rust-toolchain.toml" }` |
-| Workspace-root + project-root `rust-toolchain.toml`, channels differ | project-root wins |
-| `rust-toolchain.toml` and legacy `rust-toolchain` in same dir | `.toml` wins |
-| Legacy `rust-toolchain` only (single line, trimmed) | `{ channel: "<trimmed>", source: "rust-toolchain" }` |
-| No file at any level | `{ channel: "default", source: "default" }` |
-| Malformed `rust-toolchain.toml` (broken TOML) | throws with file path + reason |
-| Empty `rust-toolchain.toml` | throws (no `[toolchain]` table) |
-| `rust-toolchain.toml` with no `channel` field | throws |
-| Legacy `rust-toolchain` with empty content | throws |
-| Legacy `rust-toolchain` with whitespace-only content | throws |
-| Channel literal containing space (e.g. `"my channel"`) | throws (channel-literal validation) |
-| Channel literal containing shell-meta (`"a;b"`, `"a$b"`) | throws |
-| Fully-qualified channel triple (`"nightly-2024-01-15-x86_64-unknown-linux-gnu"`) | accepted |
-| Custom linked toolchain name (`"my-custom-1"`) | accepted |
+| Case                                                                             | Expected                                               |
+| -------------------------------------------------------------------------------- | ------------------------------------------------------ |
+| Workspace-root `rust-toolchain.toml` with `[toolchain] channel = "stable"`       | `{ channel: "stable", source: "rust-toolchain.toml" }` |
+| Workspace-root + project-root `rust-toolchain.toml`, channels differ             | project-root wins                                      |
+| `rust-toolchain.toml` and legacy `rust-toolchain` in same dir                    | `.toml` wins                                           |
+| Legacy `rust-toolchain` only (single line, trimmed)                              | `{ channel: "<trimmed>", source: "rust-toolchain" }`   |
+| No file at any level                                                             | `{ channel: "default", source: "default" }`            |
+| Malformed `rust-toolchain.toml` (broken TOML)                                    | throws with file path + reason                         |
+| Empty `rust-toolchain.toml`                                                      | throws (no `[toolchain]` table)                        |
+| `rust-toolchain.toml` with no `channel` field                                    | throws                                                 |
+| Legacy `rust-toolchain` with empty content                                       | throws                                                 |
+| Legacy `rust-toolchain` with whitespace-only content                             | throws                                                 |
+| Channel literal containing space (e.g. `"my channel"`)                           | throws (channel-literal validation)                    |
+| Channel literal containing shell-meta (`"a;b"`, `"a$b"`)                         | throws                                                 |
+| Fully-qualified channel triple (`"nightly-2024-01-15-x86_64-unknown-linux-gnu"`) | accepted                                               |
+| Custom linked toolchain name (`"my-custom-1"`)                                   | accepted                                               |
 
 ### TOOLCHAIN-002 — Full D-TC2 override hierarchy
 
@@ -226,40 +226,40 @@ doc's promotion ordering.
 
 **Fixture matrix:**
 
-| Case | Expected |
-|------|----------|
-| `projectJsonToolchain: "nightly"` + file says `stable` | `{ channel: "nightly", source: "project.json" }` |
-| `cargoMetadataTargetToolchain: "beta"` + file says `stable` | `{ channel: "beta", source: "package.metadata.nxrust.targets" }` |
-| `cargoMetadataPackageToolchain: "1.83.0"` + file says `stable` | `{ channel: "1.83.0", source: "package.metadata.nxrust" }` |
-| All three overrides set | `projectJsonToolchain` wins |
-| Cargo target + Cargo package overrides | target wins |
-| Cargo package override only + no file | `{ channel: <pkg>, source: "package.metadata.nxrust" }` |
-| No overrides + file present | file branch (TOOLCHAIN-001) |
-| No overrides + no file | `default` sentinel |
-| Invalid override (shell-meta in `projectJsonToolchain`) | throws via channel-literal validation |
-| Invalid override in `cargoMetadataTargetToolchain` | throws |
-| Invalid override in `cargoMetadataPackageToolchain` | throws |
-| Empty-string override is rejected (validated as invalid) | throws |
+| Case                                                           | Expected                                                         |
+| -------------------------------------------------------------- | ---------------------------------------------------------------- |
+| `projectJsonToolchain: "nightly"` + file says `stable`         | `{ channel: "nightly", source: "project.json" }`                 |
+| `cargoMetadataTargetToolchain: "beta"` + file says `stable`    | `{ channel: "beta", source: "package.metadata.nxrust.targets" }` |
+| `cargoMetadataPackageToolchain: "1.83.0"` + file says `stable` | `{ channel: "1.83.0", source: "package.metadata.nxrust" }`       |
+| All three overrides set                                        | `projectJsonToolchain` wins                                      |
+| Cargo target + Cargo package overrides                         | target wins                                                      |
+| Cargo package override only + no file                          | `{ channel: <pkg>, source: "package.metadata.nxrust" }`          |
+| No overrides + file present                                    | file branch (TOOLCHAIN-001)                                      |
+| No overrides + no file                                         | `default` sentinel                                               |
+| Invalid override (shell-meta in `projectJsonToolchain`)        | throws via channel-literal validation                            |
+| Invalid override in `cargoMetadataTargetToolchain`             | throws                                                           |
+| Invalid override in `cargoMetadataPackageToolchain`            | throws                                                           |
+| Empty-string override is rejected (validated as invalid)       | throws                                                           |
 
 ## Risks & Mitigations
 
-| Risk | Impact | Likelihood | Mitigation |
-|------|--------|------------|------------|
-| `rustc -Vv` spawn cost dominates on small targets | medium | medium | Cache the output for the Nx session; refresh only on `rust-toolchain.toml` change or explicit reset |
-| Hierarchy ambiguity confuses consumers | medium | medium | `nx show project --json` reflects the resolved toolchain; document the hierarchy in README and in [14-diagnostics](./14-diagnostics.aps.md) output |
-| `RUSTUP_TOOLCHAIN` set in CI but not locally causes drift | high | medium | The env var participates in the cache-key resolution path; diagnose the difference on first divergence |
-| Toolchain components (`rustfmt`, `clippy`, `miri`) drift independently | medium | medium | Hash `rustc -Vv` only; component versions are derived from `rustc` for stable channels; document the limitation for nightly |
+| Risk                                                                   | Impact | Likelihood | Mitigation                                                                                                                                         |
+| ---------------------------------------------------------------------- | ------ | ---------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `rustc -Vv` spawn cost dominates on small targets                      | medium | medium     | Cache the output for the Nx session; refresh only on `rust-toolchain.toml` change or explicit reset                                                |
+| Hierarchy ambiguity confuses consumers                                 | medium | medium     | `nx show project --json` reflects the resolved toolchain; document the hierarchy in README and in [14-diagnostics](./14-diagnostics.aps.md) output |
+| `RUSTUP_TOOLCHAIN` set in CI but not locally causes drift              | high   | medium     | The env var participates in the cache-key resolution path; diagnose the difference on first divergence                                             |
+| Toolchain components (`rustfmt`, `clippy`, `miri`) drift independently | medium | medium     | Hash `rustc -Vv` only; component versions are derived from `rustc` for stable channels; document the limitation for nightly                        |
 
 ## Decisions
 
 - **D-TC1:** `rust-toolchain.toml` at the workspace root is the
-  workspace-default toolchain. *Accepted (inherits spec §6.6).*
+  workspace-default toolchain. _Accepted (inherits spec §6.6)._
 - **D-TC2:** Toolchain override hierarchy is: invocation arg →
   `project.json` → `package.metadata.nxrust.targets.<name>` →
   `package.metadata.nxrust` → `rust-toolchain.toml` → rustup default.
-  *Accepted.*
+  _Accepted._
 - **D-TC3:** `rustc -Vv` and `cargo -V` participate in every cacheable
-  target's cache key. Hard requirement, no opt-out. *Accepted.*
+  target's cache key. Hard requirement, no opt-out. _Accepted._
 
 ## Open Questions
 

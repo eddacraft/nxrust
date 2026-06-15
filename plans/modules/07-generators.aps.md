@@ -6,8 +6,8 @@
 The generator inventory beyond v0.1's `init`, `crate`, `binary`, `library`,
 `release-version`.
 
-| ID | Owner | Status |
-|----|-------|--------|
+| ID  | Owner     | Status   |
+| --- | --------- | -------- |
 | GEN | eddacraft | Proposed |
 
 ## Purpose
@@ -133,30 +133,30 @@ Promote individual Work Items to Ready when:
 
 ## Work Items
 
-*No work items yet — module is Proposed. Items promote individually on
-real-consumer asks per D-007.*
+_No work items yet — module is Proposed. Items promote individually on
+real-consumer asks per D-007._
 
 ## Risks & Mitigations
 
-| Risk | Impact | Likelihood | Mitigation |
-|------|--------|------------|------------|
-| Generator templates lock consumers into a specific crate-version snapshot of `clap`/`tokio`/`axum`/`ratatui` | medium | high | Templates target the latest stable line; document the snapshot date in each `Cargo.toml` template's comment; bump templates as part of the v0.x line |
-| `--with-deny` produces a `deny.toml` that breaks the consumer's existing audit policy | medium | low | Default `deny.toml` is permissive; opt-in only |
-| Generators silently overwrite an existing crate directory | high | low | Check directory existence first; refuse with diagnostic ([14-diagnostics](./14-diagnostics.aps.md)) |
-| Workspace `Cargo.toml` mutation breaks TOML formatting | high | low | `@ltd/j-toml` is the contract; CI fixture exercises a TOML-with-comments round-trip |
-| Generator surface grows speculatively | medium | medium | D-007 promotion gate — each generator promotes on a real consumer ask |
+| Risk                                                                                                         | Impact | Likelihood | Mitigation                                                                                                                                           |
+| ------------------------------------------------------------------------------------------------------------ | ------ | ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Generator templates lock consumers into a specific crate-version snapshot of `clap`/`tokio`/`axum`/`ratatui` | medium | high       | Templates target the latest stable line; document the snapshot date in each `Cargo.toml` template's comment; bump templates as part of the v0.x line |
+| `--with-deny` produces a `deny.toml` that breaks the consumer's existing audit policy                        | medium | low        | Default `deny.toml` is permissive; opt-in only                                                                                                       |
+| Generators silently overwrite an existing crate directory                                                    | high   | low        | Check directory existence first; refuse with diagnostic ([14-diagnostics](./14-diagnostics.aps.md))                                                  |
+| Workspace `Cargo.toml` mutation breaks TOML formatting                                                       | high   | low        | `@ltd/j-toml` is the contract; CI fixture exercises a TOML-with-comments round-trip                                                                  |
+| Generator surface grows speculatively                                                                        | medium | medium     | D-007 promotion gate — each generator promotes on a real consumer ask                                                                                |
 
 ## Decisions
 
 - **D-GEN1:** Language-only generators live in this module; WASM/NAPI
   generators live in [10-wasm-napi](./10-wasm-napi.aps.md); workspace
   bootstrap (preset) lives in
-  [16-adoption-and-docs](./16-adoption-and-docs.aps.md). *Accepted.*
+  [16-adoption-and-docs](./16-adoption-and-docs.aps.md). _Accepted._
 - **D-GEN2:** Default no `project.json` emission once
   [03-target-inference](./03-target-inference.aps.md) lands. Opt-in via
-  `--with-project-json`. *Accepted.*
+  `--with-project-json`. _Accepted._
 - **D-GEN3:** Generators preserve TOML comments and formatting via
-  `@ltd/j-toml`. *Accepted (inherits v0.1 contract).*
+  `@ltd/j-toml`. _Accepted (inherits v0.1 contract)._
 
 ## Open Questions
 

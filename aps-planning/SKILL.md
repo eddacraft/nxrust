@@ -27,8 +27,8 @@ is disk (persistent, unlimited). Anything important gets written to APS files.
 4. **Never skip validation.** Every work item has a Validation field. Run it
    before marking anything complete.
 
-5. **Specs describe intent, not implementation.** Write *what* and *why*, never
-   *how*. Implementation emerges from code patterns and agent judgment.
+5. **Specs describe intent, not implementation.** Write _what_ and _why_, never
+   _how_. Implementation emerges from code patterns and agent judgment.
 
 ## When to Trigger APS Planning
 
@@ -64,29 +64,31 @@ Before planning, understand what exists:
 
 ### 2. Plan (pick the right template)
 
-| Situation | Action |
-|-----------|--------|
+| Situation                           | Action                            |
+| ----------------------------------- | --------------------------------- |
 | Complex architecture needing review | Create a Design doc in `designs/` |
-| Quick feature (1-3 items) | Create a Simple spec |
-| Bounded work area with interfaces | Create a Module spec |
-| Multi-module initiative | Create an Index + Modules |
-| Complex work item needing breakdown | Create an Action Plan |
+| Quick feature (1-3 items)           | Create a Simple spec              |
+| Bounded work area with interfaces   | Create a Module spec              |
+| Multi-module initiative             | Create an Index + Modules         |
+| Complex work item needing breakdown | Create an Action Plan             |
 
 **Simple spec** — for self-contained features:
 
 ```markdown
 # [Feature Name]
 
-| ID | Owner | Status |
-|----|-------|--------|
-| FEAT | @user | Draft |
+| ID   | Owner | Status |
+| ---- | ----- | ------ |
+| FEAT | @user | Draft  |
 
 ## Purpose
+
 [What problem this solves]
 
 ## Work Items
 
 ### FEAT-001: [Title]
+
 - **Intent:** [What this achieves]
 - **Expected Outcome:** [Testable result]
 - **Validation:** `[command]`
@@ -97,19 +99,22 @@ Before planning, understand what exists:
 ```markdown
 # [Module Title]
 
-| ID | Owner | Priority | Status |
-|----|-------|----------|--------|
-| AUTH | @user | medium | Draft |
+| ID   | Owner | Priority | Status |
+| ---- | ----- | -------- | ------ |
+| AUTH | @user | medium   | Draft  |
 
 ## Purpose
+
 [Why this module exists]
 
 ## In Scope
+
 - [What this module handles]
 
 ## Work Items
 
 ### AUTH-001: [Title]
+
 - **Intent:** [One sentence]
 - **Expected Outcome:** [Observable result]
 - **Validation:** `[command]`
@@ -122,17 +127,21 @@ Before planning, understand what exists:
 # [Plan Title]
 
 ## Overview
+
 [What this plan covers]
 
 ## Problem & Success Criteria
+
 **Problem:** [What we're solving]
 **Success Criteria:**
+
 - [ ] [Measurable outcome]
 
 ## Modules
-| Module | Purpose | Status |
-|--------|---------|--------|
-| [auth](./modules/auth.aps.md) | Authentication | Draft |
+
+| Module                        | Purpose        | Status |
+| ----------------------------- | -------------- | ------ |
+| [auth](./modules/auth.aps.md) | Authentication | Draft  |
 ```
 
 ### 3. Execute
@@ -241,6 +250,7 @@ Optional fields: Confidence, Dependencies, Files, Non-scope, Status.
 ## Actions
 
 ### Action 1 — [Verb] [target]
+
 **Purpose:** [Why]
 **Produces:** [Artefacts]
 **Checkpoint:** [Observable state — max 12 words]
@@ -267,11 +277,11 @@ If the `aps` CLI is available, validate your specs:
 
 ## Anti-Patterns
 
-| Don't | Do |
-|-------|-----|
-| Start coding without a spec | Create at least a Simple spec first |
-| Write implementation details in specs | Write intent and outcomes only |
-| Forget to update status after completing work | Update immediately |
-| Expand scope mid-work-item | Add a new Draft item instead |
-| Skip validation commands | Always run them before marking complete |
-| Stuff everything in context | Write findings to APS files |
+| Don't                                         | Do                                      |
+| --------------------------------------------- | --------------------------------------- |
+| Start coding without a spec                   | Create at least a Simple spec first     |
+| Write implementation details in specs         | Write intent and outcomes only          |
+| Forget to update status after completing work | Update immediately                      |
+| Expand scope mid-work-item                    | Add a new Draft item instead            |
+| Skip validation commands                      | Always run them before marking complete |
+| Stuff everything in context                   | Write findings to APS files             |

@@ -48,7 +48,7 @@ export interface CargoDependency {
   name: string;
   source?: string | null;
   req: string;
-  kind?: 'dev' | 'build' | null;
+  kind?: "dev" | "build" | null;
   rename?: string | null;
   optional: boolean;
   uses_default_features: boolean;
@@ -89,6 +89,6 @@ export interface CargoResolveDep {
 }
 
 export interface CargoResolveDepKind {
-  kind: 'dev' | 'build' | null;
+  kind: "dev" | "build" | null;
   target: string | null;
 }

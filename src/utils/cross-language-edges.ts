@@ -1,8 +1,4 @@
-import type {
-  ProjectConfiguration,
-  TargetConfiguration,
-  TargetDependencyConfig,
-} from '@nx/devkit';
+import type { ProjectConfiguration, TargetConfiguration, TargetDependencyConfig } from "@nx/devkit";
 
 /**
  * Cross-language test-seam contract (decision D-WN4 / index D-009).
@@ -37,7 +33,7 @@ export interface CrossLanguageTestSeamOptions {
 
 type DependsOnEntry = string | TargetDependencyConfig;
 
-const INHERITED_BUILD = '^build';
+const INHERITED_BUILD = "^build";
 
 /**
  * True when `entry` is the "build every dependency first" edge — either the
@@ -50,9 +46,9 @@ const INHERITED_BUILD = '^build';
  * string, never inside an array, so no array branch is needed.
  */
 function isInheritedBuildDep(entry: DependsOnEntry): boolean {
-  if (typeof entry === 'string') return entry === INHERITED_BUILD;
-  if (entry.target !== 'build') return false;
-  return entry.dependencies === true || entry.projects === 'dependencies';
+  if (typeof entry === "string") return entry === INHERITED_BUILD;
+  if (entry.target !== "build") return false;
+  return entry.dependencies === true || entry.projects === "dependencies";
 }
 
 /**

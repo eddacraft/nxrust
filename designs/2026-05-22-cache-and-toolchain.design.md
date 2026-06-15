@@ -3,14 +3,14 @@
 Architectural design for the paired implementation of cache correctness
 and toolchain participation in nxrust. Targets modules 04 and 06.
 
-| Field | Value |
-|-------|-------|
-| Status | Council-approved; awaiting user review |
-| Owner | eddacraft |
-| Created | 2026-05-22 |
-| Revised | 2026-05-22 (council round 2 — APPROVE / ACCEPT_FOR_USER_REVIEW) |
+| Field   | Value                                                                                                                                      |
+| ------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| Status  | Council-approved; awaiting user review                                                                                                     |
+| Owner   | eddacraft                                                                                                                                  |
+| Created | 2026-05-22                                                                                                                                 |
+| Revised | 2026-05-22 (council round 2 — APPROVE / ACCEPT_FOR_USER_REVIEW)                                                                            |
 | Modules | [04-cache-semantics](../plans/modules/04-cache-semantics.aps.md), [06-toolchain-awareness](../plans/modules/06-toolchain-awareness.aps.md) |
-| Related | spec §6.4, §6.6; D-007 (consumer-driven promotion); D-009 (cross-language contract) |
+| Related | spec §6.4, §6.6; D-007 (consumer-driven promotion); D-009 (cross-language contract)                                                        |
 
 ## Council Review Changelog
 
@@ -77,7 +77,7 @@ Three pressures converge:
    contract is conservative-by-omission: most targets have `cache: true`
    but no explicit `inputs`, no env-var participation, no toolchain
    participation. Nx fills the gap with project-root-default inputs,
-   which means *any* file change under the project busts the cache —
+   which means _any_ file change under the project busts the cache —
    including unrelated edits — and `rustc` upgrades silently keep
    returning stale hits. The first half (false misses) wastes time; the
    second half (false hits) is a correctness bug waiting to fire.
@@ -125,8 +125,8 @@ work-item drafting time.
 - **Cross-compilation matrices** (target-triple selection, multi-target
   builds in one project) — v0.3+ scope, intentionally deferred.
 - **Reimplementing Cargo's incremental cache.** `target/`'s internal
-  structure is Cargo's. We hash *around* it (cache keys, narrow
-  outputs), not *into* it (no fingerprint dissection).
+  structure is Cargo's. We hash _around_ it (cache keys, narrow
+  outputs), not _into_ it (no fingerprint dissection).
 - **Remote-cache backend selection.** Whatever Nx's remote cache uses
   (`@nx/azure-cache`, `@nx/powerpack-cache`, S3, etc.) — the cache key
   is the same shape.
@@ -153,16 +153,16 @@ target the plugin emits or infers.
       "{projectRoot}/Cargo.toml",
       "{projectRoot}/rust-toolchain.toml",
       "{projectRoot}/rust-toolchain",
-      "{projectRoot}/.cargo/config.toml"
+      "{projectRoot}/.cargo/config.toml",
     ],
     "rustWorkspace": [
       "{workspaceRoot}/Cargo.toml",
       "{workspaceRoot}/Cargo.lock",
       "{workspaceRoot}/rust-toolchain.toml",
       "{workspaceRoot}/rust-toolchain",
-      "{workspaceRoot}/.cargo/config.toml"
-    ]
-  }
+      "{workspaceRoot}/.cargo/config.toml",
+    ],
+  },
 }
 ```
 
@@ -181,7 +181,7 @@ included for backwards compatibility with rustup's older format.
 
 ```jsonc
 {
-  "inputs": ["rustSources", "rustWorkspace", "^rustSources"]
+  "inputs": ["rustSources", "rustWorkspace", "^rustSources"],
 }
 ```
 
@@ -244,23 +244,23 @@ wins; documented in module 14 diagnostics).
 
 Cache keys participate the following env vars by default:
 
-| Env var | Why it matters |
-|---------|----------------|
-| `RUSTFLAGS` | Single biggest cache-affecting var; changes optimisation, linker, codegen |
-| `CARGO_ENCODED_RUSTFLAGS` | NUL-delimited form Cargo gives precedence over `RUSTFLAGS` when both are set; injected by some wrapper scripts and Cargo's own re-invocations |
-| `RUSTDOCFLAGS` | Affects `doc` target output |
-| `RUSTC` | Full compiler-binary replacement; Cargo runs `$RUSTC` instead of `rustc` when set. Without participation, swapping `RUSTC=/path/to/custom-rustc` is invisible |
-| `RUSTC_WRAPPER` | Wraps every `rustc` invocation (sccache pattern). Different wrapper binary or wrapper version can change compilation; participation closes the sccache-coherence gap at the env-key level |
-| `CARGO_TARGET_DIR` | Redirects `target/`; outputs land elsewhere |
-| `CARGO_BUILD_TARGET` | Cross-compilation target triple |
-| `CARGO_PROFILE_RELEASE_LTO` | Profile override at env layer |
-| `CARGO_PROFILE_RELEASE_CODEGEN_UNITS` | Profile override at env layer |
-| `CC`, `CXX`, `AR` | C/C++ compilers used by build scripts and `cc-rs` |
-| `PKG_CONFIG_PATH` | Affects `*-sys` crates that find native deps via `pkg-config` |
-| `OPENSSL_DIR` | Affects `openssl-sys` builds |
-| `OPENSSL_STATIC` | Toggles static vs dynamic OpenSSL linkage; different binary output |
-| `OPENSSL_NO_PKG_CONFIG` | Disables pkg-config probe in `openssl-sys`; changes resolution path and resulting binary |
-| `RUSTUP_TOOLCHAIN` | Toolchain selector — primarily owned by module 06's hierarchy (see § C); participates here because Nx hashes env at the target level |
+| Env var                               | Why it matters                                                                                                                                                                            |
+| ------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `RUSTFLAGS`                           | Single biggest cache-affecting var; changes optimisation, linker, codegen                                                                                                                 |
+| `CARGO_ENCODED_RUSTFLAGS`             | NUL-delimited form Cargo gives precedence over `RUSTFLAGS` when both are set; injected by some wrapper scripts and Cargo's own re-invocations                                             |
+| `RUSTDOCFLAGS`                        | Affects `doc` target output                                                                                                                                                               |
+| `RUSTC`                               | Full compiler-binary replacement; Cargo runs `$RUSTC` instead of `rustc` when set. Without participation, swapping `RUSTC=/path/to/custom-rustc` is invisible                             |
+| `RUSTC_WRAPPER`                       | Wraps every `rustc` invocation (sccache pattern). Different wrapper binary or wrapper version can change compilation; participation closes the sccache-coherence gap at the env-key level |
+| `CARGO_TARGET_DIR`                    | Redirects `target/`; outputs land elsewhere                                                                                                                                               |
+| `CARGO_BUILD_TARGET`                  | Cross-compilation target triple                                                                                                                                                           |
+| `CARGO_PROFILE_RELEASE_LTO`           | Profile override at env layer                                                                                                                                                             |
+| `CARGO_PROFILE_RELEASE_CODEGEN_UNITS` | Profile override at env layer                                                                                                                                                             |
+| `CC`, `CXX`, `AR`                     | C/C++ compilers used by build scripts and `cc-rs`                                                                                                                                         |
+| `PKG_CONFIG_PATH`                     | Affects `*-sys` crates that find native deps via `pkg-config`                                                                                                                             |
+| `OPENSSL_DIR`                         | Affects `openssl-sys` builds                                                                                                                                                              |
+| `OPENSSL_STATIC`                      | Toggles static vs dynamic OpenSSL linkage; different binary output                                                                                                                        |
+| `OPENSSL_NO_PKG_CONFIG`               | Disables pkg-config probe in `openssl-sys`; changes resolution path and resulting binary                                                                                                  |
+| `RUSTUP_TOOLCHAIN`                    | Toolchain selector — primarily owned by module 06's hierarchy (see § C); participates here because Nx hashes env at the target level                                                      |
 
 Implementation: each cacheable target's `inputs` carries
 `{ "env": "VAR_NAME" }` entries. The full env list lives in a shared
@@ -326,14 +326,14 @@ cacheable target (per module 06 D-TC3).
 
 **What's hashed.**
 
-| Element | Source | Cached for session? |
-|---------|--------|---------------------|
-| `rustc -Vv` full output | Subprocess | Yes — one query **per resolved channel** per Nx session (see § C runtime emission) |
-| `cargo -V` full output | Subprocess | Yes — one query **per resolved channel** per Nx session |
-| Resolved toolchain channel | Hierarchy (D-TC2) | Yes — invalidated on any input below |
-| `rust-toolchain.toml` content hash | File | Yes — invalidated on file change |
-| `RUSTUP_TOOLCHAIN` env var | Process env | No — env always read fresh |
-| Per-invocation `--toolchain` flag | Nx argv | No — argv is per-invocation |
+| Element                            | Source            | Cached for session?                                                                |
+| ---------------------------------- | ----------------- | ---------------------------------------------------------------------------------- |
+| `rustc -Vv` full output            | Subprocess        | Yes — one query **per resolved channel** per Nx session (see § C runtime emission) |
+| `cargo -V` full output             | Subprocess        | Yes — one query **per resolved channel** per Nx session                            |
+| Resolved toolchain channel         | Hierarchy (D-TC2) | Yes — invalidated on any input below                                               |
+| `rust-toolchain.toml` content hash | File              | Yes — invalidated on file change                                                   |
+| `RUSTUP_TOOLCHAIN` env var         | Process env       | No — env always read fresh                                                         |
+| Per-invocation `--toolchain` flag  | Nx argv           | No — argv is per-invocation                                                        |
 
 **Hierarchy** (already in module 06 D-TC2):
 
@@ -372,9 +372,9 @@ the resolved channel.
     { "env": "RUSTC_WRAPPER" },
     // ... rest of allowlist
     { "env": "RUSTUP_TOOLCHAIN" },
-    { "runtime": "rustup run stable rustc -Vv" },  // resolved per target
-    { "runtime": "rustup run stable cargo -V" }
-  ]
+    { "runtime": "rustup run stable rustc -Vv" }, // resolved per target
+    { "runtime": "rustup run stable cargo -V" },
+  ],
 }
 ```
 
@@ -412,7 +412,7 @@ participation closes that gap when the path changes: changing
 `RUSTC=/a` to `RUSTC=/b` busts the cache key.
 
 **Limitation acknowledged: same-path patched `$RUSTC`.** If `$RUSTC`
-points at a path that's been *modified in place* (e.g. a CI runner
+points at a path that's been _modified in place_ (e.g. a CI runner
 silently updated `/usr/local/bin/rustc` to a patched build with the
 same version string), neither the env hash (path unchanged) nor the
 runtime hash (still queries rustup's `rustc`) detects the change.
@@ -458,17 +458,17 @@ not the per-crate one. Documented limitation.
 
 The output contract per target the plugin emits or infers:
 
-| Target | `outputs` | `cache` | Rationale |
-|--------|-----------|---------|-----------|
-| `check` | `[]` | `true` | Exit-code-only; cargo writes incremental metadata to `target/` we don't trust as our output |
-| `clippy` | `[]` | `true` | Same; report-output is opt-in (open question) |
-| `fmt` | n/a | `false` | Mutates source files; not cacheable |
-| `fmt-check` | `[]` | `true` | Exit-code-only |
-| `test` | `[]` | `true` | Per v0.1.2 fix; test reports cached when consumer wires them |
-| `build` | `{workspaceRoot}/target/{profile}/<binary>` | `true` | **Narrowed from v0.1** — was `{workspaceRoot}/target` (whole dir) |
-| `doc` | `{workspaceRoot}/target/doc` | `true` | Doc output is self-contained |
-| `run` | n/a | `false` | Side-effectful by definition |
-| `release-publish` | n/a | `false` | Side-effectful; publishes to registry |
+| Target            | `outputs`                                   | `cache` | Rationale                                                                                   |
+| ----------------- | ------------------------------------------- | ------- | ------------------------------------------------------------------------------------------- |
+| `check`           | `[]`                                        | `true`  | Exit-code-only; cargo writes incremental metadata to `target/` we don't trust as our output |
+| `clippy`          | `[]`                                        | `true`  | Same; report-output is opt-in (open question)                                               |
+| `fmt`             | n/a                                         | `false` | Mutates source files; not cacheable                                                         |
+| `fmt-check`       | `[]`                                        | `true`  | Exit-code-only                                                                              |
+| `test`            | `[]`                                        | `true`  | Per v0.1.2 fix; test reports cached when consumer wires them                                |
+| `build`           | `{workspaceRoot}/target/{profile}/<binary>` | `true`  | **Narrowed from v0.1** — was `{workspaceRoot}/target` (whole dir)                           |
+| `doc`             | `{workspaceRoot}/target/doc`                | `true`  | Doc output is self-contained                                                                |
+| `run`             | n/a                                         | `false` | Side-effectful by definition                                                                |
+| `release-publish` | n/a                                         | `false` | Side-effectful; publishes to registry                                                       |
 
 **Critical change from v0.1.** `build` outputs narrow from
 `['{options.target-dir}', '{workspaceRoot}/target']` to per-binary
@@ -485,15 +485,15 @@ resolved option set by default; we depend on that behaviour and the
 plugin's `schema.json` for each executor lists these as the cacheable
 options:
 
-| Option | Cacheable | Why it matters |
-|--------|-----------|----------------|
-| `release` (`true` / `false`) | Yes | Switches debug vs release profile; different artefacts |
-| `features` (string list) | Yes | `--features foo,bar` produces a different binary than no features |
-| `noDefaultFeatures` (bool) | Yes | Affects which features compile into the artefact |
-| `allFeatures` (bool) | Yes | Same |
-| `target` (triple string) | Yes | Cross-compilation target triple; different artefact entirely |
-| `profile` (named profile) | Yes | Profile literal (`release`, `bench`, custom name) |
-| `package` (string) | Yes (per-target literal) | Cargo `-p <pkg>` selector. Always emitted as the crate's cargo package name at target-emission time (inherits the v0.1.1 pin fix); not consumer-overrideable per invocation. Nx hashes the literal as part of the resolved task options |
+| Option                       | Cacheable                | Why it matters                                                                                                                                                                                                                          |
+| ---------------------------- | ------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `release` (`true` / `false`) | Yes                      | Switches debug vs release profile; different artefacts                                                                                                                                                                                  |
+| `features` (string list)     | Yes                      | `--features foo,bar` produces a different binary than no features                                                                                                                                                                       |
+| `noDefaultFeatures` (bool)   | Yes                      | Affects which features compile into the artefact                                                                                                                                                                                        |
+| `allFeatures` (bool)         | Yes                      | Same                                                                                                                                                                                                                                    |
+| `target` (triple string)     | Yes                      | Cross-compilation target triple; different artefact entirely                                                                                                                                                                            |
+| `profile` (named profile)    | Yes                      | Profile literal (`release`, `bench`, custom name)                                                                                                                                                                                       |
+| `package` (string)           | Yes (per-target literal) | Cargo `-p <pkg>` selector. Always emitted as the crate's cargo package name at target-emission time (inherits the v0.1.1 pin fix); not consumer-overrideable per invocation. Nx hashes the literal as part of the resolved task options |
 
 CI fixture coverage MUST exercise feature-flag and `release`/non-release
 permutations on the same source tree to verify the keys actually
@@ -523,7 +523,7 @@ byte-identical:
      — the one helper every target uses. It returns the full
      `inputs` array: named-input references, env entries, runtime
      entries with the resolved channel baked into the `rustup run
-     <channel> ...` string.
+<channel> ...` string.
    - `buildCacheOutputs({ target, releaseProfile, binaryName }): string[]`
      — the per-target output paths from § D.
 2. **`src/utils/target-configs.ts`** — every `*TargetConfig` function
@@ -552,12 +552,12 @@ byte-identical:
 
 **Plugin option surface** (lives in plugin schema):
 
-| Option | Default | Purpose |
-|--------|---------|---------|
-| `additionalCacheEnv` | `[]` | Env vars to add to the cache-key allowlist |
-| `additionalCacheRuntime` | `[]` | Runtime commands to add (e.g. `clippy --version` for nightly clippy-drift hashing) |
-| `clippyReportOutput` | `false` | When `true`, `clippy` outputs `target/clippy/*.json` |
-| `narrowBuildOutputs` | `true` | Controls `build` target's output paths only — see note below |
+| Option                   | Default | Purpose                                                                            |
+| ------------------------ | ------- | ---------------------------------------------------------------------------------- |
+| `additionalCacheEnv`     | `[]`    | Env vars to add to the cache-key allowlist                                         |
+| `additionalCacheRuntime` | `[]`    | Runtime commands to add (e.g. `clippy --version` for nightly clippy-drift hashing) |
+| `clippyReportOutput`     | `false` | When `true`, `clippy` outputs `target/clippy/*.json`                               |
+| `narrowBuildOutputs`     | `true`  | Controls `build` target's output paths only — see note below                       |
 
 **`narrowBuildOutputs` precise semantics.** This flag controls **only
 the `outputs` field** of the `build` target. Setting it to `false`
@@ -611,6 +611,7 @@ explicit outputs but no `inputs`. The migration path:
    raising the concurrency cap of the cache store temporarily, or
    pre-warming the cache from a single worker before fanning out.
    This is operational guidance, not a design blocker.
+
 6. **A migration generator (`migrate-v0.1-to-v0.2`) is out of scope.**
    The CHANGELOG carries the full note; consumers re-run their
    generators or accept the cold cache.
@@ -689,53 +690,53 @@ per-binary outputs are the right granularity.
 Resolved at promotion time, but with proposed positions:
 
 1. **Clippy JSON report caching.** Open question in module 04 already.
-   *Proposed:* opt-in via `clippyReportOutput: true`. Default off
+   _Proposed:_ opt-in via `clippyReportOutput: true`. Default off
    because most consumers don't consume the JSON; outputs `[]` keeps
    the cache surface minimal.
 
 2. **`build`'s wide-vs-narrow outputs by default.** Open question in
    module 04 already.
-   *Proposed:* narrow by default with `narrowBuildOutputs: true` flag
+   _Proposed:_ narrow by default with `narrowBuildOutputs: true` flag
    as escape hatch. Aligns with § D and § F above.
 
 3. **`RUSTFLAGS` env participation always-on.** Open question in
    module 04 already.
-   *Proposed:* yes, on by default. Documented in the allowlist; cost
+   _Proposed:_ yes, on by default. Documented in the allowlist; cost
    is nil if consumer doesn't set it; correctness gain is large if
    they do.
 
 4. **`rustup show` proactive call at workspace-load.** Open question in
    module 06.
-   *Proposed:* no, defer to task-invocation time. Workspace-load cost
+   _Proposed:_ no, defer to task-invocation time. Workspace-load cost
    matters more than the marginal earlier-feedback gain; module 14
    diagnostics catch missing toolchain on first run.
 
 5. **Legacy `rust-toolchain` (no `.toml`) format.** Open question in
    module 06.
-   *Proposed:* yes, read both. Mirror rustup's behaviour to avoid
+   _Proposed:_ yes, read both. Mirror rustup's behaviour to avoid
    silent divergence; cost is ~5 lines of fallback.
 
 6. **`RUSTUP_TOOLCHAIN` env participation.** Open question in
    module 06.
-   *Proposed:* include in the env allowlist (as proposed in § B). The
+   _Proposed:_ include in the env allowlist (as proposed in § B). The
    value is the toolchain selector; including the value handles
    "CI sets `RUSTUP_TOOLCHAIN=nightly` but `rust-toolchain.toml` says
    stable" correctly.
 
 7. **Component versions (`rustfmt`, `clippy`, `miri`) on nightly.**
    Module 06 open question.
-   *Proposed:* trust `rustc -Vv` for v0.2. Add a documented limitation
+   _Proposed:_ trust `rustc -Vv` for v0.2. Add a documented limitation
    note ("nightly component drift not hashed; consumers needing it can
    add a custom runtime input via plugin option"). Revisit if a real
    miss surfaces.
 
 8. **CI fixture matrix location** (module 04 open question).
-   *Proposed:* `e2e/fixtures/` tree as a separate directory hierarchy
+   _Proposed:_ `e2e/fixtures/` tree as a separate directory hierarchy
    matching the existing v0.1 e2e shape. Each fixture is a tiny Cargo
    workspace; matrix runs them via the existing CI workflow.
 
 9. **Migration of the existing `RUSTFLAGS`-using consumer (Anvil).**
-   *Resolved.* Anvil hasn't surfaced a cache-key gap yet. The migration
+   _Resolved._ Anvil hasn't surfaced a cache-key gap yet. The migration
    plan in § F covers the cold-restart loss; any consumer-specific
    gap is absorbed at work-item drafting time as the trigger fires.
    No standing nxrust-side action.
@@ -764,15 +765,15 @@ channel literals into the per-target runtime strings). CACHE-001
 therefore inherits the full resolution behaviour, not just the
 file-only branch.
 
-| ID | Module | Scope |
-|----|--------|-------|
-| TOOLCHAIN-001 | 06 | `rust-toolchain.toml` parser (incl. legacy `rust-toolchain` fallback), exposing `resolveToolchain(projectRoot)` returning the channel literal |
-| CACHE-001 | 04 | New `src/utils/cache-inputs.ts` helper (named-input refs + env allowlist + per-target `rustup run <channel> rustc -Vv` runtime entries via `resolveToolchain`); apply through all v0.1 emitted targets in `target-configs.ts`; register named inputs in `nx.json` via `init` generator merge with divergence diagnostic |
-| CACHE-002 | 04 | Narrow `build` outputs to per-binary paths via `buildCacheOutputs` helper; add `narrowBuildOutputs` escape-hatch flag |
-| CACHE-003 | 04 | `additionalCacheEnv` and `additionalCacheRuntime` plugin options; allowlist extensibility surface |
-| TOOLCHAIN-002 | 06 | Resolved-channel hierarchy (D-TC2): per-invocation flag → `project.json` → `package.metadata.nxrust.targets.<name>` → `package.metadata.nxrust` → `rust-toolchain.toml` → rustup default. Feeds into `resolveToolchain` from TOOLCHAIN-001 |
-| CACHE-004 | 04 | CI fixture matrix in `e2e/fixtures/` covering: feature-flag permutations, `release` vs debug, toolchain channel swap, env-var change, per-crate `rust-toolchain.toml` |
-| TOOLCHAIN-003 | 06 | Diagnostic surface (cross-link to module 14): missing toolchain → `rustup install`; missing target → `rustup target add` |
+| ID            | Module | Scope                                                                                                                                                                                                                                                                                                                   |
+| ------------- | ------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| TOOLCHAIN-001 | 06     | `rust-toolchain.toml` parser (incl. legacy `rust-toolchain` fallback), exposing `resolveToolchain(projectRoot)` returning the channel literal                                                                                                                                                                           |
+| CACHE-001     | 04     | New `src/utils/cache-inputs.ts` helper (named-input refs + env allowlist + per-target `rustup run <channel> rustc -Vv` runtime entries via `resolveToolchain`); apply through all v0.1 emitted targets in `target-configs.ts`; register named inputs in `nx.json` via `init` generator merge with divergence diagnostic |
+| CACHE-002     | 04     | Narrow `build` outputs to per-binary paths via `buildCacheOutputs` helper; add `narrowBuildOutputs` escape-hatch flag                                                                                                                                                                                                   |
+| CACHE-003     | 04     | `additionalCacheEnv` and `additionalCacheRuntime` plugin options; allowlist extensibility surface                                                                                                                                                                                                                       |
+| TOOLCHAIN-002 | 06     | Resolved-channel hierarchy (D-TC2): per-invocation flag → `project.json` → `package.metadata.nxrust.targets.<name>` → `package.metadata.nxrust` → `rust-toolchain.toml` → rustup default. Feeds into `resolveToolchain` from TOOLCHAIN-001                                                                              |
+| CACHE-004     | 04     | CI fixture matrix in `e2e/fixtures/` covering: feature-flag permutations, `release` vs debug, toolchain channel swap, env-var change, per-crate `rust-toolchain.toml`                                                                                                                                                   |
+| TOOLCHAIN-003 | 06     | Diagnostic surface (cross-link to module 14): missing toolchain → `rustup install`; missing target → `rustup target add`                                                                                                                                                                                                |
 
 **Promotion order** (trigger-driven per D-007, but the dependency
 graph is binding):
@@ -802,6 +803,7 @@ graph is binding):
 
 The CI fixture matrix (CACHE-004) MUST include at least these failure
 cases as red-light-go-green tests:
+
 - Identical sources, `release: true` vs `false` → keys must differ.
 - Identical sources, `features: ["foo"]` vs `features: []` → keys
   must differ.

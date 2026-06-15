@@ -25,5 +25,5 @@ recorded consistently from the first instance.
 
 ## Entries
 
-*No third-party code is currently borrowed in this repository. This file is
-in place so that future borrows have a documented home.*
+_No third-party code is currently borrowed in this repository. This file is
+in place so that future borrows have a documented home._

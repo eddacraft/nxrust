@@ -47,28 +47,28 @@ lets Nx understand your Cargo workspace.
 
 ## Executors
 
-| Executor                | Wraps                  | Cache |
-| ----------------------- | ---------------------- | ----- |
-| `@eddacraft/nxrust:build`          | `cargo build`          | yes   |
-| `@eddacraft/nxrust:check`          | `cargo check`          | yes   |
-| `@eddacraft/nxrust:clippy` / `lint`| `cargo clippy`         | yes   |
-| `@eddacraft/nxrust:fmt`            | `cargo fmt`            | yes   |
-| `@eddacraft/nxrust:run`            | `cargo run`            | no    |
-| `@eddacraft/nxrust:test`           | `cargo test`           | yes   |
-| `@eddacraft/nxrust:release-publish`| `cargo publish`        | no (use via `nx release publish`) |
+| Executor                            | Wraps           | Cache                             |
+| ----------------------------------- | --------------- | --------------------------------- |
+| `@eddacraft/nxrust:build`           | `cargo build`   | yes                               |
+| `@eddacraft/nxrust:check`           | `cargo check`   | yes                               |
+| `@eddacraft/nxrust:clippy` / `lint` | `cargo clippy`  | yes                               |
+| `@eddacraft/nxrust:fmt`             | `cargo fmt`     | yes                               |
+| `@eddacraft/nxrust:run`             | `cargo run`     | no                                |
+| `@eddacraft/nxrust:test`            | `cargo test`    | yes                               |
+| `@eddacraft/nxrust:release-publish` | `cargo publish` | no (use via `nx release publish`) |
 
 All executors accept a shared option set:
 
-| Option        | Type                   | Notes                                          |
-| ------------- | ---------------------- | ---------------------------------------------- |
-| `toolchain`   | `stable`/`beta`/`nightly` | Translates to `cargo +<toolchain> …`        |
-| `target`      | `string`               | Rust target triple                             |
-| `profile`     | `string`               | `cargo` profile (e.g. `dev`, `release`)        |
-| `release`     | `boolean`              | `--release`                                    |
-| `features`    | `string \| string[]`   | `--features`                                   |
-| `all-features`| `boolean`              | `--all-features`                               |
-| `target-dir`  | `string`               | `--target-dir`                                 |
-| `args`        | `string \| string[]`   | Forwarded after `--`                           |
+| Option         | Type                      | Notes                                   |
+| -------------- | ------------------------- | --------------------------------------- |
+| `toolchain`    | `stable`/`beta`/`nightly` | Translates to `cargo +<toolchain> …`    |
+| `target`       | `string`                  | Rust target triple                      |
+| `profile`      | `string`                  | `cargo` profile (e.g. `dev`, `release`) |
+| `release`      | `boolean`                 | `--release`                             |
+| `features`     | `string \| string[]`      | `--features`                            |
+| `all-features` | `boolean`                 | `--all-features`                        |
+| `target-dir`   | `string`                  | `--target-dir`                          |
+| `args`         | `string \| string[]`      | Forwarded after `--`                    |
 
 Individual executors add specialised flags — see each schema.
 
@@ -96,14 +96,14 @@ pre-wired to the plugin's executors.
 Every Cargo workspace member is inferred as an Nx project with a default
 target set — no `project.json` required for the canonical case:
 
-| Target | Wraps | Notes |
-| ------ | ----- | ----- |
-| `build`, `check`, `test` | `cargo build` / `check` / `test` | cacheable |
-| `clippy`, `lint` | `cargo clippy` | `lint` is an exact alias so `nx run-many -t lint` covers Rust crates |
-| `fmt-check` | `cargo fmt --check` | cacheable; the CI gate |
-| `fmt` | `cargo fmt` | mutates files, not cached |
-| `run` | `cargo run` | binary crates only |
-| `nx-release-publish` | `cargo publish` | publishable crates only; invoked by `nx release publish` |
+| Target                   | Wraps                            | Notes                                                                |
+| ------------------------ | -------------------------------- | -------------------------------------------------------------------- |
+| `build`, `check`, `test` | `cargo build` / `check` / `test` | cacheable                                                            |
+| `clippy`, `lint`         | `cargo clippy`                   | `lint` is an exact alias so `nx run-many -t lint` covers Rust crates |
+| `fmt-check`              | `cargo fmt --check`              | cacheable; the CI gate                                               |
+| `fmt`                    | `cargo fmt`                      | mutates files, not cached                                            |
+| `run`                    | `cargo run`                      | binary crates only                                                   |
+| `nx-release-publish`     | `cargo publish`                  | publishable crates only; invoked by `nx release publish`             |
 
 Every inferred target pins the cargo package name in its options, so the
 crate keeps working even when another plugin renames the Nx project.

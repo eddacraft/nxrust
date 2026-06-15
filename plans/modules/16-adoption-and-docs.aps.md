@@ -6,8 +6,8 @@
 `create-nx-workspace` preset, public documentation, example workspaces,
 Nx Console-friendly schemas, and the v1.0 stable contract.
 
-| ID | Owner | Status |
-|----|-------|--------|
+| ID    | Owner     | Status   |
+| ----- | --------- | -------- |
 | ADOPT | eddacraft | Proposed |
 
 ## Purpose
@@ -211,30 +211,30 @@ coherent contract-doc push.
 
 ## Risks & Mitigations
 
-| Risk | Impact | Likelihood | Mitigation |
-|------|--------|------------|------------|
-| Preset shape drifts ahead of Nx's `create-nx-workspace` contract | medium | medium | CI test that runs `create-nx-workspace --preset @eddacraft/nxrust` against the supported Nx version range; pin the contract per release |
-| Docs site goes stale | high | high | Auto-generation from schemas; CI fails if generated docs diverge from source; example workspaces tested in CI |
-| Examples become unmaintained snippets that don't actually run | high | medium | Same CI fixture matrix runs them; broken example = broken module = release blocker |
-| Nx Console integration breaks on Nx upgrade | medium | medium | Compatibility matrix; CI smoke against the supported Nx version range |
-| v1.0 contract published prematurely and then needs major-bumping at v2.0 | high | low | Contract waits until at least one release cycle with stable surface; explicit "v1.0 readiness" Work Item before the bump |
-| Anvil-specific content leaks into the public docs | medium | medium | Spec open question 6: Anvil presets live elsewhere; docs reference but don't ship Anvil specifics |
-| Static-site-generator choice locks the project into a stack we later regret | low | medium | Source-of-truth Markdown in `docs/`; generator is a thin layer that can be swapped |
+| Risk                                                                        | Impact | Likelihood | Mitigation                                                                                                                              |
+| --------------------------------------------------------------------------- | ------ | ---------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| Preset shape drifts ahead of Nx's `create-nx-workspace` contract            | medium | medium     | CI test that runs `create-nx-workspace --preset @eddacraft/nxrust` against the supported Nx version range; pin the contract per release |
+| Docs site goes stale                                                        | high   | high       | Auto-generation from schemas; CI fails if generated docs diverge from source; example workspaces tested in CI                           |
+| Examples become unmaintained snippets that don't actually run               | high   | medium     | Same CI fixture matrix runs them; broken example = broken module = release blocker                                                      |
+| Nx Console integration breaks on Nx upgrade                                 | medium | medium     | Compatibility matrix; CI smoke against the supported Nx version range                                                                   |
+| v1.0 contract published prematurely and then needs major-bumping at v2.0    | high   | low        | Contract waits until at least one release cycle with stable surface; explicit "v1.0 readiness" Work Item before the bump                |
+| Anvil-specific content leaks into the public docs                           | medium | medium     | Spec open question 6: Anvil presets live elsewhere; docs reference but don't ship Anvil specifics                                       |
+| Static-site-generator choice locks the project into a stack we later regret | low    | medium     | Source-of-truth Markdown in `docs/`; generator is a thin layer that can be swapped                                                      |
 
 ## Decisions
 
 - **D-AD1:** `preset` (workspace-bootstrap) lives in this module, not
   in [10-wasm-napi](./10-wasm-napi.aps.md) where the original
   02-monodon-parity placed it. Different scope: workspace bootstrap vs
-  in-workspace generators. *Accepted 2026-05-17 (refactor decision).*
+  in-workspace generators. _Accepted 2026-05-17 (refactor decision)._
 - **D-AD2:** Examples must run in the CI fixture matrix; broken
-  examples block release. *Accepted.*
+  examples block release. _Accepted._
 - **D-AD3:** Docs are auto-generated from schemas where possible; hand-
-  written content lives in Markdown source. *Accepted.*
+  written content lives in Markdown source. _Accepted._
 - **D-AD4:** v1.0 contract is documented before the version bump.
-  *Accepted (inherits spec §8.4).*
+  _Accepted (inherits spec §8.4)._
 - **D-AD5:** Anvil-specific presets and content do not ship in nxrust
-  itself. *Accepted (inherits spec open question 6).*
+  itself. _Accepted (inherits spec open question 6)._
 
 ## Open Questions
 

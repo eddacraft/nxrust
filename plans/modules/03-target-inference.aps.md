@@ -6,8 +6,8 @@
 Auto-infer Nx targets for every Rust crate, so consumers never need
 per-crate `project.json` files for the canonical case.
 
-| ID | Owner | Status |
-|----|-------|--------|
+| ID      | Owner     | Status                                                                                                |
+| ------- | --------- | ----------------------------------------------------------------------------------------------------- |
 | TARGETS | eddacraft | Proposed (TARGETS-001 + TARGETS-002 Complete 2026-06-11, unreleased; further items promote per D-010) |
 
 ## Purpose
@@ -161,7 +161,7 @@ parser), module 04 named inputs (Complete).
   executor, not the target name. (2) `build` / `test` carry **no
   `dependsOn`**: cargo builds dependency crates itself (index
   constraint: cargo stays the build engine), affected correctness
-  comes from the graph *edges* `createDependencies` already emits, and
+  comes from the graph _edges_ `createDependencies` already emits, and
   a `^build` default would re-introduce the `target/`-lock
   serialisation hazard (ISS-001 / D-009) within the module 04 cache
   contract that shipped without it.
@@ -206,34 +206,34 @@ ignored.
 - **Validation:** Unit suite green via `pnpm test`; e2e
   `nx show project --json` reflects a metadata-declared option default.
 
-*Further items (plugin-option target-name coverage, generator
+_Further items (plugin-option target-name coverage, generator
 `project.json` emission opt-out) promote in dependency order per
-D-010.*
+D-010._
 
 ## Risks & Mitigations
 
-| Risk | Impact | Likelihood | Mitigation |
-|------|--------|------------|------------|
-| Inferred targets clash with existing consumer `project.json` | high | medium | Consumer-explicit wins; document precedence; surface a single-line "inferred / overridden by" diagnostic in `nx show project` if feasible |
-| Adding `fmt-check` as a new default breaks consumer scripts that grep targets | low | medium | Minor bump + CHANGELOG; provide a plugin option to suppress |
-| Inferred `outputs` over-cache on the wrong target | high | medium | Follow [04-cache-semantics](./04-cache-semantics.aps.md) conservative defaults; per-target validation in CI fixture matrix |
-| `package.metadata.nxrust.targets.<name>` typos silently ignored | medium | medium | Reject unknown keys with a warning (`14-diagnostics`); CI lint that exercises a known-typo fixture |
+| Risk                                                                          | Impact | Likelihood | Mitigation                                                                                                                                |
+| ----------------------------------------------------------------------------- | ------ | ---------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| Inferred targets clash with existing consumer `project.json`                  | high   | medium     | Consumer-explicit wins; document precedence; surface a single-line "inferred / overridden by" diagnostic in `nx show project` if feasible |
+| Adding `fmt-check` as a new default breaks consumer scripts that grep targets | low    | medium     | Minor bump + CHANGELOG; provide a plugin option to suppress                                                                               |
+| Inferred `outputs` over-cache on the wrong target                             | high   | medium     | Follow [04-cache-semantics](./04-cache-semantics.aps.md) conservative defaults; per-target validation in CI fixture matrix                |
+| `package.metadata.nxrust.targets.<name>` typos silently ignored               | medium | medium     | Reject unknown keys with a warning (`14-diagnostics`); CI lint that exercises a known-typo fixture                                        |
 
 ## Decisions
 
 - **D-T1:** Inferred targets are additive; consumer-explicit
-  `project.json` always wins. *Accepted.*
+  `project.json` always wins. _Accepted._
 - **D-T2:** `fmt` and `fmt-check` are split targets. `fmt-check` is
-  cacheable; `fmt` is not. *Accepted (inherits spec §6.3).*
+  cacheable; `fmt` is not. _Accepted (inherits spec §6.3)._
 - **D-T3:** Every inferred target pins the cargo package name in its
-  options. Inherits the v0.1.1 fix; documented as a contract. *Accepted.*
+  options. Inherits the v0.1.1 fix; documented as a contract. _Accepted._
 - **D-T4:** `clippy` stays the canonical inferred lint target (matches
   the executor name and the shipped v0.1 surface); `lint` is inferred
   as an alias with an identical configuration so ecosystem-wide
   invocations (`nx run-many -t lint`, `nx affected -t lint`) include
   Rust crates alongside JS projects. Both cache independently; adding
-  the alias is a minor bump (D-008). *Accepted 2026-06-11
-  (TARGETS-001).*
+  the alias is a minor bump (D-008). _Accepted 2026-06-11
+  (TARGETS-001)._
 
 ## Open Questions
 

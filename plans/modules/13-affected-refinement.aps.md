@@ -6,8 +6,8 @@
 Make `nx affected` correct and precise for Rust file, manifest, lockfile,
 and toolchain changes.
 
-| ID | Owner | Status |
-|----|-------|--------|
+| ID       | Owner     | Status   |
+| -------- | --------- | -------- |
 | AFFECTED | eddacraft | Proposed |
 
 ## Purpose
@@ -31,20 +31,20 @@ must agree on what counts as a relevant change.
 
 **File → affected mapping (spec §6.13):**
 
-| Change | Affected result |
-|---|---|
-| `crates/foo/src/lib.rs` (any `.rs` under crate) | `foo` and dependants |
-| `crates/foo/Cargo.toml` | `foo` and dependants |
-| `crates/foo/build.rs` | `foo` and dependants |
-| `crates/foo/tests/*.rs` | `foo` only (tests don't propagate) |
-| `crates/foo/benches/*.rs` | `foo` only |
-| `crates/foo/examples/*.rs` | `foo` only |
-| root `Cargo.lock` | All Rust crates initially; refined when safe |
-| root `Cargo.toml` (workspace section) | All Rust crates |
-| root `Cargo.toml` (`workspace.dependencies` only) | Affected subset where possible |
-| `rust-toolchain.toml` | All Rust crates + synthetic `rust-workspace` |
-| `.cargo/config.toml` | All Rust crates + synthetic `rust-workspace` |
-| feature flag change (consumer-invoked with different `--features`) | Feature-dependent subset where possible |
+| Change                                                             | Affected result                              |
+| ------------------------------------------------------------------ | -------------------------------------------- |
+| `crates/foo/src/lib.rs` (any `.rs` under crate)                    | `foo` and dependants                         |
+| `crates/foo/Cargo.toml`                                            | `foo` and dependants                         |
+| `crates/foo/build.rs`                                              | `foo` and dependants                         |
+| `crates/foo/tests/*.rs`                                            | `foo` only (tests don't propagate)           |
+| `crates/foo/benches/*.rs`                                          | `foo` only                                   |
+| `crates/foo/examples/*.rs`                                         | `foo` only                                   |
+| root `Cargo.lock`                                                  | All Rust crates initially; refined when safe |
+| root `Cargo.toml` (workspace section)                              | All Rust crates                              |
+| root `Cargo.toml` (`workspace.dependencies` only)                  | Affected subset where possible               |
+| `rust-toolchain.toml`                                              | All Rust crates + synthetic `rust-workspace` |
+| `.cargo/config.toml`                                               | All Rust crates + synthetic `rust-workspace` |
+| feature flag change (consumer-invoked with different `--features`) | Feature-dependent subset where possible      |
 
 **Lockfile refinement (spec §6.13):**
 
@@ -139,29 +139,29 @@ Promote individual Work Items to Ready when:
 
 ## Work Items
 
-*No work items yet — module is Proposed. Items promote individually on
-real-consumer asks per D-007.*
+_No work items yet — module is Proposed. Items promote individually on
+real-consumer asks per D-007._
 
 ## Risks & Mitigations
 
-| Risk | Impact | Likelihood | Mitigation |
-|------|--------|------------|------------|
-| Refined lockfile parser misses a relevant version bump | high | medium | Comprehensive fixture matrix: tag-pinned, branch-pinned, registry, git, patched deps; conservative-mode fallback always available |
-| Feature-aware affected hides a feature-conditional regression | high | medium | Feature awareness is opt-in; default stays conservative until a consumer validates a release with the refined behaviour |
-| Workspace-dep diff parser misreads TOML | medium | low | Use `@ltd/j-toml` (v0.1 contract); fixtures with comments, nested tables, edge cases |
-| Affected and cache diverge on what counts as a relevant change | high | low | Shared "relevant input" definition between [04-cache-semantics](./04-cache-semantics.aps.md) and this module; lint test verifies the agreement |
-| `[workspace.dependencies]` refactor (changing `version = "0.x"` to `version.workspace = true`) appears as a workspace-dep diff and over-triggers | medium | medium | Detect the structural change; treat as a no-op for affected if version resolution doesn't change |
+| Risk                                                                                                                                             | Impact | Likelihood | Mitigation                                                                                                                                     |
+| ------------------------------------------------------------------------------------------------------------------------------------------------ | ------ | ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| Refined lockfile parser misses a relevant version bump                                                                                           | high   | medium     | Comprehensive fixture matrix: tag-pinned, branch-pinned, registry, git, patched deps; conservative-mode fallback always available              |
+| Feature-aware affected hides a feature-conditional regression                                                                                    | high   | medium     | Feature awareness is opt-in; default stays conservative until a consumer validates a release with the refined behaviour                        |
+| Workspace-dep diff parser misreads TOML                                                                                                          | medium | low        | Use `@ltd/j-toml` (v0.1 contract); fixtures with comments, nested tables, edge cases                                                           |
+| Affected and cache diverge on what counts as a relevant change                                                                                   | high   | low        | Shared "relevant input" definition between [04-cache-semantics](./04-cache-semantics.aps.md) and this module; lint test verifies the agreement |
+| `[workspace.dependencies]` refactor (changing `version = "0.x"` to `version.workspace = true`) appears as a workspace-dep diff and over-triggers | medium | medium     | Detect the structural change; treat as a no-op for affected if version resolution doesn't change                                               |
 
 ## Decisions
 
 - **D-A1:** Conservative baseline first; refinements are per-item,
-  consumer-driven (D-007). *Accepted (inherits spec §6.13).*
+  consumer-driven (D-007). _Accepted (inherits spec §6.13)._
 - **D-A2:** Refinements ship opt-in via plugin option, default-on later.
-  *Accepted.*
+  _Accepted._
 - **D-A3:** Affected and cache agree on what counts as a relevant
-  change. Tested by a shared definition. *Accepted.*
+  change. Tested by a shared definition. _Accepted._
 - **D-A4:** Affected behaviour changes are graph-shape changes per
-  D-008: bump minor + CHANGELOG. *Accepted.*
+  D-008: bump minor + CHANGELOG. _Accepted._
 
 ## Open Questions
 

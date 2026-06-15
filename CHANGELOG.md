@@ -4,7 +4,7 @@
 
 - Per-crate target option defaults via `[package.metadata.nxrust.targets.<name>]`
   in `Cargo.toml` (e.g. `[package.metadata.nxrust.targets.test]
-  all-features = true`), so per-crate tuning needs no `project.json`. A
+all-features = true`), so per-crate tuning needs no `project.json`. A
   `toolchain` declared this way (or package-wide via
   `package.metadata.nxrust.toolchain`) feeds both the executor invocation
   (`cargo +<channel>`) and the target's cache-key runtime input

@@ -1,5 +1,5 @@
-import type { ExecutorContext } from '@nx/devkit';
-import { cargoCommand } from '../../utils/cargo';
+import type { ExecutorContext } from "@nx/devkit";
+import { cargoCommand } from "../../utils/cargo";
 
 export interface FmtExecutorSchema {
   toolchain?: string;
@@ -20,25 +20,25 @@ export default async function fmtExecutor(
 ): Promise<{ success: boolean }> {
   const argv: string[] = [];
 
-  if (options.toolchain && options.toolchain !== 'stable') {
+  if (options.toolchain && options.toolchain !== "stable") {
     argv.push(`+${options.toolchain}`);
   }
 
-  argv.push('fmt');
+  argv.push("fmt");
 
   if (options.all) {
-    argv.push('--all');
+    argv.push("--all");
   } else {
     const pkg = options.package ?? context.projectName;
-    if (pkg) argv.push('-p', pkg);
+    if (pkg) argv.push("-p", pkg);
   }
 
   if (options.check) {
-    argv.push('--check');
+    argv.push("--check");
   }
 
   if (options.args !== undefined) {
-    argv.push('--');
+    argv.push("--");
     if (Array.isArray(options.args)) {
       for (const a of options.args) argv.push(String(a));
     } else {

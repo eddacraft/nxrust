@@ -6,8 +6,8 @@
 A dedicated `nextest` executor for teams that use `cargo nextest` as
 their primary test runner.
 
-| ID | Owner | Status |
-|----|-------|--------|
+| ID      | Owner     | Status   |
+| ------- | --------- | -------- |
 | NEXTEST | eddacraft | Proposed |
 
 ## Purpose
@@ -40,16 +40,16 @@ This module absorbs the `cargo-nextest` items from the original
 
 **Nextest-specific options (spec §6.11):**
 
-| Option | Behaviour |
-|---|---|
-| `profile` | `--profile <name>` (nextest profile, distinct from cargo profile) |
-| `partition` | `--partition <spec>` for sharded CI |
-| `archiveFile` | `--archive-file <path>` for cross-host runs |
-| `workspaceRemap` | `--workspace-remap <path>` for archive-and-run |
-| `noFailFast` | `--no-fail-fast` |
+| Option                                           | Behaviour                                                               |
+| ------------------------------------------------ | ----------------------------------------------------------------------- |
+| `profile`                                        | `--profile <name>` (nextest profile, distinct from cargo profile)       |
+| `partition`                                      | `--partition <spec>` for sharded CI                                     |
+| `archiveFile`                                    | `--archive-file <path>` for cross-host runs                             |
+| `workspaceRemap`                                 | `--workspace-remap <path>` for archive-and-run                          |
+| `noFailFast`                                     | `--no-fail-fast`                                                        |
 | `features` / `allFeatures` / `noDefaultFeatures` | Inherits the [05-cargo-features](./05-cargo-features.aps.md) option set |
-| `target` | Rust target triple (inherits 05) |
-| `toolchain` | Inherits [06-toolchain-awareness](./06-toolchain-awareness.aps.md) |
+| `target`                                         | Rust target triple (inherits 05)                                        |
+| `toolchain`                                      | Inherits [06-toolchain-awareness](./06-toolchain-awareness.aps.md)      |
 
 Options outside this allowlist are dropped at the cargo-args boundary —
 same allowlist convention as v0.1.1's `buildCargoArgs` fix.
@@ -144,26 +144,26 @@ Promote individual Work Items to Ready when:
 
 ## Work Items
 
-*No work items yet — module is Proposed. Items promote individually on
-real-consumer asks per D-007.*
+_No work items yet — module is Proposed. Items promote individually on
+real-consumer asks per D-007._
 
 ## Risks & Mitigations
 
-| Risk | Impact | Likelihood | Mitigation |
-|------|--------|------------|------------|
-| `cargo-nextest` executor diverges from `test` executor over time | medium | medium | Share the cargo-arg builder and options-allowlist logic between the two; one source of truth |
-| Switching `testRunner` mid-line changes cache hits unexpectedly | medium | medium | Executor identity participates in cache key (via Nx); document the cache invalidation on switch |
-| Nextest profile name collides with cargo profile name | low | medium | Distinct option names (`profile` for nextest profile; `cargoProfile` if both needed); document the distinction |
-| Missing `cargo-nextest` on the consumer's CI runner | high | medium | Diagnostic on first invocation; consumer installs in their CI setup (documented in `09-supply-chain`-style install hint) |
+| Risk                                                             | Impact | Likelihood | Mitigation                                                                                                               |
+| ---------------------------------------------------------------- | ------ | ---------- | ------------------------------------------------------------------------------------------------------------------------ |
+| `cargo-nextest` executor diverges from `test` executor over time | medium | medium     | Share the cargo-arg builder and options-allowlist logic between the two; one source of truth                             |
+| Switching `testRunner` mid-line changes cache hits unexpectedly  | medium | medium     | Executor identity participates in cache key (via Nx); document the cache invalidation on switch                          |
+| Nextest profile name collides with cargo profile name            | low    | medium     | Distinct option names (`profile` for nextest profile; `cargoProfile` if both needed); document the distinction           |
+| Missing `cargo-nextest` on the consumer's CI runner              | high   | medium     | Diagnostic on first invocation; consumer installs in their CI setup (documented in `09-supply-chain`-style install hint) |
 
 ## Decisions
 
 - **D-NT1:** `nextest` is a sibling executor to `test`, not a
-  replacement. Spec open question 1 (replace vs sibling) stays open. *Accepted.*
+  replacement. Spec open question 1 (replace vs sibling) stays open. _Accepted._
 - **D-NT2:** `testRunner` plugin option + `package.metadata.nxrust.test-runner`
-  per-crate override are the routing mechanism. *Accepted.*
+  per-crate override are the routing mechanism. _Accepted._
 - **D-NT3:** `test` and `nextest` share a single cargo-args builder.
-  *Accepted.*
+  _Accepted._
 
 ## Open Questions
 

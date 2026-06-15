@@ -7,8 +7,8 @@ A `migrate-from-monodon` generator that converts an existing
 `@monodon/rust` workspace into an nxrust workspace, plus compatibility
 aliases for the few naming differences.
 
-| ID | Owner | Status |
-|----|-------|--------|
+| ID      | Owner     | Status   |
+| ------- | --------- | -------- |
 | MIGRATE | eddacraft | Proposed |
 
 ## Purpose
@@ -60,11 +60,11 @@ Behaviour:
 
 **Compatibility aliases (spec §6.15):**
 
-| Alias | Resolves to | Notes |
-|---|---|---|
-| `lint` | `clippy` | v0.1 already supports both. Document the alias. |
-| `bin` | `binary` (generator) | v0.1 ships `binary`; add `bin` alias. |
-| `lib` | `library` (generator) | v0.1 ships `library`; add `lib` alias. |
+| Alias  | Resolves to           | Notes                                           |
+| ------ | --------------------- | ----------------------------------------------- |
+| `lint` | `clippy`              | v0.1 already supports both. Document the alias. |
+| `bin`  | `binary` (generator)  | v0.1 ships `binary`; add `bin` alias.           |
+| `lib`  | `library` (generator) | v0.1 ships `library`; add `lib` alias.          |
 
 - Aliases are runtime-only; the canonical names stay primary.
 - Aliases are documented in README but generators emit the canonical
@@ -149,30 +149,30 @@ Promote individual Work Items to Ready when:
 
 ## Work Items
 
-*No work items yet — module is Proposed. Items promote individually on
-real-consumer asks per D-007.*
+_No work items yet — module is Proposed. Items promote individually on
+real-consumer asks per D-007._
 
 ## Risks & Mitigations
 
-| Risk | Impact | Likelihood | Mitigation |
-|------|--------|------------|------------|
-| Monodon's option schema differs subtly from nxrust's | medium | high | Per-executor mapping table; CI fixture matrix exercises the full mapping; diagnostic on unmapped options |
-| Removing redundant `project.json` entries breaks the consumer's CI scripts that grep them | medium | medium | `--prune-redundant` is opt-in (default off until consumer feedback says default-on); document the safe order |
-| napi/wasm migration flagged but consumer expects auto-handling | medium | medium | Diagnostic on detection; clear "migrate manually or wait for [10-wasm-napi](./10-wasm-napi.aps.md)" message |
-| Compatibility alias collides with a future canonical name | medium | low | Aliases are stable per index Decisions; canonical names are the source of truth; check before adding new canonical names |
-| Generator dry-run diverges from actual run | high | low | Same code path with a `dryRun` flag; CI test exercises both modes on the same fixture |
+| Risk                                                                                      | Impact | Likelihood | Mitigation                                                                                                               |
+| ----------------------------------------------------------------------------------------- | ------ | ---------- | ------------------------------------------------------------------------------------------------------------------------ |
+| Monodon's option schema differs subtly from nxrust's                                      | medium | high       | Per-executor mapping table; CI fixture matrix exercises the full mapping; diagnostic on unmapped options                 |
+| Removing redundant `project.json` entries breaks the consumer's CI scripts that grep them | medium | medium     | `--prune-redundant` is opt-in (default off until consumer feedback says default-on); document the safe order             |
+| napi/wasm migration flagged but consumer expects auto-handling                            | medium | medium     | Diagnostic on detection; clear "migrate manually or wait for [10-wasm-napi](./10-wasm-napi.aps.md)" message              |
+| Compatibility alias collides with a future canonical name                                 | medium | low        | Aliases are stable per index Decisions; canonical names are the source of truth; check before adding new canonical names |
+| Generator dry-run diverges from actual run                                                | high   | low        | Same code path with a `dryRun` flag; CI test exercises both modes on the same fixture                                    |
 
 ## Decisions
 
 - **D-MIG1:** Migration is consumer-driven (D-007) — work happens when a
-  real Monodon consumer asks to switch. *Accepted.*
+  real Monodon consumer asks to switch. _Accepted._
 - **D-MIG2:** Compatibility aliases (`lint` ↔ `clippy`, `bin` ↔ `binary`,
   `lib` ↔ `library`) are runtime-only; canonical names are emitted by
-  generators. *Accepted (inherits spec §6.15).*
+  generators. _Accepted (inherits spec §6.15)._
 - **D-MIG3:** napi/wasm migration is gated on
   [10-wasm-napi](./10-wasm-napi.aps.md) promotion; until then the
-  generator flags those projects. *Accepted.*
-- **D-MIG4:** Migration is idempotent; second run is a no-op. *Accepted.*
+  generator flags those projects. _Accepted._
+- **D-MIG4:** Migration is idempotent; second run is a no-op. _Accepted._
 
 ## Open Questions
 

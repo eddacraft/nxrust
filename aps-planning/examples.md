@@ -14,9 +14,9 @@ A small, self-contained dark mode toggle:
 ```markdown
 # Dark Mode Toggle
 
-| ID | Owner | Status |
-|----|-------|--------|
-| DARK | @sarah | Ready |
+| ID   | Owner  | Status |
+| ---- | ------ | ------ |
+| DARK | @sarah | Ready  |
 
 ## Purpose
 
@@ -51,9 +51,9 @@ An authentication module in a larger system:
 ```markdown
 # User Authentication
 
-| ID | Owner | Priority | Status |
-|----|-------|----------|--------|
-| AUTH | @josh | high | Ready |
+| ID   | Owner | Priority | Status |
+| ---- | ----- | -------- | ------ |
+| AUTH | @josh | high     | Ready  |
 
 ## Purpose
 
@@ -73,9 +73,11 @@ Users need to register, log in, and maintain authenticated sessions.
 ## Interfaces
 
 **Depends on:**
+
 - DATABASE — user table schema
 
 **Exposes:**
+
 - `registerUser(email, password)` → User
 - `verifyCredentials(email, password)` → boolean
 
@@ -119,21 +121,22 @@ can register, log in, and maintain sessions.
 **Problem:** All data is currently public. Users have no identity.
 
 **Success Criteria:**
+
 - [ ] Users can register and log in
 - [ ] Sessions persist across browser refresh
 - [ ] Unauthorized access returns 401
 
 ## Modules
 
-| Module | Purpose | Status |
-|--------|---------|--------|
-| [auth](./modules/01-auth.aps.md) | Registration and login | Ready |
-| [session](./modules/02-session.aps.md) | Token management | Draft |
+| Module                                 | Purpose                | Status |
+| -------------------------------------- | ---------------------- | ------ |
+| [auth](./modules/01-auth.aps.md)       | Registration and login | Ready  |
+| [session](./modules/02-session.aps.md) | Token management       | Draft  |
 
 ## Risks & Mitigations
 
-| Risk | Mitigation |
-|------|------------|
+| Risk                           | Mitigation                        |
+| ------------------------------ | --------------------------------- |
 | Password storage vulnerability | Use bcrypt, never store plaintext |
 ```
 
@@ -144,11 +147,11 @@ Breaking down a complex work item into checkpoints:
 ```markdown
 # Action Plan: AUTH-001
 
-| Field | Value |
-|-------|-------|
-| Source | [./modules/01-auth.aps.md](./modules/01-auth.aps.md) |
-| Work Item | AUTH-001 — Create user registration |
-| Status | In Progress |
+| Field     | Value                                                |
+| --------- | ---------------------------------------------------- |
+| Source    | [./modules/01-auth.aps.md](./modules/01-auth.aps.md) |
+| Work Item | AUTH-001 — Create user registration                  |
+| Status    | In Progress                                          |
 
 ## Prerequisites
 

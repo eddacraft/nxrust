@@ -3,7 +3,7 @@
  * integration so `nx.json`'s `plugins: ["@eddacraft/nxrust"]` wiring sees the
  * `createNodesV2` + `createDependencies` pair.
  */
-export { createNodesV2, createDependencies } from './graph';
+export { createNodesV2, createDependencies } from "./graph";
 
 /**
  * Cross-language test-seam contract (D-WN4 / D-009). Severs the inherited
@@ -15,4 +15,4 @@ export {
   applyCrossLanguageTestSeam,
   severCrossLanguageTestEdge,
   type CrossLanguageTestSeamOptions,
-} from './utils/cross-language-edges';
+} from "./utils/cross-language-edges";

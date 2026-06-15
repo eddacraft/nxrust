@@ -7,12 +7,12 @@ Development-time discoveries during APS execution. See `aps-rules.md`
 
 ### ISS-001: Cross-language `^build` inheritance amplifies cargo lock contention
 
-| Field | Value |
-|-------|-------|
-| Status | Resolved |
-| Discovered | 2026-05-20 |
-| Severity | High |
-| Source | Anvil consumer workspace (eddacraft/anvil-001) |
+| Field           | Value                                              |
+| --------------- | -------------------------------------------------- |
+| Status          | Resolved                                           |
+| Discovered      | 2026-05-20                                         |
+| Severity        | High                                               |
+| Source          | Anvil consumer workspace (eddacraft/anvil-001)     |
 | Related modules | 10-wasm-napi, 14-diagnostics, 16-adoption-and-docs |
 
 A mixed TS+Rust Nx workspace where JS `package.json`s reference a sibling
@@ -52,15 +52,15 @@ adopter with a workspace-level `^build` test dependency inherits the
 
 ### ISS-002: `graph.spec.ts` cache-invalidation suite failing on `main`
 
-| Field | Value |
-|-------|-------|
-| Status | Resolved — not a regression (stale local deps) |
-| Discovered | 2026-06-08 |
-| Resolved | 2026-06-10 |
-| Severity | High → none (environment artifact) |
-| Source | `pnpm test` on `main` (reproduced on clean HEAD) |
-| Related modules | 02-workspace-inference-and-graph |
-| Tracked | [eddacraft/nxrust#23](https://github.com/eddacraft/nxrust/issues/23) |
+| Field           | Value                                                                |
+| --------------- | -------------------------------------------------------------------- |
+| Status          | Resolved — not a regression (stale local deps)                       |
+| Discovered      | 2026-06-08                                                           |
+| Resolved        | 2026-06-10                                                           |
+| Severity        | High → none (environment artifact)                                   |
+| Source          | `pnpm test` on `main` (reproduced on clean HEAD)                     |
+| Related modules | 02-workspace-inference-and-graph                                     |
+| Tracked         | [eddacraft/nxrust#23](https://github.com/eddacraft/nxrust/issues/23) |
 
 Seven tests under `src/graph.spec.ts > graph cache invalidation` fail on
 `main` independently of any feature branch. The `cargo metadata` cache is not
@@ -87,13 +87,13 @@ alarm; no work item needed under module 02.
 
 ### ISS-003: `release:dry-run` script broken on pnpm 10.x
 
-| Field | Value |
-|-------|-------|
-| Status | Resolved |
-| Discovered | 2026-06-10 |
-| Resolved | 2026-06-10 |
-| Severity | Low (release tooling) |
-| Source | `pnpm release:dry-run` during 0.2.0 release prep |
+| Field      | Value                                            |
+| ---------- | ------------------------------------------------ |
+| Status     | Resolved                                         |
+| Discovered | 2026-06-10                                       |
+| Resolved   | 2026-06-10                                       |
+| Severity   | Low (release tooling)                            |
+| Source     | `pnpm release:dry-run` during 0.2.0 release prep |
 
 `release:dry-run` ran `pnpm pack --dry-run`, but pnpm 10.x removed the
 `--dry-run` flag from `pnpm pack` (`ERROR Unknown option: 'dry-run'`), so the
@@ -104,4 +104,4 @@ creates no `.tgz`.
 
 ## Questions
 
-*(none yet)*
+_(none yet)_

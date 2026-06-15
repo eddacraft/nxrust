@@ -1,28 +1,28 @@
-import { readFileSync, rmSync, writeFileSync } from 'node:fs';
-import { join } from 'node:path';
-import { spawnSync } from 'node:child_process';
+import { readFileSync, rmSync, writeFileSync } from "node:fs";
+import { join } from "node:path";
+import { spawnSync } from "node:child_process";
 
 const root = process.cwd();
-const packDir = join(root, '.e2e-pack');
-const fixtureDir = join(root, 'e2e', 'fixture');
-const fixturePackage = join(fixtureDir, 'package.json');
-const fixtureNxJson = join(fixtureDir, 'nx.json');
-const fixtureToolchain = join(fixtureDir, 'rust-toolchain.toml');
+const packDir = join(root, ".e2e-pack");
+const fixtureDir = join(root, "e2e", "fixture");
+const fixturePackage = join(fixtureDir, "package.json");
+const fixtureNxJson = join(fixtureDir, "nx.json");
+const fixtureToolchain = join(fixtureDir, "rust-toolchain.toml");
 
 // Derive the tarball name from package.json so version bumps don't break the
 // e2e smoke. `pnpm pack` writes `<scope-stripped>-<name>-<version>.tgz`.
-const pkg = JSON.parse(readFileSync(join(root, 'package.json'), 'utf8'));
-const tarballName = `${pkg.name.replace('@', '').replace('/', '-')}-${pkg.version}.tgz`;
+const pkg = JSON.parse(readFileSync(join(root, "package.json"), "utf8"));
+const tarballName = `${pkg.name.replace("@", "").replace("/", "-")}-${pkg.version}.tgz`;
 const tarball = `../../.e2e-pack/${tarballName}`;
 
 function run(command, args, options = {}) {
   const result = spawnSync(command, args, {
     cwd: options.cwd ?? root,
-    stdio: 'inherit',
-    shell: process.platform === 'win32',
+    stdio: "inherit",
+    shell: process.platform === "win32",
   });
   if (result.status !== 0) {
-    throw new Error(`${command} ${args.join(' ')} exited with ${result.status}`);
+    throw new Error(`${command} ${args.join(" ")} exited with ${result.status}`);
   }
 }
 
@@ -30,30 +30,30 @@ function run(command, args, options = {}) {
 function capture(command, args, options = {}) {
   const result = spawnSync(command, args, {
     cwd: options.cwd ?? root,
-    encoding: 'utf8',
-    shell: process.platform === 'win32',
+    encoding: "utf8",
+    shell: process.platform === "win32",
   });
   if (result.status !== 0) {
-    process.stderr.write(result.stderr ?? '');
-    throw new Error(`${command} ${args.join(' ')} exited with ${result.status}`);
+    process.stderr.write(result.stderr ?? "");
+    throw new Error(`${command} ${args.join(" ")} exited with ${result.status}`);
   }
-  return result.stdout ?? '';
+  return result.stdout ?? "";
 }
 
 rmSync(packDir, { recursive: true, force: true });
-rmSync(join(fixtureDir, '.nx'), { recursive: true, force: true });
-rmSync(join(fixtureDir, 'node_modules', '@eddacraft', 'nxrust'), {
+rmSync(join(fixtureDir, ".nx"), { recursive: true, force: true });
+rmSync(join(fixtureDir, "node_modules", "@eddacraft", "nxrust"), {
   recursive: true,
   force: true,
 });
 
-run('pnpm', ['pack', '--pack-destination', packDir]);
-run('pnpm', ['install', '--frozen-lockfile'], { cwd: fixtureDir });
+run("pnpm", ["pack", "--pack-destination", packDir]);
+run("pnpm", ["install", "--frozen-lockfile"], { cwd: fixtureDir });
 // Keep registry dependencies frozen, then install the freshly packed local
 // tarball without writing it to the lockfile. The tarball integrity is not
 // stable across machines because it is generated during the current run.
 const fixturePackageBeforeTarballInstall = readFileSync(fixturePackage);
-run('pnpm', ['add', '--save-dev', '--lockfile=false', tarball], {
+run("pnpm", ["add", "--save-dev", "--lockfile=false", tarball], {
   cwd: fixtureDir,
 });
 writeFileSync(fixturePackage, fixturePackageBeforeTarballInstall);
@@ -65,25 +65,21 @@ writeFileSync(fixturePackage, fixturePackageBeforeTarballInstall);
 // first so a local run leaves no diff behind, restoring them in `finally`.
 const fixtureNxJsonBefore = readFileSync(fixtureNxJson);
 try {
-  run(
-    'pnpm',
-    ['exec', 'nx', 'g', '@eddacraft/nxrust:init', '--skipFormat', '--no-interactive'],
-    { cwd: fixtureDir },
-  );
-  run('pnpm', ['exec', 'nx', 'run', 'smoke:check', '--skip-nx-cache'], {
+  run("pnpm", ["exec", "nx", "g", "@eddacraft/nxrust:init", "--skipFormat", "--no-interactive"], {
+    cwd: fixtureDir,
+  });
+  run("pnpm", ["exec", "nx", "run", "smoke:check", "--skip-nx-cache"], {
     cwd: fixtureDir,
   });
 
   // GRAPH-001: the smoke crate declares `[package.metadata.nxrust] tags` and
   // has no project.json, so the inferred Nx project must surface those tags
   // end-to-end through `nx show project`.
-  const shown = capture(
-    'pnpm',
-    ['exec', 'nx', 'show', 'project', 'smoke', '--json'],
-    { cwd: fixtureDir },
-  );
-  const project = JSON.parse(shown.slice(shown.indexOf('{'), shown.lastIndexOf('}') + 1));
-  const expectedTags = ['cargo', 'scope:smoke'];
+  const shown = capture("pnpm", ["exec", "nx", "show", "project", "smoke", "--json"], {
+    cwd: fixtureDir,
+  });
+  const project = JSON.parse(shown.slice(shown.indexOf("{"), shown.lastIndexOf("}") + 1));
+  const expectedTags = ["cargo", "scope:smoke"];
   const missing = expectedTags.filter((tag) => !(project.tags ?? []).includes(tag));
   if (missing.length > 0) {
     throw new Error(
@@ -99,14 +95,14 @@ try {
   // appear; an unexpected target is a contract change that needs a
   // deliberate minor bump per D-008).
   const expectedTargets = [
-    'build',
-    'check',
-    'clippy',
-    'lint',
-    'fmt',
-    'fmt-check',
-    'test',
-    'nx-release-publish',
+    "build",
+    "check",
+    "clippy",
+    "lint",
+    "fmt",
+    "fmt-check",
+    "test",
+    "nx-release-publish",
   ].sort();
   const targetNames = Object.keys(project.targets ?? {}).sort();
   if (JSON.stringify(targetNames) !== JSON.stringify(expectedTargets)) {
@@ -122,7 +118,7 @@ try {
   // default must reach the inferred test target's options, while the cargo
   // package pin stays in place.
   const testOptions = project.targets.test.options ?? {};
-  if (testOptions['all-features'] !== true || testOptions.package !== 'smoke') {
+  if (testOptions["all-features"] !== true || testOptions.package !== "smoke") {
     throw new Error(
       `nx show project smoke test target options missing metadata defaults; ` +
         `got ${JSON.stringify(testOptions)}`,

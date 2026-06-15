@@ -20,7 +20,7 @@ export interface BaseCargoOptions {
   release?: boolean;
 
   /** `--target-dir <path>`. */
-  'target-dir'?: string;
+  "target-dir"?: string;
 
   /**
    * `--features` list. An array is joined with commas into a single flag;
@@ -30,10 +30,10 @@ export interface BaseCargoOptions {
   features?: string | string[];
 
   /** `--all-features`. */
-  'all-features'?: boolean;
+  "all-features"?: boolean;
 
   /** `--no-default-features`. */
-  'no-default-features'?: boolean;
+  "no-default-features"?: boolean;
 
   /** `--locked` — enforce Cargo.lock is up-to-date. */
   locked?: boolean;

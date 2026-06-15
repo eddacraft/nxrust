@@ -1,6 +1,6 @@
-import TOML from '@ltd/j-toml';
-import { logger, type Tree } from '@nx/devkit';
-import { parseCargoToml, stringifyCargoToml } from './toml';
+import TOML from "@ltd/j-toml";
+import { logger, type Tree } from "@nx/devkit";
+import { parseCargoToml, stringifyCargoToml } from "./toml";
 
 /**
  * Add `projectPath` to the root `Cargo.toml`'s `[workspace.members]` array.
@@ -9,10 +9,10 @@ import { parseCargoToml, stringifyCargoToml } from './toml';
  * member is already listed, logs and no-ops. Idempotent.
  */
 export function addToCargoWorkspace(tree: Tree, projectPath: string): void {
-  const rootPath = 'Cargo.toml';
+  const rootPath = "Cargo.toml";
   const existing = tree.read(rootPath)?.toString();
 
-  const cleanPath = projectPath.replace(/^\.\//, '');
+  const cleanPath = projectPath.replace(/^\.\//, "");
 
   if (!existing) {
     // Bootstrap a minimal workspace root if the consumer didn't run `init` yet.
@@ -21,7 +21,7 @@ export function addToCargoWorkspace(tree: Tree, projectPath: string): void {
     tree.write(
       rootPath,
       stringifyCargoToml({
-        workspace: TOML.Section({ resolver: '2', members: [cleanPath] }),
+        workspace: TOML.Section({ resolver: "2", members: [cleanPath] }),
       } as never),
     );
     return;
@@ -49,15 +49,10 @@ export function addToCargoWorkspace(tree: Tree, projectPath: string): void {
 function isAlreadyMember(members: string[], cleanPath: string): boolean {
   for (const entry of members) {
     if (entry === cleanPath) return true;
-    if (!entry.includes('*')) continue;
+    if (!entry.includes("*")) continue;
     // Translate a cargo-style glob to a regex: escape regex metacharacters,
     // then turn `*` into `[^/]+`.
-    const pattern =
-      '^' +
-      entry
-        .replace(/[.+^${}()|[\]\\]/g, '\\$&')
-        .replace(/\*/g, '[^/]+') +
-      '$';
+    const pattern = "^" + entry.replace(/[.+^${}()|[\]\\]/g, "\\$&").replace(/\*/g, "[^/]+") + "$";
     if (new RegExp(pattern).test(cleanPath)) return true;
   }
   return false;

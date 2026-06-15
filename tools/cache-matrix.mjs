@@ -20,19 +20,19 @@
 // and needs no registry/network access — a cache miss must never become a
 // failure (module 04 constraint).
 
-import { readFileSync, rmSync, writeFileSync } from 'node:fs';
-import { join } from 'node:path';
-import { spawnSync } from 'node:child_process';
+import { readFileSync, rmSync, writeFileSync } from "node:fs";
+import { join } from "node:path";
+import { spawnSync } from "node:child_process";
 
 const root = process.cwd();
-const packDir = join(root, '.cache-matrix-pack');
-const fixtureDir = join(root, 'e2e', 'cache-matrix');
-const fixtureNxJson = join(fixtureDir, 'nx.json');
-const fixtureToolchain = join(fixtureDir, 'rust-toolchain.toml');
+const packDir = join(root, ".cache-matrix-pack");
+const fixtureDir = join(root, "e2e", "cache-matrix");
+const fixtureNxJson = join(fixtureDir, "nx.json");
+const fixtureToolchain = join(fixtureDir, "rust-toolchain.toml");
 
 // Cacheable targets nxrust infers today (build, check, clippy, fmt-check,
 // test). `fmt` and `run` are intentionally uncached and excluded.
-const RUST_CACHEABLE = ['check', 'fmt-check', 'clippy', 'test', 'build'];
+const RUST_CACHEABLE = ["check", "fmt-check", "clippy", "test", "build"];
 
 // project -> cacheable targets to verify. The Rust crates exercise the full
 // inferred cacheable set; ts-app verifies a non-Rust project still caches
@@ -41,27 +41,27 @@ const MATRIX = {
   solo: RUST_CACHEABLE,
   engine: RUST_CACHEABLE,
   app: RUST_CACHEABLE,
-  'with-dev-dep': RUST_CACHEABLE,
-  'with-build-dep': RUST_CACHEABLE,
+  "with-dev-dep": RUST_CACHEABLE,
+  "with-build-dep": RUST_CACHEABLE,
   featured: RUST_CACHEABLE,
-  'ts-app': ['build'],
+  "ts-app": ["build"],
 };
 
-const pkg = JSON.parse(readFileSync(join(root, 'package.json'), 'utf8'));
-const tarballName = `${pkg.name.replace('@', '').replace('/', '-')}-${pkg.version}.tgz`;
+const pkg = JSON.parse(readFileSync(join(root, "package.json"), "utf8"));
+const tarballName = `${pkg.name.replace("@", "").replace("/", "-")}-${pkg.version}.tgz`;
 const tarball = `../../.cache-matrix-pack/${tarballName}`;
 
-const childEnv = { ...process.env, NX_DAEMON: 'false', CI: 'true' };
+const childEnv = { ...process.env, NX_DAEMON: "false", CI: "true" };
 
 function run(command, args, options = {}) {
   const result = spawnSync(command, args, {
     cwd: options.cwd ?? root,
-    stdio: 'inherit',
-    shell: process.platform === 'win32',
+    stdio: "inherit",
+    shell: process.platform === "win32",
     env: childEnv,
   });
   if (result.status !== 0) {
-    throw new Error(`${command} ${args.join(' ')} exited with ${result.status}`);
+    throw new Error(`${command} ${args.join(" ")} exited with ${result.status}`);
   }
 }
 
@@ -69,43 +69,43 @@ function run(command, args, options = {}) {
 // captured (not inherited) so we can inspect the cache markers Nx prints.
 function runTarget(project, target) {
   const result = spawnSync(
-    'pnpm',
-    ['exec', 'nx', 'run', `${project}:${target}`, '--output-style=stream'],
+    "pnpm",
+    ["exec", "nx", "run", `${project}:${target}`, "--output-style=stream"],
     {
       cwd: fixtureDir,
-      encoding: 'utf8',
-      shell: process.platform === 'win32',
+      encoding: "utf8",
+      shell: process.platform === "win32",
       env: childEnv,
     },
   );
-  const output = `${result.stdout ?? ''}${result.stderr ?? ''}`;
+  const output = `${result.stdout ?? ""}${result.stderr ?? ""}`;
   if (result.status !== 0) {
     process.stdout.write(output);
     throw new Error(`nx run ${project}:${target} exited with ${result.status}`);
   }
   const fromCache =
-    output.includes('[local cache]') ||
-    output.includes('read the output from the cache') ||
-    output.includes('existing outputs match the cache');
+    output.includes("[local cache]") ||
+    output.includes("read the output from the cache") ||
+    output.includes("existing outputs match the cache");
   return { fromCache, output };
 }
 
 rmSync(packDir, { recursive: true, force: true });
-rmSync(join(fixtureDir, '.nx'), { recursive: true, force: true });
-rmSync(join(fixtureDir, 'target'), { recursive: true, force: true });
-rmSync(join(fixtureDir, 'ts-app', 'dist'), { recursive: true, force: true });
-rmSync(join(fixtureDir, 'node_modules', '@eddacraft', 'nxrust'), {
+rmSync(join(fixtureDir, ".nx"), { recursive: true, force: true });
+rmSync(join(fixtureDir, "target"), { recursive: true, force: true });
+rmSync(join(fixtureDir, "ts-app", "dist"), { recursive: true, force: true });
+rmSync(join(fixtureDir, "node_modules", "@eddacraft", "nxrust"), {
   recursive: true,
   force: true,
 });
 
-run('pnpm', ['pack', '--pack-destination', packDir]);
-run('pnpm', ['install', '--frozen-lockfile'], { cwd: fixtureDir });
+run("pnpm", ["pack", "--pack-destination", packDir]);
+run("pnpm", ["install", "--frozen-lockfile"], { cwd: fixtureDir });
 // Install the freshly packed tarball without touching the lockfile — its
 // integrity is not stable across machines (it is built during this run).
-const fixturePackage = join(fixtureDir, 'package.json');
+const fixturePackage = join(fixtureDir, "package.json");
 const fixturePackageBefore = readFileSync(fixturePackage);
-run('pnpm', ['add', '--save-dev', '--lockfile=false', tarball], {
+run("pnpm", ["add", "--save-dev", "--lockfile=false", tarball], {
   cwd: fixtureDir,
 });
 writeFileSync(fixturePackage, fixturePackageBefore);
@@ -118,11 +118,9 @@ const misses = [];
 const checked = [];
 
 try {
-  run(
-    'pnpm',
-    ['exec', 'nx', 'g', '@eddacraft/nxrust:init', '--skipFormat', '--no-interactive'],
-    { cwd: fixtureDir },
-  );
+  run("pnpm", ["exec", "nx", "g", "@eddacraft/nxrust:init", "--skipFormat", "--no-interactive"], {
+    cwd: fixtureDir,
+  });
 
   for (const [project, targets] of Object.entries(MATRIX)) {
     for (const target of targets) {
@@ -146,8 +144,8 @@ try {
   }
 
   if (misses.length > 0) {
-    console.error('\nCache-correctness regression — the following targets did');
-    console.error('not behave as cacheable on unchanged inputs:\n');
+    console.error("\nCache-correctness regression — the following targets did");
+    console.error("not behave as cacheable on unchanged inputs:\n");
     for (const miss of misses) console.error(`  - ${miss}`);
     throw new Error(`${misses.length} cache-correctness failure(s)`);
   }
@@ -162,7 +160,7 @@ try {
   // Leave the committed fixture pristine.
   writeFileSync(fixtureNxJson, fixtureNxJsonBefore);
   rmSync(fixtureToolchain, { force: true });
-  rmSync(join(fixtureDir, '.nx'), { recursive: true, force: true });
-  rmSync(join(fixtureDir, 'target'), { recursive: true, force: true });
-  rmSync(join(fixtureDir, 'ts-app', 'dist'), { recursive: true, force: true });
+  rmSync(join(fixtureDir, ".nx"), { recursive: true, force: true });
+  rmSync(join(fixtureDir, "target"), { recursive: true, force: true });
+  rmSync(join(fixtureDir, "ts-app", "dist"), { recursive: true, force: true });
 }

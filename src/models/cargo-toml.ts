@@ -21,8 +21,8 @@ export interface CargoToml {
     [key: string]: unknown;
   };
   dependencies?: Record<string, unknown>;
-  'dev-dependencies'?: Record<string, unknown>;
-  'build-dependencies'?: Record<string, unknown>;
+  "dev-dependencies"?: Record<string, unknown>;
+  "build-dependencies"?: Record<string, unknown>;
   lib?: Record<string, unknown>;
   bin?: Array<Record<string, unknown>>;
   [key: string]: unknown;

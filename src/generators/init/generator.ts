@@ -6,11 +6,8 @@ import {
   writeJson,
   type NxJsonConfiguration,
   type Tree,
-} from '@nx/devkit';
-import {
-  RUST_SOURCES_PATTERNS,
-  RUST_WORKSPACE_PATTERNS,
-} from '../../utils/cache-inputs';
+} from "@nx/devkit";
+import { RUST_SOURCES_PATTERNS, RUST_WORKSPACE_PATTERNS } from "../../utils/cache-inputs";
 
 export interface InitGeneratorSchema {
   skipFormat?: boolean;
@@ -43,14 +40,14 @@ export default async function initGenerator(
   tree: Tree,
   options: InitGeneratorSchema = {},
 ): Promise<void> {
-  if (!tree.exists('Cargo.toml')) {
-    tree.write('Cargo.toml', DEFAULT_WORKSPACE_CARGO_TOML);
-    logger.info('Created Cargo.toml workspace root.');
+  if (!tree.exists("Cargo.toml")) {
+    tree.write("Cargo.toml", DEFAULT_WORKSPACE_CARGO_TOML);
+    logger.info("Created Cargo.toml workspace root.");
   }
 
-  if (!tree.exists('rust-toolchain.toml')) {
-    tree.write('rust-toolchain.toml', DEFAULT_TOOLCHAIN);
-    logger.info('Created rust-toolchain.toml.');
+  if (!tree.exists("rust-toolchain.toml")) {
+    tree.write("rust-toolchain.toml", DEFAULT_TOOLCHAIN);
+    logger.info("Created rust-toolchain.toml.");
   }
 
   mergeRustNamedInputs(tree);
@@ -67,16 +64,8 @@ function mergeRustNamedInputs(tree: Tree): void {
   const namedInputs = nxJson.namedInputs ?? {};
 
   // Evaluate both merges before combining so the second isn't short-circuited.
-  const changedSources = mergeNamedInput(
-    namedInputs,
-    'rustSources',
-    RUST_SOURCES_PATTERNS,
-  );
-  const changedWorkspace = mergeNamedInput(
-    namedInputs,
-    'rustWorkspace',
-    RUST_WORKSPACE_PATTERNS,
-  );
+  const changedSources = mergeNamedInput(namedInputs, "rustSources", RUST_SOURCES_PATTERNS);
+  const changedWorkspace = mergeNamedInput(namedInputs, "rustWorkspace", RUST_WORKSPACE_PATTERNS);
 
   // Leave nx.json (and its formatting/comments) untouched when nothing merged.
   if (!changedSources && !changedWorkspace) return;
@@ -84,16 +73,16 @@ function mergeRustNamedInputs(tree: Tree): void {
   nxJson.namedInputs = namedInputs;
   // `updateNxJson` no-ops when nx.json is absent, so create it explicitly in
   // that case (real Nx workspaces always have one; bare trees may not).
-  if (tree.exists('nx.json')) {
+  if (tree.exists("nx.json")) {
     updateNxJson(tree, nxJson);
   } else {
-    writeJson(tree, 'nx.json', nxJson);
+    writeJson(tree, "nx.json", nxJson);
   }
 }
 
 function mergeNamedInput(
-  namedInputs: NonNullable<NxJsonConfiguration['namedInputs']>,
-  name: 'rustSources' | 'rustWorkspace',
+  namedInputs: NonNullable<NxJsonConfiguration["namedInputs"]>,
+  name: "rustSources" | "rustWorkspace",
   patterns: string[],
 ): boolean {
   const existing = namedInputs[name];
@@ -102,7 +91,7 @@ function mergeNamedInput(
     return true;
   }
 
-  if (Array.isArray(existing) && existing.every((item) => typeof item === 'string')) {
+  if (Array.isArray(existing) && existing.every((item) => typeof item === "string")) {
     let changed = false;
     for (const pattern of patterns) {
       if (!existing.includes(pattern)) {

@@ -9,19 +9,13 @@ import {
   type CreateNodesV2,
   type ProjectConfiguration,
   type RawProjectGraphDependency,
-} from '@nx/devkit';
-import {
-  DependencyType,
-  type ProjectGraphExternalNode,
-} from 'nx/src/config/project-graph';
-import { statSync } from 'node:fs';
-import { dirname, join, relative } from 'node:path';
-import type {
-  CargoMetadata,
-  CargoPackage,
-} from './models/cargo-metadata';
-import { cargoMetadata, isExternal } from './utils/cargo';
-import { resolveToolchain, validateChannelLiteral } from './utils/rust-toolchain';
+} from "@nx/devkit";
+import { DependencyType, type ProjectGraphExternalNode } from "nx/src/config/project-graph";
+import { statSync } from "node:fs";
+import { dirname, join, relative } from "node:path";
+import type { CargoMetadata, CargoPackage } from "./models/cargo-metadata";
+import { cargoMetadata, isExternal } from "./utils/cargo";
+import { resolveToolchain, validateChannelLiteral } from "./utils/rust-toolchain";
 import {
   buildTargetConfig,
   checkTargetConfig,
@@ -30,13 +24,13 @@ import {
   fmtTargetConfig,
   runTargetConfig,
   testTargetConfig,
-} from './utils/target-configs';
+} from "./utils/target-configs";
 
 /**
  * Glob that matches any Cargo.toml in the workspace. Nx invokes
  * `createNodesV2` with every matching file — the glob is just the filter.
  */
-const CARGO_GLOB = '**/Cargo.toml';
+const CARGO_GLOB = "**/Cargo.toml";
 
 interface GraphComputation {
   projects: Record<string, ProjectConfiguration>;
@@ -63,15 +57,9 @@ interface NxRustPluginOptions {
  * survives across invocations, so missing those signals corrupts
  * `nx affected`.
  */
-const metadataCache = new Map<
-  string,
-  { fingerprint: string; result: GraphComputation }
->();
+const metadataCache = new Map<string, { fingerprint: string; result: GraphComputation }>();
 
-function metadataCacheKey(
-  workspaceRoot: string,
-  options: NxRustPluginOptions,
-): string {
+function metadataCacheKey(workspaceRoot: string, options: NxRustPluginOptions): string {
   return `${workspaceRoot}|narrowBuildOutputs:${options.narrowBuildOutputs !== false}`;
 }
 
@@ -83,24 +71,21 @@ function fileFingerprint(path: string): string {
   }
 }
 
-function workspaceFingerprint(
-  workspaceRoot: string,
-  knownManifests: readonly string[],
-): string {
+function workspaceFingerprint(workspaceRoot: string, knownManifests: readonly string[]): string {
   const parts = [
-    fileFingerprint(join(workspaceRoot, 'Cargo.lock')),
-    fileFingerprint(join(workspaceRoot, 'Cargo.toml')),
-    fileFingerprint(join(workspaceRoot, 'rust-toolchain.toml')),
-    fileFingerprint(join(workspaceRoot, 'rust-toolchain')),
+    fileFingerprint(join(workspaceRoot, "Cargo.lock")),
+    fileFingerprint(join(workspaceRoot, "Cargo.toml")),
+    fileFingerprint(join(workspaceRoot, "rust-toolchain.toml")),
+    fileFingerprint(join(workspaceRoot, "rust-toolchain")),
   ];
   for (const manifest of knownManifests) {
     parts.push(fileFingerprint(manifest));
     for (const dir of toolchainSearchDirs(dirname(manifest), workspaceRoot)) {
-      parts.push(fileFingerprint(join(dir, 'rust-toolchain.toml')));
-      parts.push(fileFingerprint(join(dir, 'rust-toolchain')));
+      parts.push(fileFingerprint(join(dir, "rust-toolchain.toml")));
+      parts.push(fileFingerprint(join(dir, "rust-toolchain")));
     }
   }
-  return parts.join('|');
+  return parts.join("|");
 }
 
 function toolchainSearchDirs(projectRoot: string, workspaceRoot: string): string[] {
@@ -119,14 +104,9 @@ function toolchainSearchDirs(projectRoot: string, workspaceRoot: string): string
   return dirs;
 }
 
-function workspaceManifests(
-  metadata: CargoMetadata | null,
-  workspaceRoot: string,
-): string[] {
+function workspaceManifests(metadata: CargoMetadata | null, workspaceRoot: string): string[] {
   if (!metadata) return [];
-  return metadata.packages
-    .filter((p) => !isExternal(p, workspaceRoot))
-    .map((p) => p.manifest_path);
+  return metadata.packages.filter((p) => !isExternal(p, workspaceRoot)).map((p) => p.manifest_path);
 }
 
 function computeCached(
@@ -136,9 +116,7 @@ function computeCached(
 ): GraphComputation {
   const cacheKey = metadataCacheKey(workspaceRoot, options);
   const cached = metadataCache.get(cacheKey);
-  const knownManifests = cached
-    ? workspaceManifests(cached.result.metadata, workspaceRoot)
-    : [];
+  const knownManifests = cached ? workspaceManifests(cached.result.metadata, workspaceRoot) : [];
   const current = workspaceFingerprint(workspaceRoot, knownManifests);
   if (
     cached &&
@@ -177,11 +155,7 @@ export const createNodesV2: CreateNodesV2 = [
   CARGO_GLOB,
   async (configFilePaths, options, context) => {
     const pluginOptions = options as NxRustPluginOptions | undefined;
-    const computed = computeCached(
-      context.workspaceRoot,
-      configFilePaths,
-      pluginOptions ?? {},
-    );
+    const computed = computeCached(context.workspaceRoot, configFilePaths, pluginOptions ?? {});
     // `externalNodes` is a single graph-wide payload — attaching the same map
     // to every file result works (Nx dedupes by key) but wastes IPC. Emit it
     // with the first file we actually produce and blank on the rest.
@@ -204,10 +178,7 @@ export const createNodesV2: CreateNodesV2 = [
   },
 ];
 
-export const createDependencies: CreateDependencies = (
-  _opts,
-  ctx: CreateDependenciesContext,
-) => {
+export const createDependencies: CreateDependencies = (_opts, ctx: CreateDependenciesContext) => {
   const { projects, externalNodes, workspaceRoot } = ctx;
   const { metadata } = computeCached(workspaceRoot, [], _opts as NxRustPluginOptions);
   if (!metadata) return [];
@@ -225,7 +196,7 @@ export const createDependencies: CreateDependencies = (
 
     for (const dep of pkg.dependencies) {
       // Dev deps shouldn't retrigger rebuilds of downstream projects.
-      if (dep.kind === 'dev') continue;
+      if (dep.kind === "dev") continue;
 
       if (projects[dep.name]) {
         out.push(makeDependency(pkg, dep.name, workspaceRoot));
@@ -241,10 +212,7 @@ export const createDependencies: CreateDependencies = (
   return out;
 };
 
-function computeGraph(
-  workspaceRoot: string,
-  options: NxRustPluginOptions,
-): GraphComputation {
+function computeGraph(workspaceRoot: string, options: NxRustPluginOptions): GraphComputation {
   const metadata = cargoMetadata(workspaceRoot);
   if (!metadata) {
     return { projects: {}, externalNodes: {}, metadata: null };
@@ -258,25 +226,23 @@ function computeGraph(
   for (const pkg of metadata.packages) {
     if (isExternal(pkg, workspaceRoot)) continue;
 
-    const root = normalizePath(
-      dirname(relative(workspaceRoot, pkg.manifest_path)),
-    );
+    const root = normalizePath(dirname(relative(workspaceRoot, pkg.manifest_path)));
     projects[root] = inferProjectConfig(pkg, root, workspaceRoot, options);
 
     // Only create external nodes for DIRECT deps of workspace members. If we
     // scanned every package's deps, transitive registry crates would show up
     // as graph nodes the workspace doesn't actually depend on.
     for (const dep of pkg.dependencies) {
-      if (dep.kind === 'dev') continue;
+      if (dep.kind === "dev") continue;
       if (!isExternal(dep, workspaceRoot)) continue;
       const name = `cargo:${dep.name}`;
       if (externalNodes[name]) continue;
       externalNodes[name] = {
-        type: 'cargo' as ProjectGraphExternalNode['type'],
-        name: name as ProjectGraphExternalNode['name'],
+        type: "cargo" as ProjectGraphExternalNode["type"],
+        name: name as ProjectGraphExternalNode["name"],
         data: {
           packageName: dep.name,
-          version: versionByPackage.get(dep.name) ?? dep.req ?? '0.0.0',
+          version: versionByPackage.get(dep.name) ?? dep.req ?? "0.0.0",
         },
       };
     }
@@ -297,7 +263,7 @@ function inferProjectConfig(
   workspaceRoot: string,
   pluginOptions: NxRustPluginOptions,
 ): ProjectConfiguration {
-  const hasBin = pkg.targets.some((t) => t.kind.includes('bin'));
+  const hasBin = pkg.targets.some((t) => t.kind.includes("bin"));
   const isPrivate = pkg.publish?.length === 0;
 
   // Pin the cargo package name on every target. When another Nx plugin (e.g.
@@ -319,14 +285,14 @@ function inferProjectConfig(
   }).channel;
 
   const inferredNames = [
-    'build',
-    'check',
-    'clippy',
-    'fmt',
-    'fmt-check',
-    'test',
-    ...(hasBin ? ['run'] : []),
-    ...(isPrivate ? [] : ['nx-release-publish']),
+    "build",
+    "check",
+    "clippy",
+    "fmt",
+    "fmt-check",
+    "test",
+    ...(hasBin ? ["run"] : []),
+    ...(isPrivate ? [] : ["nx-release-publish"]),
   ];
   const overrides = inferTargetOverrides(pkg, inferredNames);
   const packageToolchain = packageLevelToolchain(pkg);
@@ -348,36 +314,35 @@ function inferProjectConfig(
   // default toolchain's version while running another channel would let
   // toolchain updates slip past the cache key (D-TC3).
   function cacheFor(name: string): { resolvedToolchain: string } {
-    const effective =
-      (overrides[name]?.toolchain as string | undefined) ?? packageToolchain;
+    const effective = (overrides[name]?.toolchain as string | undefined) ?? packageToolchain;
     return { resolvedToolchain: effective ?? baseToolchain };
   }
 
-  const targets: ProjectConfiguration['targets'] = {
-    build: buildTargetConfig(optsFor('build'), cacheFor('build'), buildOutputs),
-    check: checkTargetConfig(optsFor('check'), cacheFor('check')),
-    clippy: clippyTargetConfig(optsFor('clippy'), cacheFor('clippy')),
+  const targets: ProjectConfiguration["targets"] = {
+    build: buildTargetConfig(optsFor("build"), cacheFor("build"), buildOutputs),
+    check: checkTargetConfig(optsFor("check"), cacheFor("check")),
+    clippy: clippyTargetConfig(optsFor("clippy"), cacheFor("clippy")),
     // `lint` is an exact alias of `clippy` (D-T4) so ecosystem-wide
     // invocations like `nx run-many -t lint` include Rust crates alongside
     // JS projects. `clippy` stays the canonical name; its metadata table
     // drives both targets so the alias never diverges.
-    lint: clippyTargetConfig(optsFor('clippy'), cacheFor('clippy')),
+    lint: clippyTargetConfig(optsFor("clippy"), cacheFor("clippy")),
     // `fmt` rewrites files (uncached); `fmt-check` is the lint mode that
     // caches safely because its output is just an exit status.
-    fmt: fmtTargetConfig(optsFor('fmt')),
-    'fmt-check': fmtCheckTargetConfig(optsFor('fmt-check'), cacheFor('fmt-check')),
-    test: testTargetConfig(optsFor('test'), cacheFor('test')),
+    fmt: fmtTargetConfig(optsFor("fmt")),
+    "fmt-check": fmtCheckTargetConfig(optsFor("fmt-check"), cacheFor("fmt-check")),
+    test: testTargetConfig(optsFor("test"), cacheFor("test")),
   };
 
   if (hasBin) {
-    targets.run = runTargetConfig(optsFor('run'));
+    targets.run = runTargetConfig(optsFor("run"));
   }
 
   if (!isPrivate) {
-    targets['nx-release-publish'] = {
-      dependsOn: ['^nx-release-publish'],
-      executor: '@eddacraft/nxrust:release-publish',
-      options: optsFor('nx-release-publish'),
+    targets["nx-release-publish"] = {
+      dependsOn: ["^nx-release-publish"],
+      executor: "@eddacraft/nxrust:release-publish",
+      options: optsFor("nx-release-publish"),
     };
   }
 
@@ -386,7 +351,7 @@ function inferProjectConfig(
   return {
     root,
     name: pkg.name,
-    projectType: hasBin ? 'application' : 'library',
+    projectType: hasBin ? "application" : "library",
     sourceRoot: `${root}/src`,
     // Only attach `tags` when the crate actually declares them, so crates
     // without the metadata key keep emitting an untagged config and Nx's
@@ -406,11 +371,11 @@ function nxrustMetadata(pkg: CargoPackage): Record<string, unknown> | undefined 
   const metadata = pkg.metadata;
   // `typeof [] === 'object'`, so arrays must be excluded explicitly — a TOML
   // `metadata = [...]` or `nxrust = [...]` must not be treated as a table.
-  if (!metadata || typeof metadata !== 'object' || Array.isArray(metadata)) {
+  if (!metadata || typeof metadata !== "object" || Array.isArray(metadata)) {
     return undefined;
   }
   const nxrust = (metadata as Record<string, unknown>).nxrust;
-  if (!nxrust || typeof nxrust !== 'object' || Array.isArray(nxrust)) {
+  if (!nxrust || typeof nxrust !== "object" || Array.isArray(nxrust)) {
     return undefined;
   }
   return nxrust as Record<string, unknown>;
@@ -433,10 +398,10 @@ function nxrustMetadata(pkg: CargoPackage): Record<string, unknown> | undefined 
  */
 function inferTags(pkg: CargoPackage): string[] | undefined {
   const nxrust = nxrustMetadata(pkg);
-  if (!nxrust || !('tags' in nxrust)) return undefined;
+  if (!nxrust || !("tags" in nxrust)) return undefined;
 
   const tags = nxrust.tags;
-  if (!Array.isArray(tags) || tags.some((tag) => typeof tag !== 'string')) {
+  if (!Array.isArray(tags) || tags.some((tag) => typeof tag !== "string")) {
     logger.warn(
       `[nxrust] ${pkg.name}: ignoring \`package.metadata.nxrust.tags\` — ` +
         `expected an array of strings.`,
@@ -474,7 +439,7 @@ function inferTargetOverrides(
   const nxrust = nxrustMetadata(pkg);
   const targets = nxrust?.targets;
   if (targets === undefined) return {};
-  if (!targets || typeof targets !== 'object' || Array.isArray(targets)) {
+  if (!targets || typeof targets !== "object" || Array.isArray(targets)) {
     logger.warn(
       `[nxrust] ${pkg.name}: ignoring \`package.metadata.nxrust.targets\` — ` +
         `expected a table of per-target option tables.`,
@@ -484,7 +449,7 @@ function inferTargetOverrides(
 
   const out: Record<string, Record<string, unknown>> = {};
   for (const [name, value] of Object.entries(targets)) {
-    if (name === 'lint') {
+    if (name === "lint") {
       logger.warn(
         `[nxrust] ${pkg.name}: ignoring \`package.metadata.nxrust.targets.lint\` — ` +
           `\`lint\` mirrors \`clippy\`; customise \`targets.clippy\` instead.`,
@@ -498,7 +463,7 @@ function inferTargetOverrides(
       );
       continue;
     }
-    if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    if (!value || typeof value !== "object" || Array.isArray(value)) {
       logger.warn(
         `[nxrust] ${pkg.name}: ignoring \`package.metadata.nxrust.targets.${name}\` — ` +
           `expected a table of option defaults.`,
@@ -507,7 +472,7 @@ function inferTargetOverrides(
     }
 
     const table = { ...(value as Record<string, unknown>) };
-    if ('package' in table) {
+    if ("package" in table) {
       logger.warn(
         `[nxrust] ${pkg.name}: ignoring \`package\` in ` +
           `\`package.metadata.nxrust.targets.${name}\` — the cargo package ` +
@@ -515,7 +480,7 @@ function inferTargetOverrides(
       );
       delete table.package;
     }
-    if (name === 'fmt-check' && 'check' in table) {
+    if (name === "fmt-check" && "check" in table) {
       logger.warn(
         `[nxrust] ${pkg.name}: ignoring \`check\` in ` +
           `\`package.metadata.nxrust.targets.fmt-check\` — the target is ` +
@@ -523,7 +488,7 @@ function inferTargetOverrides(
       );
       delete table.check;
     }
-    if ('toolchain' in table && !validToolchainOverride(pkg, table.toolchain, `targets.${name}`)) {
+    if ("toolchain" in table && !validToolchainOverride(pkg, table.toolchain, `targets.${name}`)) {
       delete table.toolchain;
     }
     out[name] = table;
@@ -534,18 +499,14 @@ function inferTargetOverrides(
 /** `package.metadata.nxrust.toolchain` — D-TC2 step 4 — if present and valid. */
 function packageLevelToolchain(pkg: CargoPackage): string | undefined {
   const nxrust = nxrustMetadata(pkg);
-  if (!nxrust || !('toolchain' in nxrust)) return undefined;
-  return validToolchainOverride(pkg, nxrust.toolchain, 'toolchain')
+  if (!nxrust || !("toolchain" in nxrust)) return undefined;
+  return validToolchainOverride(pkg, nxrust.toolchain, "toolchain")
     ? (nxrust.toolchain as string)
     : undefined;
 }
 
-function validToolchainOverride(
-  pkg: CargoPackage,
-  value: unknown,
-  key: string,
-): value is string {
-  if (typeof value !== 'string') {
+function validToolchainOverride(pkg: CargoPackage, value: unknown, key: string): value is string {
+  if (typeof value !== "string") {
     logger.warn(
       `[nxrust] ${pkg.name}: ignoring \`package.metadata.nxrust.${key}\` ` +
         `toolchain — expected a string channel literal.`,
@@ -567,7 +528,7 @@ function validToolchainOverride(
 // Cargo target `kind` values that denote a library artefact (as opposed to
 // `bin`, `example`, `test`, `bench`, `custom-build`). Used to decide whether a
 // crate's library output can be expressed as a narrow per-rlib path.
-const LIBRARY_KINDS = ['lib', 'rlib', 'dylib', 'cdylib', 'staticlib', 'proc-macro'];
+const LIBRARY_KINDS = ["lib", "rlib", "dylib", "cdylib", "staticlib", "proc-macro"];
 
 function buildOutputsForPackage(pkg: CargoPackage): {
   binaries?: string[];
@@ -585,15 +546,15 @@ function buildOutputsForPackage(pkg: CargoPackage): {
   const unsupportedLibrary = pkg.targets.some(
     (target) =>
       target.kind.some((kind) => LIBRARY_KINDS.includes(kind)) &&
-      target.crate_types.some((crateType) => !['lib', 'rlib'].includes(crateType)),
+      target.crate_types.some((crateType) => !["lib", "rlib"].includes(crateType)),
   );
   if (unsupportedLibrary) return { narrowBuildOutputs: false };
 
   const binaries = pkg.targets
-    .filter((target) => target.kind.includes('bin'))
+    .filter((target) => target.kind.includes("bin"))
     .map((target) => target.name);
   const libraries = pkg.targets
-    .filter((target) => target.kind.includes('lib'))
+    .filter((target) => target.kind.includes("lib"))
     .map((target) => target.name);
 
   return { binaries, libraries };

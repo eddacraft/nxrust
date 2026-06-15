@@ -7,9 +7,9 @@ A synthetic `rust-workspace` project exposes Cargo's workspace-level
 commands as Nx targets — `cargo metadata`, workspace-wide `fmt-check`,
 `audit`, `deny`, `doc`, `clean`, lockfile management.
 
-| ID | Owner | Status |
-|----|-------|--------|
-| WS | eddacraft | Proposed |
+| ID  | Owner     | Status   |
+| --- | --------- | -------- |
+| WS  | eddacraft | Proposed |
 
 ## Purpose
 
@@ -39,17 +39,17 @@ has no source files of its own and lives at the workspace root.
 
 **Workspace-level targets (spec §6.12):**
 
-| Target | Command | Cache |
-|---|---|---|
-| `cargo-metadata` | `cargo metadata --format-version=1` | yes (lockfile-keyed) |
-| `fmt` | `cargo fmt` (mutating) | no |
-| `fmt-check` | `cargo fmt --check` | yes |
-| `audit` | `cargo audit` (workspace-wide) | yes-ish ([09-supply-chain](./09-supply-chain.aps.md)) |
-| `deny` | `cargo deny check` (workspace-wide) | yes |
-| `doc` | `cargo doc --workspace --no-deps` | yes |
-| `clean` | `cargo clean` (mutating) | no |
-| `update-lockfile` | `cargo update` (mutating) | no |
-| `generate-lockfile` | `cargo generate-lockfile` (mutating) | no |
+| Target              | Command                              | Cache                                                 |
+| ------------------- | ------------------------------------ | ----------------------------------------------------- |
+| `cargo-metadata`    | `cargo metadata --format-version=1`  | yes (lockfile-keyed)                                  |
+| `fmt`               | `cargo fmt` (mutating)               | no                                                    |
+| `fmt-check`         | `cargo fmt --check`                  | yes                                                   |
+| `audit`             | `cargo audit` (workspace-wide)       | yes-ish ([09-supply-chain](./09-supply-chain.aps.md)) |
+| `deny`              | `cargo deny check` (workspace-wide)  | yes                                                   |
+| `doc`               | `cargo doc --workspace --no-deps`    | yes                                                   |
+| `clean`             | `cargo clean` (mutating)             | no                                                    |
+| `update-lockfile`   | `cargo update` (mutating)            | no                                                    |
+| `generate-lockfile` | `cargo generate-lockfile` (mutating) | no                                                    |
 
 - Targets inherit cache rules from
   [04-cache-semantics](./04-cache-semantics.aps.md).
@@ -132,29 +132,29 @@ Promote individual Work Items to Ready when:
 
 ## Work Items
 
-*No work items yet — module is Proposed. Items promote individually on
-real-consumer asks per D-007.*
+_No work items yet — module is Proposed. Items promote individually on
+real-consumer asks per D-007._
 
 ## Risks & Mitigations
 
-| Risk | Impact | Likelihood | Mitigation |
-|------|--------|------------|------------|
-| Synthetic project name collides with an existing Nx project | high | low | Plugin option to rename; reject collisions with a diagnostic |
-| Consumer expects `cargo audit` per-crate, gets workspace-wide only | medium | medium | Default workspace; per-crate via `09-supply-chain`'s `audit` target. Document the distinction |
-| Workspace-level `fmt-check` slow on huge workspaces | medium | medium | `cargo fmt --check` is fast even on large trees; if it isn't, parallelise per-crate via Nx affected |
-| `update-lockfile` mutating in CI surprises the consumer | high | low | Mutating targets never in `affected` output; explicit invocation only; documented |
-| The synthetic project breaks consumers who use `nx graph --focus` and don't expect it | low | medium | `emitWorkspaceProject: false` opt-out; documented in README |
+| Risk                                                                                  | Impact | Likelihood | Mitigation                                                                                          |
+| ------------------------------------------------------------------------------------- | ------ | ---------- | --------------------------------------------------------------------------------------------------- |
+| Synthetic project name collides with an existing Nx project                           | high   | low        | Plugin option to rename; reject collisions with a diagnostic                                        |
+| Consumer expects `cargo audit` per-crate, gets workspace-wide only                    | medium | medium     | Default workspace; per-crate via `09-supply-chain`'s `audit` target. Document the distinction       |
+| Workspace-level `fmt-check` slow on huge workspaces                                   | medium | medium     | `cargo fmt --check` is fast even on large trees; if it isn't, parallelise per-crate via Nx affected |
+| `update-lockfile` mutating in CI surprises the consumer                               | high   | low        | Mutating targets never in `affected` output; explicit invocation only; documented                   |
+| The synthetic project breaks consumers who use `nx graph --focus` and don't expect it | low    | medium     | `emitWorkspaceProject: false` opt-out; documented in README                                         |
 
 ## Decisions
 
 - **D-WS1:** Synthetic project is opt-out (default-emit). Renamed
   via plugin option, suppressed via `emitWorkspaceProject: false`.
-  *Accepted (inherits spec §6.12).*
+  _Accepted (inherits spec §6.12)._
 - **D-WS2:** Default name is `rust-workspace`. Renaming the default is a
-  major bump. *Accepted.*
+  major bump. _Accepted._
 - **D-WS3:** Mutating targets (`fmt`, `clean`, `update-lockfile`,
   `generate-lockfile`) are never cacheable and never in `affected`.
-  *Accepted.*
+  _Accepted._
 
 ## Open Questions
 

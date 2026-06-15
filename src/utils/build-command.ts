@@ -1,26 +1,26 @@
-import type { ExecutorContext } from '@nx/devkit';
-import type { BaseCargoOptions } from '../models/base-options';
+import type { ExecutorContext } from "@nx/devkit";
+import type { BaseCargoOptions } from "../models/base-options";
 
-const SKIP_KEYS = new Set<string>(['toolchain', 'args', 'package']);
+const SKIP_KEYS = new Set<string>(["toolchain", "args", "package"]);
 
 /**
  * Keys from `BaseCargoOptions` that every cargo-wrapping executor accepts.
  * Always allowed alongside any subcommand-specific allowlist a caller passes.
  */
 export const BASE_CARGO_KEYS: ReadonlySet<string> = new Set([
-  'toolchain',
-  'target',
-  'profile',
-  'release',
-  'target-dir',
-  'features',
-  'all-features',
-  'no-default-features',
-  'locked',
-  'frozen',
-  'offline',
-  'package',
-  'args',
+  "toolchain",
+  "target",
+  "profile",
+  "release",
+  "target-dir",
+  "features",
+  "all-features",
+  "no-default-features",
+  "locked",
+  "frozen",
+  "offline",
+  "package",
+  "args",
 ]);
 
 /**
@@ -29,8 +29,8 @@ export const BASE_CARGO_KEYS: ReadonlySet<string> = new Set([
  * kebab-case flags. This is idempotent for keys that are already kebab-cased.
  */
 function toKebabFlag(key: string): string {
-  if (key.includes('-')) return key;
-  return key.replace(/([A-Z])/g, '-$1').toLowerCase();
+  if (key.includes("-")) return key;
+  return key.replace(/([A-Z])/g, "-$1").toLowerCase();
 }
 
 /**
@@ -56,7 +56,7 @@ function toKebabFlag(key: string): string {
 export function buildCargoArgs<T extends BaseCargoOptions>(
   subcommand: string,
   options: T,
-  context: Pick<ExecutorContext, 'projectName'>,
+  context: Pick<ExecutorContext, "projectName">,
   allowedKeys: ReadonlySet<string> = new Set(),
 ): string[] {
   // The iterator below uses Object.entries, which at runtime sees every own
@@ -64,7 +64,7 @@ export function buildCargoArgs<T extends BaseCargoOptions>(
   const opts = options as unknown as Record<string, unknown>;
   const out: string[] = [];
 
-  if (options.toolchain && options.toolchain !== 'stable') {
+  if (options.toolchain && options.toolchain !== "stable") {
     out.push(`+${options.toolchain}`);
   }
 
@@ -72,24 +72,24 @@ export function buildCargoArgs<T extends BaseCargoOptions>(
 
   // `release` is a bool, but `profile` is a string — profile wins and we drop
   // the --release flag entirely so cargo doesn't complain about conflicts.
-  const hasProfile = typeof options.profile === 'string' && options.profile.length > 0;
+  const hasProfile = typeof options.profile === "string" && options.profile.length > 0;
 
   for (const [rawKey, rawValue] of Object.entries(opts)) {
     if (SKIP_KEYS.has(rawKey)) continue;
     if (!BASE_CARGO_KEYS.has(rawKey) && !allowedKeys.has(rawKey)) continue;
     if (rawValue === undefined || rawValue === null) continue;
-    if (rawKey === 'release' && hasProfile) continue;
+    if (rawKey === "release" && hasProfile) continue;
 
     const flag = `--${toKebabFlag(rawKey)}`;
 
-    if (typeof rawValue === 'boolean') {
+    if (typeof rawValue === "boolean") {
       if (rawValue) out.push(flag);
     } else if (Array.isArray(rawValue)) {
-      if (rawKey === 'features') {
+      if (rawKey === "features") {
         const joined = rawValue
-          .filter((v) => v !== undefined && v !== null && v !== '')
+          .filter((v) => v !== undefined && v !== null && v !== "")
           .map((v) => String(v))
-          .join(',');
+          .join(",");
         if (joined) out.push(flag, joined);
       } else {
         for (const item of rawValue) {
@@ -104,12 +104,12 @@ export function buildCargoArgs<T extends BaseCargoOptions>(
 
   // Scope to the Nx project's cargo package unless the caller already set one.
   const pkg = options.package ?? context.projectName;
-  if (pkg && !out.includes('--package') && !out.includes('-p')) {
-    out.push('-p', pkg);
+  if (pkg && !out.includes("--package") && !out.includes("-p")) {
+    out.push("-p", pkg);
   }
 
   if (options.args !== undefined) {
-    out.push('--');
+    out.push("--");
     if (Array.isArray(options.args)) {
       for (const a of options.args) out.push(String(a));
     } else {

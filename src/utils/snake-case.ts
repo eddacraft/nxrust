@@ -5,9 +5,9 @@
  */
 export function toSnakeCase(input: string): string {
   return input
-    .replace(/[^a-zA-Z0-9]+/g, '_')
-    .replace(/([a-z0-9])([A-Z])/g, '$1_$2')
-    .replace(/([A-Z])([A-Z][a-z])/g, '$1_$2')
-    .replace(/^_+|_+$/g, '')
+    .replace(/[^a-zA-Z0-9]+/g, "_")
+    .replace(/([a-z0-9])([A-Z])/g, "$1_$2")
+    .replace(/([A-Z])([A-Z][a-z])/g, "$1_$2")
+    .replace(/^_+|_+$/g, "")
     .toLowerCase();
 }

@@ -6,8 +6,8 @@
 First-class feature/profile/target controls across executors, plus
 inferred Nx configurations that capture the common feature combinations.
 
-| ID | Owner | Status |
-|----|-------|--------|
+| ID       | Owner     | Status   |
+| -------- | --------- | -------- |
 | FEATURES | eddacraft | Proposed |
 
 ## Purpose
@@ -29,16 +29,16 @@ adds the inferred configurations to every inferred target.
 
 **Option surface (spec §6.5):**
 
-| Option | Behaviour |
-|---|---|
-| `features` | `--features` (string or string array). v0.1 ✅ |
-| `allFeatures` | `--all-features`. v0.1 ✅ |
-| `noDefaultFeatures` | `--no-default-features`. v0.1 partial — extend & document |
-| `defaultFeatures` | Explicit boolean convenience (mutually exclusive with `noDefaultFeatures`). New. |
-| `profile` | `--profile`. v0.1 ✅ |
-| `release` | `--release`. v0.1 ✅ |
-| `target` | `--target`. v0.1 ✅ |
-| `toolchain` | `cargo +<toolchain>`. v0.1 ✅ |
+| Option              | Behaviour                                                                        |
+| ------------------- | -------------------------------------------------------------------------------- |
+| `features`          | `--features` (string or string array). v0.1 ✅                                   |
+| `allFeatures`       | `--all-features`. v0.1 ✅                                                        |
+| `noDefaultFeatures` | `--no-default-features`. v0.1 partial — extend & document                        |
+| `defaultFeatures`   | Explicit boolean convenience (mutually exclusive with `noDefaultFeatures`). New. |
+| `profile`           | `--profile`. v0.1 ✅                                                             |
+| `release`           | `--release`. v0.1 ✅                                                             |
+| `target`            | `--target`. v0.1 ✅                                                              |
+| `toolchain`         | `cargo +<toolchain>`. v0.1 ✅                                                    |
 
 - The schema for these lives in `src/models/base-options.ts` (already
   exists for most). Schema additions follow the v0.1.1 allowlist pattern
@@ -69,6 +69,7 @@ adds the inferred configurations to every inferred target.
 - Parsed by
   [02-workspace-inference-and-graph](./02-workspace-inference-and-graph.aps.md).
 - Examples that should round-trip cleanly:
+
   ```toml
   [package.metadata.nxrust.targets.test]
   all-features = true
@@ -142,28 +143,28 @@ Promote individual Work Items to Ready when:
 
 ## Work Items
 
-*No work items yet — module is Proposed. Items promote individually on
-real-consumer asks per D-007.*
+_No work items yet — module is Proposed. Items promote individually on
+real-consumer asks per D-007._
 
 ## Risks & Mitigations
 
-| Risk | Impact | Likelihood | Mitigation |
-|------|--------|------------|------------|
-| Inferred configurations collide with consumer-defined ones in `project.json` | medium | medium | Consumer-explicit wins; surface the merge via `nx show project` if feasible |
-| `noDefaultFeatures` + `defaultFeatures` simultaneous true silently picks one | medium | low | Reject at schema/validate time with a [14-diagnostics](./14-diagnostics.aps.md) message |
-| Feature-set changes don't bust cache (because not in cache key) | high | low | Verified in [04-cache-semantics](./04-cache-semantics.aps.md) fixture matrix |
-| Per-crate metadata overrides become a second source of truth | medium | medium | Document precedence (consumer `project.json` > `package.metadata.nxrust` > inferred defaults) |
+| Risk                                                                         | Impact | Likelihood | Mitigation                                                                                    |
+| ---------------------------------------------------------------------------- | ------ | ---------- | --------------------------------------------------------------------------------------------- |
+| Inferred configurations collide with consumer-defined ones in `project.json` | medium | medium     | Consumer-explicit wins; surface the merge via `nx show project` if feasible                   |
+| `noDefaultFeatures` + `defaultFeatures` simultaneous true silently picks one | medium | low        | Reject at schema/validate time with a [14-diagnostics](./14-diagnostics.aps.md) message       |
+| Feature-set changes don't bust cache (because not in cache key)              | high   | low        | Verified in [04-cache-semantics](./04-cache-semantics.aps.md) fixture matrix                  |
+| Per-crate metadata overrides become a second source of truth                 | medium | medium     | Document precedence (consumer `project.json` > `package.metadata.nxrust` > inferred defaults) |
 
 ## Decisions
 
 - **D-F1:** Inferred configurations are `default`, `all-features`,
   `no-default-features`, `release` — fixed names for stability. Others
   must come from consumer `project.json` or `package.metadata.nxrust`.
-  *Accepted (inherits spec §6.5).*
+  _Accepted (inherits spec §6.5)._
 - **D-F2:** `noDefaultFeatures` and `defaultFeatures` are mutually
-  exclusive at schema validation time. *Accepted.*
+  exclusive at schema validation time. _Accepted._
 - **D-F3:** Configuration name stability is part of the v1.0 contract.
-  Renames are major bumps. *Accepted.*
+  Renames are major bumps. _Accepted._
 
 ## Open Questions
 

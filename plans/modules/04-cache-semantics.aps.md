@@ -6,8 +6,8 @@
 Cache-correctness for Rust tasks: named inputs, environment hashing, and
 conservative output narrowing.
 
-| ID | Owner | Status |
-|----|-------|--------|
+| ID    | Owner     | Status   |
+| ----- | --------- | -------- |
 | CACHE | eddacraft | Complete |
 
 ## Purpose
@@ -60,16 +60,16 @@ caching is added in later modules.
 
 **Per-target output rules (spec §6.4 table):**
 
-| Target | Default `outputs` |
-|---|---|
-| `check` | `[]` (result-cached only) |
-| `clippy` / `lint` | `[]` (or `clippy.json` if requested) |
-| `fmt-check` | `[]` |
-| `test` | `[]` (per v0.2.0 fix); test reports cached when configured |
-| `build` | `{workspaceRoot}/target/{profile}/<binary>` only when safe — narrow, not whole `target/` |
-| `doc` | `{workspaceRoot}/target/doc` |
-| `run` | not cached |
-| `release-publish` | not cached |
+| Target            | Default `outputs`                                                                        |
+| ----------------- | ---------------------------------------------------------------------------------------- |
+| `check`           | `[]` (result-cached only)                                                                |
+| `clippy` / `lint` | `[]` (or `clippy.json` if requested)                                                     |
+| `fmt-check`       | `[]`                                                                                     |
+| `test`            | `[]` (per v0.2.0 fix); test reports cached when configured                               |
+| `build`           | `{workspaceRoot}/target/{profile}/<binary>` only when safe — narrow, not whole `target/` |
+| `doc`             | `{workspaceRoot}/target/doc`                                                             |
+| `run`             | not cached                                                                               |
+| `release-publish` | not cached                                                                               |
 
 **CI fixture matrix (spec §8.1):**
 
@@ -187,55 +187,55 @@ any regression. Wired into CI as a parallel `cache-matrix` job and the
 `pnpm cache-matrix` script. All path-dependencies keep the matrix hermetic
 (no registry/network access). Satisfies spec §8.1 "add CI fixture matrix".
 
-*Further items promote individually on real-consumer asks per D-007.*
+_Further items promote individually on real-consumer asks per D-007._
 
 ## Risks & Mitigations
 
-| Risk | Impact | Likelihood | Mitigation |
-|------|--------|------------|------------|
-| Env-var allowlist misses a build-affecting variable | high | medium | Document the allowlist; provide a plugin option for additions; CI matrix exercises common toolchains |
-| `build` target outputs cache binaries that embed absolute paths | high | medium | Document the safe-output narrowing rule; default outputs to per-binary paths, not whole `target/` |
-| Named-input registration in `nx.json` collides with consumer's existing inputs | low | medium | `init` generator merges instead of overwriting; document the contract; warn on conflict |
-| CI fixture matrix becomes slow | medium | medium | Parallelise; cache the CI-job-level pnpm install; matrix is small (≤ 6 shapes) by design |
-| Cache-key gaps cause silent miscompiles in mixed-toolchain consumer | high | low | Toolchain hashing in [06-toolchain-awareness](./06-toolchain-awareness.aps.md) is a hard prereq for any `target/`-aware cache expansion |
+| Risk                                                                           | Impact | Likelihood | Mitigation                                                                                                                              |
+| ------------------------------------------------------------------------------ | ------ | ---------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| Env-var allowlist misses a build-affecting variable                            | high   | medium     | Document the allowlist; provide a plugin option for additions; CI matrix exercises common toolchains                                    |
+| `build` target outputs cache binaries that embed absolute paths                | high   | medium     | Document the safe-output narrowing rule; default outputs to per-binary paths, not whole `target/`                                       |
+| Named-input registration in `nx.json` collides with consumer's existing inputs | low    | medium     | `init` generator merges instead of overwriting; document the contract; warn on conflict                                                 |
+| CI fixture matrix becomes slow                                                 | medium | medium     | Parallelise; cache the CI-job-level pnpm install; matrix is small (≤ 6 shapes) by design                                                |
+| Cache-key gaps cause silent miscompiles in mixed-toolchain consumer            | high   | low        | Toolchain hashing in [06-toolchain-awareness](./06-toolchain-awareness.aps.md) is a hard prereq for any `target/`-aware cache expansion |
 
 ## Decisions
 
 - **D-C1:** Named inputs `rustSources` and `rustWorkspace` are the
-  canonical input contract for Rust tasks. *Accepted (inherits spec
-  §6.4).*
+  canonical input contract for Rust tasks. _Accepted (inherits spec
+  §6.4)._
 - **D-C2:** Env-var allowlist is the only env participating in cache
   keys; non-allowlisted env is ignored. Allowlist is extensible via
-  plugin option. *Accepted.*
+  plugin option. _Accepted._
 - **D-C3:** Conservative outputs by default. Per-target opt-in to wider
-  `target/` caching, never opt-out from narrow. *Accepted.*
+  `target/` caching, never opt-out from narrow. _Accepted._
 - **D-C4:** Cache-rule changes bump the minor version. Inherits D-008.
-  *Accepted.*
+  _Accepted._
 - **D-C5:** `init` registering the `rustSources`/`rustWorkspace` named
   inputs in `nx.json` is a hard prerequisite for the inferred graph:
   targets reference those names, so a workspace that adds the plugin
   without running `init` fails graph load with `"rustSources" is an
-  invalid fileset`. The e2e smoke fixture therefore runs `init` before
-  the graph is computed, mirroring `nx add`. *Accepted (discovered via
-  PR #15 smoke failure).* Open follow-up: consider making inference
+invalid fileset`. The e2e smoke fixture therefore runs `init` before
+  the graph is computed, mirroring `nx add`. _Accepted (discovered via
+  PR #15 smoke failure)._ Open follow-up: consider making inference
   self-sufficient (project-level `namedInputs`) so the plugin degrades
   gracefully pre-`init` — deferred, not in CACHE-001 scope.
 - **D-C6:** `build` outputs are narrowed to per-binary/per-rlib paths by
   default (`narrowBuildOutputs: true`), not the whole `{workspaceRoot}/
-  target` tree — answering the build-output open question in favour of the
+target` tree — answering the build-output open question in favour of the
   conservative default (consistent with D-C3). The wide-output escape hatch
   is auto-selected for cases narrow paths cannot safely express (custom
   target-dir, custom target triple, crate types beyond `lib`/`rlib`/`bin`)
-  and is also reachable via `narrowBuildOutputs: false`. *Accepted
-  (CACHE-002).*
+  and is also reachable via `narrowBuildOutputs: false`. _Accepted
+  (CACHE-002)._
 
 ## Open Questions
 
 - [ ] Should `clippy` cache its JSON report by default, or only when the
       consumer asks via plugin option? Reports are small but introduce a
       filesystem artefact for what was previously a result-only target.
-      *Deferred — promote on a real consumer ask per D-007; not blocking
-      module completion.*
+      _Deferred — promote on a real consumer ask per D-007; not blocking
+      module completion._
 - [x] Should `target/{profile}/<binary>` outputs be enabled by default
       for the `build` target, or stay opt-in? **Resolved (CACHE-002, D-C6):
       narrow by default, with an auto/opt-in wide-output escape hatch.**

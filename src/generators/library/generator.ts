@@ -1,8 +1,8 @@
-import type { Tree } from '@nx/devkit';
-import crateGenerator from '../crate/generator';
-import type { CrateGeneratorSchema } from '../crate/schema';
+import type { Tree } from "@nx/devkit";
+import crateGenerator from "../crate/generator";
+import type { CrateGeneratorSchema } from "../crate/schema";
 
-export type LibraryGeneratorSchema = Omit<CrateGeneratorSchema, 'bin'>;
+export type LibraryGeneratorSchema = Omit<CrateGeneratorSchema, "bin">;
 
 /** Alias for `@eddacraft/nxrust:crate` (library is the default). */
 export default async function libraryGenerator(

@@ -3,22 +3,20 @@
   "version": "0.3.0",
   "description": "Nx plugin that wraps Cargo — executors, generators, and project-graph integration for Rust workspaces inside Nx monorepos.",
   "keywords": [
+    "cargo",
+    "monorepo",
     "nx",
     "nx-plugin",
     "rust",
-    "cargo",
-    "monorepo",
     "workspace"
   ],
   "homepage": "https://github.com/eddacraft/nxrust",
+  "license": "Apache-2.0",
+  "author": "eddacraft",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/eddacraft/nxrust.git"
   },
-  "license": "Apache-2.0",
-  "author": "eddacraft",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
   "files": [
     "dist/**/*.js",
     "dist/**/*.d.ts",
@@ -30,8 +28,11 @@
     "README.md",
     "CHANGELOG.md"
   ],
-  "executors": "./executors.json",
-  "generators": "./generators.json",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "build": "tsc -p tsconfig.json && node ./tools/copy-assets.mjs",
     "clean": "rm -rf dist",
@@ -47,9 +48,6 @@
     "@ltd/j-toml": "^1.38.0",
     "chalk": "^4.1.2"
   },
-  "peerDependencies": {
-    "@nx/devkit": "^22.6.5"
-  },
   "devDependencies": {
     "@nx/devkit": "^22.7.5",
     "@types/node": "^22.10.0",
@@ -57,10 +55,12 @@
     "typescript": "^5.6.0",
     "vitest": "^3.2.6"
   },
-  "publishConfig": {
-    "access": "public"
+  "peerDependencies": {
+    "@nx/devkit": "^22.6.5"
   },
   "engines": {
     "node": ">=20.0.0"
-  }
+  },
+  "executors": "./executors.json",
+  "generators": "./generators.json"
 }

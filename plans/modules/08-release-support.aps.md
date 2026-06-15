@@ -6,8 +6,8 @@
 Cargo-aware Nx release: version bump, internal dependency updates,
 dry-run, package validation, registries, and fixed/independent modes.
 
-| ID | Owner | Status |
-|----|-------|--------|
+| ID      | Owner     | Status   |
+| ------- | --------- | -------- |
 | RELEASE | eddacraft | Proposed |
 
 ## Purpose
@@ -138,31 +138,31 @@ Promote individual Work Items to Ready when:
 
 ## Work Items
 
-*No work items yet — module is Proposed. Items promote individually on
-real-consumer asks per D-007.*
+_No work items yet — module is Proposed. Items promote individually on
+real-consumer asks per D-007._
 
 ## Risks & Mitigations
 
-| Risk | Impact | Likelihood | Mitigation |
-|------|--------|------------|------------|
-| Partial publish leaves the workspace in an inconsistent versions state | high | medium | Topological publish; clear "resume from crate X" diagnostic on failure ([14-diagnostics](./14-diagnostics.aps.md)) |
-| Internal-dep cascade misses a `path = "..."` dep without an explicit `version = "..."` | medium | medium | Detect `path = "..."` deps without `version =` and warn at version-bump time; document the require-version convention |
-| `cargo publish --dry-run` still hits the network in some versions | medium | low | Verify per supported Cargo version; document the verification result; keep `nx release publish --dry-run` as a soft barrier with explicit consent for the cargo call |
-| Mixed JS+Rust release-group ordering surprises consumers | medium | medium | Make ordering explicit in Nx release output; document the rule (JS first or Rust first based on dep direction) |
-| `package.metadata.nxrust.publish = false` collides with `cargo publish = false` already in `[package]` | low | low | Honour both; document precedence (cargo's takes priority — it's the Cargo contract) |
+| Risk                                                                                                   | Impact | Likelihood | Mitigation                                                                                                                                                           |
+| ------------------------------------------------------------------------------------------------------ | ------ | ---------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Partial publish leaves the workspace in an inconsistent versions state                                 | high   | medium     | Topological publish; clear "resume from crate X" diagnostic on failure ([14-diagnostics](./14-diagnostics.aps.md))                                                   |
+| Internal-dep cascade misses a `path = "..."` dep without an explicit `version = "..."`                 | medium | medium     | Detect `path = "..."` deps without `version =` and warn at version-bump time; document the require-version convention                                                |
+| `cargo publish --dry-run` still hits the network in some versions                                      | medium | low        | Verify per supported Cargo version; document the verification result; keep `nx release publish --dry-run` as a soft barrier with explicit consent for the cargo call |
+| Mixed JS+Rust release-group ordering surprises consumers                                               | medium | medium     | Make ordering explicit in Nx release output; document the rule (JS first or Rust first based on dep direction)                                                       |
+| `package.metadata.nxrust.publish = false` collides with `cargo publish = false` already in `[package]` | low    | low        | Honour both; document precedence (cargo's takes priority — it's the Cargo contract)                                                                                  |
 
 ## Decisions
 
 - **D-R1:** Internal-dep cascade is order-correct via the graph from
   [02-workspace-inference-and-graph](./02-workspace-inference-and-graph.aps.md).
-  *Accepted.*
+  _Accepted._
 - **D-R2:** Fixed and independent release modes are both supported.
-  Mode is per release-group, not workspace-wide. *Accepted (inherits spec
-  §6.8).*
+  Mode is per release-group, not workspace-wide. _Accepted (inherits spec
+  §6.8)._
 - **D-R3:** `release-publish` stays unvalidated against a real token
   until a real consumer publishes. Promotion of any work item in this
-  module implies validating against that consumer. *Accepted (inherits
-  index open question 2).*
+  module implies validating against that consumer. _Accepted (inherits
+  index open question 2)._
 
 ## Open Questions
 

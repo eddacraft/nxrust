@@ -1,7 +1,7 @@
 # JavaScript / Rust Test Seams
 
-*A recipe for mixed-stack Nx workspaces where JS/TS projects reference
-sibling Rust crates.*
+_A recipe for mixed-stack Nx workspaces where JS/TS projects reference
+sibling Rust crates._
 
 > **Canonical reference.** This document is the authoritative source on
 > the cross-language `^build` failure mode and its remediation.
@@ -46,7 +46,7 @@ Three components combine to produce the failure:
 1. **The cross-language edge.** `@nx/js`'s automatic dependency
    detection follows the napi-rs / WASM crate reference in the JS
    `package.json` and emits a graph edge from the JS project to the
-   Rust crate. The edge is real and correct — the JS package *does*
+   Rust crate. The edge is real and correct — the JS package _does_
    depend on the Rust artefact at runtime.
 
 2. **The `^build` test default.** Workspaces with
@@ -77,7 +77,7 @@ fighting the other.
 {
   "scripts": {
     "test": "pnpm test:js && pnpm test:rust",
-    "test:js":   "nx run-many -t test --projects=tag:npm:public,tag:npm:private",
+    "test:js": "nx run-many -t test --projects=tag:npm:public,tag:npm:private",
     "test:rust": "nx run-many -t test --projects=tag:cargo"
   }
 }
@@ -161,7 +161,7 @@ cases:
 
 In every other common case — NAPI `.node` files loaded at `require`
 time, CLI binaries invoked at runtime, HTTP services consumed over the
-network — the JS build does *not* need the Rust artefact, and `^build`
+network — the JS build does _not_ need the Rust artefact, and `^build`
 is the wrong contract.
 
 ## The nxrust position

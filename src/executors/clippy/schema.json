@@ -12,10 +12,7 @@
     "release": { "type": "boolean", "default": false },
     "target-dir": { "type": "string" },
     "features": {
-      "oneOf": [
-        { "type": "string" },
-        { "type": "array", "items": { "type": "string" } }
-      ]
+      "oneOf": [{ "type": "string" }, { "type": "array", "items": { "type": "string" } }]
     },
     "all-features": { "type": "boolean", "default": false },
     "no-default-features": { "type": "boolean", "default": false },
@@ -30,10 +27,7 @@
       "description": "Apply clippy suggestions automatically (implies --allow-dirty)."
     },
     "args": {
-      "oneOf": [
-        { "type": "string" },
-        { "type": "array", "items": { "type": "string" } }
-      ],
+      "oneOf": [{ "type": "string" }, { "type": "array", "items": { "type": "string" } }],
       "description": "Raw passthrough — use to supply clippy lint flags (e.g. ['-D', 'warnings'])."
     }
   },

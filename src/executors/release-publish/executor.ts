@@ -1,5 +1,5 @@
-import { logger, type ExecutorContext } from '@nx/devkit';
-import { cargoCommand } from '../../utils/cargo';
+import { logger, type ExecutorContext } from "@nx/devkit";
+import { cargoCommand } from "../../utils/cargo";
 
 export interface ReleasePublishExecutorSchema {
   toolchain?: string;
@@ -23,26 +23,26 @@ export default async function releasePublishExecutor(
 ): Promise<{ success: boolean }> {
   const argv: string[] = [];
 
-  if (options.toolchain && options.toolchain !== 'stable') {
+  if (options.toolchain && options.toolchain !== "stable") {
     argv.push(`+${options.toolchain}`);
   }
 
-  argv.push('publish');
+  argv.push("publish");
 
   const pkg = options.package ?? context.projectName;
-  if (pkg) argv.push('-p', pkg);
+  if (pkg) argv.push("-p", pkg);
 
-  if (options.registry) argv.push('--registry', options.registry);
+  if (options.registry) argv.push("--registry", options.registry);
   if (options.token) {
     logger.warn(
-      'release-publish: using inline `token` option leaks the secret into process listings; ' +
-        'prefer the CARGO_REGISTRY_TOKEN environment variable.',
+      "release-publish: using inline `token` option leaks the secret into process listings; " +
+        "prefer the CARGO_REGISTRY_TOKEN environment variable.",
     );
-    argv.push('--token', options.token);
+    argv.push("--token", options.token);
   }
-  if (options.allowDirty) argv.push('--allow-dirty');
-  if (options.dryRun) argv.push('--dry-run');
-  if (options.noVerify) argv.push('--no-verify');
+  if (options.allowDirty) argv.push("--allow-dirty");
+  if (options.dryRun) argv.push("--dry-run");
+  if (options.noVerify) argv.push("--no-verify");
 
   if (options.args !== undefined) {
     if (Array.isArray(options.args)) {

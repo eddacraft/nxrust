@@ -1,8 +1,8 @@
-import type { Tree } from '@nx/devkit';
-import crateGenerator from '../crate/generator';
-import type { CrateGeneratorSchema } from '../crate/schema';
+import type { Tree } from "@nx/devkit";
+import crateGenerator from "../crate/generator";
+import type { CrateGeneratorSchema } from "../crate/schema";
 
-export type BinaryGeneratorSchema = Omit<CrateGeneratorSchema, 'bin'>;
+export type BinaryGeneratorSchema = Omit<CrateGeneratorSchema, "bin">;
 
 /**
  * Alias for `@eddacraft/nxrust:crate --bin`. Kept as a distinct generator so it shows up

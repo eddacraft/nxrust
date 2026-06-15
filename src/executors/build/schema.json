@@ -29,10 +29,7 @@
       "description": "Override `target/` directory."
     },
     "features": {
-      "oneOf": [
-        { "type": "string" },
-        { "type": "array", "items": { "type": "string" } }
-      ],
+      "oneOf": [{ "type": "string" }, { "type": "array", "items": { "type": "string" } }],
       "description": "Feature flags."
     },
     "all-features": {
@@ -52,25 +49,16 @@
     },
     "lib": { "type": "boolean", "default": false, "description": "Build the package's library." },
     "bin": {
-      "oneOf": [
-        { "type": "string" },
-        { "type": "array", "items": { "type": "string" } }
-      ]
+      "oneOf": [{ "type": "string" }, { "type": "array", "items": { "type": "string" } }]
     },
     "bins": { "type": "boolean", "default": false },
     "example": {
-      "oneOf": [
-        { "type": "string" },
-        { "type": "array", "items": { "type": "string" } }
-      ]
+      "oneOf": [{ "type": "string" }, { "type": "array", "items": { "type": "string" } }]
     },
     "examples": { "type": "boolean", "default": false },
     "all-targets": { "type": "boolean", "default": false },
     "args": {
-      "oneOf": [
-        { "type": "string" },
-        { "type": "array", "items": { "type": "string" } }
-      ],
+      "oneOf": [{ "type": "string" }, { "type": "array", "items": { "type": "string" } }],
       "description": "Raw passthrough args (appear after --)."
     }
   },

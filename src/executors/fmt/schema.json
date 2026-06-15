@@ -19,10 +19,7 @@
       "description": "Format every workspace member (overrides the per-project package filter)."
     },
     "args": {
-      "oneOf": [
-        { "type": "string" },
-        { "type": "array", "items": { "type": "string" } }
-      ],
+      "oneOf": [{ "type": "string" }, { "type": "array", "items": { "type": "string" } }],
       "description": "Raw passthrough to `rustfmt` (use to supply --edition, --config, etc.)."
     }
   },

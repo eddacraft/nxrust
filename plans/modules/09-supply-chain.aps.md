@@ -6,8 +6,8 @@
 Security and governance targets: `audit`, `deny`, `outdated`, `vet`,
 `sbom`, `licenses`.
 
-| ID | Owner | Status |
-|----|-------|--------|
+| ID     | Owner     | Status   |
+| ------ | --------- | -------- |
 | SUPPLY | eddacraft | Proposed |
 
 ## Purpose
@@ -81,7 +81,7 @@ cargo-audit`" diagnostic, never a raw shell error.
 ### Depends On
 
 - `cargo audit`, `cargo deny`, `cargo outdated`, `cargo vet`, `cargo
-  auditable` / `cargo cyclonedx` as installable binaries. Public Cargo
+auditable` / `cargo cyclonedx` as installable binaries. Public Cargo
   ecosystem contract.
 - [03-target-inference](./03-target-inference.aps.md) — these targets are
   inferred per crate.
@@ -123,30 +123,30 @@ Promote individual Work Items to Ready when:
 
 ## Work Items
 
-*No work items yet — module is Proposed. Items promote individually on
-real-consumer asks per D-007.*
+_No work items yet — module is Proposed. Items promote individually on
+real-consumer asks per D-007._
 
 ## Risks & Mitigations
 
-| Risk | Impact | Likelihood | Mitigation |
-|------|--------|------------|------------|
-| `cargo audit` advisory DB changes upstream and stale-caches a vulnerability | high | medium | DB version participates in cache key; CI invalidates daily via a scheduled job in the consumer's workflow |
-| `cargo outdated` cache stales out within a release cycle | medium | high | Cache TTL on `outdated` (e.g. 24h) or document as cache-miss-on-network-change |
-| Tool-version drift between local and CI yields different reports | medium | medium | Tool version in cache key; document the version pin convention (`cargo install --locked` for CI) |
-| `cargo vet` setup cost is non-trivial for new adopters | medium | medium | Document the `cargo vet init` flow; do not auto-init on the consumer's behalf |
-| `sbom` tool surface is too pluggable to test | medium | low | Test one default tool (`cargo auditable`); other tools work but are user-validated |
-| `cargo install --install-missing` runs in CI surprises | high | low | `--install-missing` is never the default; document and require explicit flag |
+| Risk                                                                        | Impact | Likelihood | Mitigation                                                                                                |
+| --------------------------------------------------------------------------- | ------ | ---------- | --------------------------------------------------------------------------------------------------------- |
+| `cargo audit` advisory DB changes upstream and stale-caches a vulnerability | high   | medium     | DB version participates in cache key; CI invalidates daily via a scheduled job in the consumer's workflow |
+| `cargo outdated` cache stales out within a release cycle                    | medium | high       | Cache TTL on `outdated` (e.g. 24h) or document as cache-miss-on-network-change                            |
+| Tool-version drift between local and CI yields different reports            | medium | medium     | Tool version in cache key; document the version pin convention (`cargo install --locked` for CI)          |
+| `cargo vet` setup cost is non-trivial for new adopters                      | medium | medium     | Document the `cargo vet init` flow; do not auto-init on the consumer's behalf                             |
+| `sbom` tool surface is too pluggable to test                                | medium | low        | Test one default tool (`cargo auditable`); other tools work but are user-validated                        |
+| `cargo install --install-missing` runs in CI surprises                      | high   | low        | `--install-missing` is never the default; document and require explicit flag                              |
 
 ## Decisions
 
 - **D-SC1:** Tools are optional and presence-aware. Missing tool ⇒
   diagnostic via [14-diagnostics](./14-diagnostics.aps.md), never crash.
-  *Accepted (inherits spec §6.9).*
+  _Accepted (inherits spec §6.9)._
 - **D-SC2:** Workspace-level by default for these targets; per-crate is
-  opt-in. *Accepted.*
+  opt-in. _Accepted._
 - **D-SC3:** Tool version + config hash + lockfile content participate
-  in the cache key. *Accepted.*
-- **D-SC4:** `--install-missing` is explicit-only; never default. *Accepted.*
+  in the cache key. _Accepted._
+- **D-SC4:** `--install-missing` is explicit-only; never default. _Accepted._
 
 ## Open Questions
 

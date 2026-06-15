@@ -12,10 +12,7 @@
     "release": { "type": "boolean", "default": false },
     "target-dir": { "type": "string" },
     "features": {
-      "oneOf": [
-        { "type": "string" },
-        { "type": "array", "items": { "type": "string" } }
-      ]
+      "oneOf": [{ "type": "string" }, { "type": "array", "items": { "type": "string" } }]
     },
     "all-features": { "type": "boolean", "default": false },
     "no-default-features": { "type": "boolean", "default": false },
@@ -29,10 +26,7 @@
     },
     "example": { "type": "string" },
     "args": {
-      "oneOf": [
-        { "type": "string" },
-        { "type": "array", "items": { "type": "string" } }
-      ],
+      "oneOf": [{ "type": "string" }, { "type": "array", "items": { "type": "string" } }],
       "description": "Arguments forwarded to the binary after `--`."
     }
   },

@@ -1,12 +1,8 @@
-import { execFileSync } from 'node:child_process';
-import { isAbsolute, relative, resolve } from 'node:path';
-import chalk from 'chalk';
-import type {
-  CargoDependency,
-  CargoMetadata,
-  CargoPackage,
-} from '../models/cargo-metadata';
-import { runProcess } from './run-process';
+import { execFileSync } from "node:child_process";
+import { isAbsolute, relative, resolve } from "node:path";
+import chalk from "chalk";
+import type { CargoDependency, CargoMetadata, CargoPackage } from "../models/cargo-metadata";
+import { runProcess } from "./run-process";
 
 /**
  * Spawn `cargo <args>` with inherited stdio and always-on colour. Returns the
@@ -16,18 +12,16 @@ import { runProcess } from './run-process';
  * Cargo rejects any flag before `+toolchain`, so if the first arg is a
  * toolchain selector we emit it ahead of `--color always`.
  */
-export async function cargoCommand(
-  ...args: string[]
-): Promise<{ success: boolean }> {
+export async function cargoCommand(...args: string[]): Promise<{ success: boolean }> {
   const [head, ...rest] = args;
   const ordered =
-    head && head.startsWith('+')
-      ? [head, '--color', 'always', ...rest]
-      : ['--color', 'always', ...args];
+    head && head.startsWith("+")
+      ? [head, "--color", "always", ...rest]
+      : ["--color", "always", ...args];
 
   // eslint-disable-next-line no-console
-  console.log(chalk.dim(`> cargo ${redactArgs(ordered).join(' ')}`));
-  return runProcess('cargo', ...ordered);
+  console.log(chalk.dim(`> cargo ${redactArgs(ordered).join(" ")}`));
+  return runProcess("cargo", ...ordered);
 }
 
 /**
@@ -36,13 +30,13 @@ export async function cargoCommand(
  * history, `/proc/<pid>/cmdline` readers, or CI log scrapers.
  */
 function redactArgs(argv: readonly string[]): string[] {
-  const SECRET_FLAGS = new Set<string>(['--token']);
+  const SECRET_FLAGS = new Set<string>(["--token"]);
   const out: string[] = [];
   for (let i = 0; i < argv.length; i++) {
     const token = argv[i];
     out.push(token);
     if (SECRET_FLAGS.has(token) && i + 1 < argv.length) {
-      out.push('***');
+      out.push("***");
       i++;
     }
   }
@@ -62,17 +56,13 @@ function redactArgs(argv: readonly string[]): string[] {
  */
 export function cargoMetadata(cwd?: string): CargoMetadata | null {
   try {
-    const output = execFileSync(
-      'cargo',
-      ['metadata', '--format-version=1'],
-      {
-        encoding: 'utf8',
-        stdio: ['ignore', 'pipe', 'pipe'],
-        maxBuffer: 1024 * 1024 * 64,
-        cwd,
-        windowsHide: true,
-      },
-    );
+    const output = execFileSync("cargo", ["metadata", "--format-version=1"], {
+      encoding: "utf8",
+      stdio: ["ignore", "pipe", "pipe"],
+      maxBuffer: 1024 * 1024 * 64,
+      cwd,
+      windowsHide: true,
+    });
     return JSON.parse(output) as CargoMetadata;
   } catch {
     return null;
@@ -88,17 +78,17 @@ export function isExternal(
   packageOrDep: CargoPackage | CargoDependency,
   workspaceRoot: string,
 ): boolean {
-  const source = packageOrDep.source ?? '';
-  if (source.startsWith('registry+')) return true;
-  if (source.startsWith('git+')) return true;
+  const source = packageOrDep.source ?? "";
+  if (source.startsWith("registry+")) return true;
+  if (source.startsWith("git+")) return true;
 
   // cargo metadata emits absolute manifest/path values, so the workspace root
   // must also be absolute for `relative()` to produce correct answers.
   const absRoot = isAbsolute(workspaceRoot) ? workspaceRoot : resolve(workspaceRoot);
 
   const candidate =
-    ('manifest_path' in packageOrDep && packageOrDep.manifest_path) ||
-    ('path' in packageOrDep && packageOrDep.path) ||
+    ("manifest_path" in packageOrDep && packageOrDep.manifest_path) ||
+    ("path" in packageOrDep && packageOrDep.path) ||
     null;
 
   // No source and no path → almost certainly a workspace-inherited registry
@@ -108,5 +98,5 @@ export function isExternal(
 
   const absCandidate = isAbsolute(candidate) ? candidate : resolve(absRoot, candidate);
   const rel = relative(absRoot, absCandidate);
-  return rel.startsWith('..') || isAbsolute(rel);
+  return rel.startsWith("..") || isAbsolute(rel);
 }

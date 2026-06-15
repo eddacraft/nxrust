@@ -6,8 +6,8 @@
 `wasm-pack` and `napi-rs` executors and generators. Closes the
 Monodon-parity surface for Node-native and browser-targeted Rust crates.
 
-| ID | Owner | Status |
-|----|-------|--------|
+| ID        | Owner     | Status   |
+| --------- | --------- | -------- |
 | WASM-NAPI | eddacraft | Proposed |
 
 ## Purpose
@@ -179,18 +179,18 @@ pushed). Full gate green at release (build · 152 tests · e2e).
   Trigger: Anvil PR `eddacraft/anvil-001#1729` / ISS-001 (46× speedup);
   D-WN4 is already ratified (and lifted to index D-009), so the contract is
   decided — only the code-authoring is outstanding. Promotes per D-007.
-- **Scope / Non-scope:** Ships the contract *helper* + tests only. The
+- **Scope / Non-scope:** Ships the contract _helper_ + tests only. The
   `add-wasm-reference`, `add-napi`, `add-wasm` generators and the `napi` /
   `wasm-pack` executors stay **Proposed** — no consumer has asked for those
   executables, and building them would be the speculative work D-007 forbids.
-  When the first of those generators *is* promoted, it consumes this helper
+  When the first of those generators _is_ promoted, it consumes this helper
   rather than re-deriving the `dependsOn` shape; until then the helper is also
   callable directly by a consumer wiring a cross-language edge by hand.
 - **Expected Outcome:** A `src/utils` helper accepts a JS project's
   `ProjectConfiguration` (or its `test` `TargetConfiguration`) and returns it
   with `test.dependsOn` set to an explicit value that **excludes** `^build`
   (empty by default), overriding any workspace-default `test.dependsOn:
-  ["^build"]`. A `consumesArtifactAtBuildTime` opt-in retains `^build` for the
+["^build"]`. A `consumesArtifactAtBuildTime` opt-in retains `^build` for the
   legitimate case where the JS build imports the Rust artefact at TS build
   time (WASM bundled into webpack/Vite, generated `.d.ts` consumed by `tsc`).
   Pre-existing non-`^build` `dependsOn` entries on the JS `test` target are
@@ -202,34 +202,34 @@ pushed). Full gate green at release (build · 152 tests · e2e).
   idempotency. `pnpm typecheck` green. Ships as a **minor** bump with a
   CHANGELOG entry (new exported utility; no graph-shape change, additive).
 
-*Further items (the `napi` / `wasm-pack` executors and the `add-*`
+_Further items (the `napi` / `wasm-pack` executors and the `add-_`
 generators) stay Proposed and promote individually on real-consumer asks
 per D-007 — same gate as the original 02-monodon-parity module before
-refactor.*
+refactor.\*
 
 ## Risks & Mitigations
 
-| Risk | Impact | Likelihood | Mitigation |
-|------|--------|------------|------------|
-| Borrowed monodon code drifts from upstream and we miss a bug fix | medium | medium | Record source commit SHA in file header; periodically diff against upstream when an issue lands |
-| napi-rs / wasm-pack ecosystem moves faster than borrowed code | medium | medium | Validate against the consumer's actual napi-rs/wasm-pack version at promotion time; do not promote against a stale monodon snapshot |
-| Attribution stripped accidentally during refactor | medium | low | `THIRD-PARTY-NOTICES.md` is the source of truth; CI lint that fails on borrowed-file attribution loss is a v0.4 candidate |
-| WASM artefact caching across target triples mixes browser and nodejs builds | high | medium | Target triple participates in cache key; tested in [04-cache-semantics](./04-cache-semantics.aps.md) fixture matrix |
-| `add-wasm-reference` glue lags behind bundler upgrades (Vite/webpack/Next) | medium | medium | Template snapshot date in each glue file's comment; bump templates as part of v0.x line |
-| Cross-language edge inherits workspace `^build` test default, serialising JS tests on cargo lock | high | high | D-WN4: generator pins narrow `dependsOn` on JS side, opt-in for real artefact consumption; recipe in [16-adoption-and-docs](./16-adoption-and-docs.aps.md). Empirical anchor: anvil-001 PR #1729 (40m → 52s). |
+| Risk                                                                                             | Impact | Likelihood | Mitigation                                                                                                                                                                                                    |
+| ------------------------------------------------------------------------------------------------ | ------ | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Borrowed monodon code drifts from upstream and we miss a bug fix                                 | medium | medium     | Record source commit SHA in file header; periodically diff against upstream when an issue lands                                                                                                               |
+| napi-rs / wasm-pack ecosystem moves faster than borrowed code                                    | medium | medium     | Validate against the consumer's actual napi-rs/wasm-pack version at promotion time; do not promote against a stale monodon snapshot                                                                           |
+| Attribution stripped accidentally during refactor                                                | medium | low        | `THIRD-PARTY-NOTICES.md` is the source of truth; CI lint that fails on borrowed-file attribution loss is a v0.4 candidate                                                                                     |
+| WASM artefact caching across target triples mixes browser and nodejs builds                      | high   | medium     | Target triple participates in cache key; tested in [04-cache-semantics](./04-cache-semantics.aps.md) fixture matrix                                                                                           |
+| `add-wasm-reference` glue lags behind bundler upgrades (Vite/webpack/Next)                       | medium | medium     | Template snapshot date in each glue file's comment; bump templates as part of v0.x line                                                                                                                       |
+| Cross-language edge inherits workspace `^build` test default, serialising JS tests on cargo lock | high   | high       | D-WN4: generator pins narrow `dependsOn` on JS side, opt-in for real artefact consumption; recipe in [16-adoption-and-docs](./16-adoption-and-docs.aps.md). Empirical anchor: anvil-001 PR #1729 (40m → 52s). |
 
 ## Decisions
 
 - **D-WN1:** Borrow vs rewrite is per item, decided at promotion time
-  against the consumer's actual napi-rs/wasm-pack version. *Accepted
-  (inherits index D-001).*
+  against the consumer's actual napi-rs/wasm-pack version. _Accepted
+  (inherits index D-001)._
 - **D-WN2:** WASM and NAPI stay optional capability packs, not part of
   the core plugin model. They do not appear in `executors.json` /
-  `generators.json` until promotion. *Accepted (inherits spec §6.10).*
+  `generators.json` until promotion. _Accepted (inherits spec §6.10)._
 - **D-WN3:** `create-nx-workspace` preset is **not** in this module —
   preset lives in [16-adoption-and-docs](./16-adoption-and-docs.aps.md).
   Different scope (workspace-bootstrap vs in-workspace generator).
-  *Accepted 2026-05-17 (refactor decision).*
+  _Accepted 2026-05-17 (refactor decision)._
 - **D-WN4:** Cross-language edges constructed by `add-wasm-reference`
   and `add-napi` default to **empty** `test.dependsOn` on the JS side,
   explicitly overriding any workspace-default `^build`. The generator
@@ -239,9 +239,9 @@ refactor.*
   test suite into a 40-minute one when every JS test pulls a transitive
   cargo build. Empirical anchor: anvil-001 PR #1729 — 46× speedup after
   splitting `test:js && test:rust`. Tracked as ISS-001.
-  *Accepted 2026-05-20 (consumer-driven, per D-007). Lifted to
+  _Accepted 2026-05-20 (consumer-driven, per D-007). Lifted to
   index-level [D-009](../index.aps.md#decisions) on 2026-05-20 so the
-  rule binds future cross-language generators outside this module.*
+  rule binds future cross-language generators outside this module._
 
 ## Open Questions
 

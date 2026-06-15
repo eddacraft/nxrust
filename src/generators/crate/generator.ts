@@ -5,10 +5,10 @@ import {
   names,
   offsetFromRoot,
   type Tree,
-} from '@nx/devkit';
-import * as path from 'node:path';
-import { addToCargoWorkspace } from '../../utils/add-to-workspace';
-import { normalizeOptions } from '../../utils/normalize-options';
+} from "@nx/devkit";
+import * as path from "node:path";
+import { addToCargoWorkspace } from "../../utils/add-to-workspace";
+import { normalizeOptions } from "../../utils/normalize-options";
 import {
   buildTargetConfig,
   checkTargetConfig,
@@ -17,9 +17,9 @@ import {
   fmtTargetConfig,
   runTargetConfig,
   testTargetConfig,
-} from '../../utils/target-configs';
-import initGenerator from '../init/generator';
-import type { CrateGeneratorSchema } from './schema';
+} from "../../utils/target-configs";
+import initGenerator from "../init/generator";
+import type { CrateGeneratorSchema } from "./schema";
 
 /**
  * Escape a string for use inside a TOML basic string (`"..."`). Only the
@@ -28,10 +28,10 @@ import type { CrateGeneratorSchema } from './schema';
  */
 function tomlEscape(value: string): string {
   return value
-    .replace(/\\/g, '\\\\')
+    .replace(/\\/g, "\\\\")
     .replace(/"/g, '\\"')
-    .replace(/\n/g, '\\n')
-    .replace(/\r/g, '\\r');
+    .replace(/\n/g, "\\n")
+    .replace(/\r/g, "\\r");
 }
 
 export default async function crateGenerator(
@@ -50,22 +50,22 @@ export default async function crateGenerator(
     check: checkTargetConfig(),
     clippy: clippyTargetConfig(),
     fmt: fmtTargetConfig(),
-    'fmt-check': fmtCheckTargetConfig(),
+    "fmt-check": fmtCheckTargetConfig(),
     test: testTargetConfig(),
     ...(options.bin ? { run: runTargetConfig() } : {}),
   };
 
   addProjectConfiguration(tree, normalized.projectName, {
     root: normalized.projectRoot,
-    projectType: options.bin ? 'application' : 'library',
+    projectType: options.bin ? "application" : "library",
     sourceRoot: `${normalized.projectRoot}/src`,
     tags: normalized.parsedTags,
     targets,
   });
 
   const templateDir = options.bin
-    ? path.join(__dirname, 'files', 'bin')
-    : path.join(__dirname, 'files', 'lib');
+    ? path.join(__dirname, "files", "bin")
+    : path.join(__dirname, "files", "lib");
 
   generateFiles(tree, templateDir, normalized.projectRoot, {
     ...normalized,
@@ -76,7 +76,7 @@ export default async function crateGenerator(
       ? tomlEscape(normalized.description)
       : normalized.description,
     offsetFromRoot: offsetFromRoot(normalized.projectRoot),
-    template: '',
+    template: "",
   });
 
   addToCargoWorkspace(tree, normalized.projectRoot);

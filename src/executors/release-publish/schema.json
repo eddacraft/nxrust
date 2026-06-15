@@ -16,12 +16,13 @@
     },
     "allowDirty": { "type": "boolean", "default": false },
     "dryRun": { "type": "boolean", "default": false },
-    "noVerify": { "type": "boolean", "default": false, "description": "Skip package verification build." },
+    "noVerify": {
+      "type": "boolean",
+      "default": false,
+      "description": "Skip package verification build."
+    },
     "args": {
-      "oneOf": [
-        { "type": "string" },
-        { "type": "array", "items": { "type": "string" } }
-      ]
+      "oneOf": [{ "type": "string" }, { "type": "array", "items": { "type": "string" } }]
     }
   },
   "required": []

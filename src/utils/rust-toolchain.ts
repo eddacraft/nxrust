@@ -1,6 +1,6 @@
-import { existsSync, readFileSync } from 'node:fs';
-import { isAbsolute, join, relative, resolve, sep } from 'node:path';
-import TOML from '@ltd/j-toml';
+import { existsSync, readFileSync } from "node:fs";
+import { isAbsolute, join, relative, resolve, sep } from "node:path";
+import TOML from "@ltd/j-toml";
 
 /**
  * Sentinel returned when no `rust-toolchain.toml` or legacy `rust-toolchain`
@@ -9,7 +9,7 @@ import TOML from '@ltd/j-toml';
  * `rustc -Vv` / `cargo -V` runtime commands" rather than `rustup run
  * <channel> ...`.
  */
-export const DEFAULT_TOOLCHAIN_SENTINEL = 'default';
+export const DEFAULT_TOOLCHAIN_SENTINEL = "default";
 
 /**
  * Allowed character set for a resolved channel literal. Mirrors the values
@@ -26,12 +26,12 @@ export const DEFAULT_TOOLCHAIN_SENTINEL = 'default';
 const CHANNEL_LITERAL_PATTERN = /^[A-Za-z0-9._+-]+$/;
 
 export type ToolchainSource =
-  | 'project.json'
-  | 'package.metadata.nxrust.targets'
-  | 'package.metadata.nxrust'
-  | 'rust-toolchain.toml'
-  | 'rust-toolchain'
-  | 'default';
+  | "project.json"
+  | "package.metadata.nxrust.targets"
+  | "package.metadata.nxrust"
+  | "rust-toolchain.toml"
+  | "rust-toolchain"
+  | "default";
 
 export interface ToolchainResolution {
   channel: string;
@@ -75,7 +75,7 @@ export interface ResolveToolchainOptions {
  */
 export function validateChannelLiteral(channel: string, origin?: string): void {
   if (!CHANNEL_LITERAL_PATTERN.test(channel)) {
-    const source = origin === undefined ? '' : ` from ${origin}`;
+    const source = origin === undefined ? "" : ` from ${origin}`;
     throw new Error(
       `invalid toolchain literal${source}: ${JSON.stringify(channel)} — channel must match ${CHANNEL_LITERAL_PATTERN}`,
     );
@@ -104,55 +104,47 @@ export function validateChannelLiteral(channel: string, origin?: string): void {
  * function — it is hashed by Nx as a task option at executor time rather
  * than baked into the runtime string at emission time.
  */
-export function resolveToolchain(
-  opts: ResolveToolchainOptions,
-): ToolchainResolution {
+export function resolveToolchain(opts: ResolveToolchainOptions): ToolchainResolution {
   if (opts.projectJsonToolchain !== undefined) {
-    validateChannelLiteral(opts.projectJsonToolchain, 'projectJsonToolchain');
-    return { channel: opts.projectJsonToolchain, source: 'project.json' };
+    validateChannelLiteral(opts.projectJsonToolchain, "projectJsonToolchain");
+    return { channel: opts.projectJsonToolchain, source: "project.json" };
   }
 
   if (opts.cargoMetadataTargetToolchain !== undefined) {
-    validateChannelLiteral(
-      opts.cargoMetadataTargetToolchain,
-      'cargoMetadataTargetToolchain',
-    );
+    validateChannelLiteral(opts.cargoMetadataTargetToolchain, "cargoMetadataTargetToolchain");
     return {
       channel: opts.cargoMetadataTargetToolchain,
-      source: 'package.metadata.nxrust.targets',
+      source: "package.metadata.nxrust.targets",
     };
   }
 
   if (opts.cargoMetadataPackageToolchain !== undefined) {
-    validateChannelLiteral(
-      opts.cargoMetadataPackageToolchain,
-      'cargoMetadataPackageToolchain',
-    );
+    validateChannelLiteral(opts.cargoMetadataPackageToolchain, "cargoMetadataPackageToolchain");
     return {
       channel: opts.cargoMetadataPackageToolchain,
-      source: 'package.metadata.nxrust',
+      source: "package.metadata.nxrust",
     };
   }
 
   const dirs = walkUp(opts.projectRoot, opts.workspaceRoot);
 
   for (const dir of dirs) {
-    const tomlPath = join(dir, 'rust-toolchain.toml');
+    const tomlPath = join(dir, "rust-toolchain.toml");
     if (existsSync(tomlPath)) {
-      const channel = parseRustToolchainToml(readFileSync(tomlPath, 'utf-8'), tomlPath);
+      const channel = parseRustToolchainToml(readFileSync(tomlPath, "utf-8"), tomlPath);
       validateChannelLiteral(channel, tomlPath);
-      return { channel, source: 'rust-toolchain.toml', origin: tomlPath };
+      return { channel, source: "rust-toolchain.toml", origin: tomlPath };
     }
 
-    const legacyPath = join(dir, 'rust-toolchain');
+    const legacyPath = join(dir, "rust-toolchain");
     if (existsSync(legacyPath)) {
-      const channel = parseRustToolchainLegacy(readFileSync(legacyPath, 'utf-8'), legacyPath);
+      const channel = parseRustToolchainLegacy(readFileSync(legacyPath, "utf-8"), legacyPath);
       validateChannelLiteral(channel, legacyPath);
-      return { channel, source: 'rust-toolchain', origin: legacyPath };
+      return { channel, source: "rust-toolchain", origin: legacyPath };
     }
   }
 
-  return { channel: DEFAULT_TOOLCHAIN_SENTINEL, source: 'default' };
+  return { channel: DEFAULT_TOOLCHAIN_SENTINEL, source: "default" };
 }
 
 /**
@@ -174,7 +166,7 @@ function parseRustToolchainToml(source: string, path: string): string {
   }
 
   const channel = parsed.toolchain.channel;
-  if (typeof channel !== 'string' || channel.length === 0) {
+  if (typeof channel !== "string" || channel.length === 0) {
     throw new Error(`${path}: [toolchain] is missing a non-empty channel field`);
   }
 
@@ -212,7 +204,7 @@ function walkUp(start: string, stop: string): string[] {
   // absStop, relative either starts with '..' (same root, parent path) or
   // is absolute (different root / different drive on Windows). In any of
   // those cases we only want the `absStop` directory itself.
-  if (rel === '' || rel.startsWith('..') || isAbsolute(rel)) {
+  if (rel === "" || rel.startsWith("..") || isAbsolute(rel)) {
     return [absStop];
   }
 
@@ -226,5 +218,5 @@ function walkUp(start: string, stop: string): string[] {
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null && !Array.isArray(value);
+  return typeof value === "object" && value !== null && !Array.isArray(value);
 }

@@ -1,13 +1,13 @@
 # nxrust Product Specification
 
-| Field | Value |
-|-------|-------|
-| Product | `@eddacraft/nxrust` |
-| Working description | Cargo-native Nx plugin for Rust workspaces |
-| Status | Adopted — source of truth for the v0.2 → v1.0 roadmap |
-| Owner | eddacraft |
-| Licence | Apache-2.0 |
-| References | This repo's `plans/`, Nx documentation, `@monodon/rust` public API shape |
+| Field               | Value                                                                    |
+| ------------------- | ------------------------------------------------------------------------ |
+| Product             | `@eddacraft/nxrust`                                                      |
+| Working description | Cargo-native Nx plugin for Rust workspaces                               |
+| Status              | Adopted — source of truth for the v0.2 → v1.0 roadmap                    |
+| Owner               | eddacraft                                                                |
+| Licence             | Apache-2.0                                                               |
+| References          | This repo's `plans/`, Nx documentation, `@monodon/rust` public API shape |
 
 > **Note on placement.** This document lives in `docs/` because it is the
 > long-form product thesis. The execution plan that derives from it lives
@@ -214,16 +214,16 @@ workspace projects.
 
 ### Required capabilities
 
-| Capability | Requirement |
-|---|---|
-| Root workspace detection | Detect a Cargo workspace at the Nx root. |
-| Single-crate detection | Support repositories with a single root crate. |
-| Workspace members | Honour `workspace.members`, including globs. |
-| Workspace excludes | Honour `workspace.exclude`. |
-| Package naming | Use Cargo package names as the default Nx project names. |
-| Name normalisation | Support optional naming rules for scoped or prefixed projects. |
-| Project metadata | Read optional `package.metadata.nxrust`. |
-| Zero project.json path | Infer projects without requiring per-crate `project.json`. |
+| Capability               | Requirement                                                    |
+| ------------------------ | -------------------------------------------------------------- |
+| Root workspace detection | Detect a Cargo workspace at the Nx root.                       |
+| Single-crate detection   | Support repositories with a single root crate.                 |
+| Workspace members        | Honour `workspace.members`, including globs.                   |
+| Workspace excludes       | Honour `workspace.exclude`.                                    |
+| Package naming           | Use Cargo package names as the default Nx project names.       |
+| Name normalisation       | Support optional naming rules for scoped or prefixed projects. |
+| Project metadata         | Read optional `package.metadata.nxrust`.                       |
+| Zero project.json path   | Infer projects without requiring per-crate `project.json`.     |
 
 ### Suggested `Cargo.toml` override shape
 
@@ -255,16 +255,16 @@ crate nodes, and dependency edges into the Nx project graph.
 
 ### Required capabilities
 
-| Capability | Requirement |
-|---|---|
-| Workspace crate nodes | Emit one Nx node per Cargo workspace package. |
-| Internal dependency edges | Emit direct Rust-to-Rust dependency edges. |
-| External dependency nodes | Emit `cargo:<crate>` nodes for registry and git dependencies. |
-| Dependency kind metadata | Track normal, dev, and build dependencies where possible. |
-| Feature metadata | Preserve feature/dependency metadata for future affected precision. |
-| Lockfile invalidation | Invalidate graph cache on `Cargo.lock` changes. |
-| Manifest invalidation | Invalidate graph cache on relevant `Cargo.toml` changes. |
-| Optional external visibility | Allow users to hide or show external crate nodes. |
+| Capability                   | Requirement                                                         |
+| ---------------------------- | ------------------------------------------------------------------- |
+| Workspace crate nodes        | Emit one Nx node per Cargo workspace package.                       |
+| Internal dependency edges    | Emit direct Rust-to-Rust dependency edges.                          |
+| External dependency nodes    | Emit `cargo:<crate>` nodes for registry and git dependencies.       |
+| Dependency kind metadata     | Track normal, dev, and build dependencies where possible.           |
+| Feature metadata             | Preserve feature/dependency metadata for future affected precision. |
+| Lockfile invalidation        | Invalidate graph cache on `Cargo.lock` changes.                     |
+| Manifest invalidation        | Invalidate graph cache on relevant `Cargo.toml` changes.            |
+| Optional external visibility | Allow users to hide or show external crate nodes.                   |
 
 ### Design decision
 
@@ -287,23 +287,23 @@ targets.
 
 ### Recommended target set
 
-| Target | Command | Cache | Priority |
-|---|---|---:|---|
-| `check` | `cargo check -p <pkg>` | Yes | P0 |
-| `build` | `cargo build -p <pkg>` | Yes | P0 |
-| `test` | `cargo test -p <pkg>` | Yes | P0 |
-| `nextest` | `cargo nextest run -p <pkg>` | Yes | P1 |
-| `lint` / `clippy` | `cargo clippy -p <pkg>` | Yes | P0 |
-| `fmt-check` | `cargo fmt --check` | Yes | P0 |
-| `fmt` | `cargo fmt` | No or local-only | P0 |
-| `run` | `cargo run -p <pkg>` | No | P0 |
-| `bench` | `cargo bench -p <pkg>` | Usually no | P1 |
-| `doc` | `cargo doc -p <pkg>` | Yes | P1 |
-| `audit` | `cargo audit` | Yes-ish | P1 |
-| `deny` | `cargo deny check` | Yes | P1 |
-| `udeps` | `cargo +nightly udeps` | Yes | P2 |
-| `miri` | `cargo +nightly miri test` | Yes-ish | P2 |
-| `release-publish` | `cargo publish -p <pkg>` | No | P0/P1 |
+| Target            | Command                      |            Cache | Priority |
+| ----------------- | ---------------------------- | ---------------: | -------- |
+| `check`           | `cargo check -p <pkg>`       |              Yes | P0       |
+| `build`           | `cargo build -p <pkg>`       |              Yes | P0       |
+| `test`            | `cargo test -p <pkg>`        |              Yes | P0       |
+| `nextest`         | `cargo nextest run -p <pkg>` |              Yes | P1       |
+| `lint` / `clippy` | `cargo clippy -p <pkg>`      |              Yes | P0       |
+| `fmt-check`       | `cargo fmt --check`          |              Yes | P0       |
+| `fmt`             | `cargo fmt`                  | No or local-only | P0       |
+| `run`             | `cargo run -p <pkg>`         |               No | P0       |
+| `bench`           | `cargo bench -p <pkg>`       |       Usually no | P1       |
+| `doc`             | `cargo doc -p <pkg>`         |              Yes | P1       |
+| `audit`           | `cargo audit`                |          Yes-ish | P1       |
+| `deny`            | `cargo deny check`           |              Yes | P1       |
+| `udeps`           | `cargo +nightly udeps`       |              Yes | P2       |
+| `miri`            | `cargo +nightly miri test`   |          Yes-ish | P2       |
+| `release-publish` | `cargo publish -p <pkg>`     |               No | P0/P1    |
 
 ### Formatting split
 
@@ -383,16 +383,16 @@ Cache keys should account for:
 
 Start conservative:
 
-| Target | Output strategy |
-|---|---|
-| `check` | Cache exit/result, avoid broad artefact assumptions. |
-| `clippy` | Cache exit/result, optionally reports. |
-| `fmt-check` | Cache exit/result. |
-| `test` | Cache result and test reports where configured. |
-| `build` | Cache configured target output only when safe. |
-| `doc` | Cache documentation output. |
-| `run` | Do not cache. |
-| `release-publish` | Do not cache. |
+| Target            | Output strategy                                      |
+| ----------------- | ---------------------------------------------------- |
+| `check`           | Cache exit/result, avoid broad artefact assumptions. |
+| `clippy`          | Cache exit/result, optionally reports.               |
+| `fmt-check`       | Cache exit/result.                                   |
+| `test`            | Cache result and test reports where configured.      |
+| `build`           | Cache configured target output only when safe.       |
+| `doc`             | Cache documentation output.                          |
+| `run`             | Do not cache.                                        |
+| `release-publish` | Do not cache.                                        |
 
 ---
 
@@ -410,16 +410,16 @@ executors.
 
 ### Required options
 
-| Option | Behaviour |
-|---|---|
-| `features` | Pass `--features`. Accept string or string array. |
-| `allFeatures` | Pass `--all-features`. |
-| `noDefaultFeatures` | Pass `--no-default-features`. |
-| `defaultFeatures` | Explicit boolean convenience where useful. |
-| `profile` | Pass `--profile`. |
-| `release` | Pass `--release`. |
-| `target` | Pass `--target`. |
-| `toolchain` | Use `cargo +<toolchain>`. |
+| Option              | Behaviour                                         |
+| ------------------- | ------------------------------------------------- |
+| `features`          | Pass `--features`. Accept string or string array. |
+| `allFeatures`       | Pass `--all-features`.                            |
+| `noDefaultFeatures` | Pass `--no-default-features`.                     |
+| `defaultFeatures`   | Explicit boolean convenience where useful.        |
+| `profile`           | Pass `--profile`.                                 |
+| `release`           | Pass `--release`.                                 |
+| `target`            | Pass `--target`.                                  |
+| `toolchain`         | Use `cargo +<toolchain>`.                         |
 
 ### Suggested inferred configurations
 
@@ -456,14 +456,14 @@ Rust toolchain used.
 
 ### Required capabilities
 
-| Capability | Requirement |
-|---|---|
-| Read `rust-toolchain.toml` | Use declared toolchain as default. |
+| Capability                 | Requirement                                           |
+| -------------------------- | ----------------------------------------------------- |
+| Read `rust-toolchain.toml` | Use declared toolchain as default.                    |
 | Support `cargo +toolchain` | Allow explicit stable/beta/nightly/custom toolchains. |
-| Hash `rustc -Vv` | Avoid false cache hits across compilers. |
-| Hash `cargo -V` | Avoid false cache hits across Cargo versions. |
-| Validate missing toolchain | Produce actionable error messages. |
-| Detect missing target | Explain `rustup target add <target>`. |
+| Hash `rustc -Vv`           | Avoid false cache hits across compilers.              |
+| Hash `cargo -V`            | Avoid false cache hits across Cargo versions.         |
+| Validate missing toolchain | Produce actionable error messages.                    |
+| Detect missing target      | Explain `rustup target add <target>`.                 |
 
 ---
 
@@ -481,26 +481,26 @@ advanced surfaces.
 
 ### P0 generators
 
-| Generator | Purpose |
-|---|---|
-| `init` | Add Cargo workspace support to an Nx workspace. |
-| `crate` | Generic crate generator. |
-| `library` | Thin wrapper around `crate --lib`. |
-| `binary` | Thin wrapper around `crate --bin`. |
+| Generator | Purpose                                         |
+| --------- | ----------------------------------------------- |
+| `init`    | Add Cargo workspace support to an Nx workspace. |
+| `crate`   | Generic crate generator.                        |
+| `library` | Thin wrapper around `crate --lib`.              |
+| `binary`  | Thin wrapper around `crate --bin`.              |
 
 ### P1 generators
 
-| Generator | Purpose |
-|---|---|
-| `workspace-crate` | Explicit workspace-member scaffold. |
-| `cli` | Binary crate with `clap`, `tracing`, and error handling. |
-| `service` | Binary crate with Axum/Tokio baseline. |
-| `tui` | Binary crate with Ratatui baseline. |
-| `wasm` | Rust crate configured for `wasm-pack`. |
-| `napi` | Rust crate configured for `napi-rs`. |
-| `ffi` | Rust crate configured for `cdylib`. |
-| `bench` | Add Criterion benchmark target. |
-| `xtask` | Generate an `xtask` helper crate. |
+| Generator                 | Purpose                                                                    |
+| ------------------------- | -------------------------------------------------------------------------- |
+| `workspace-crate`         | Explicit workspace-member scaffold.                                        |
+| `cli`                     | Binary crate with `clap`, `tracing`, and error handling.                   |
+| `service`                 | Binary crate with Axum/Tokio baseline.                                     |
+| `tui`                     | Binary crate with Ratatui baseline.                                        |
+| `wasm`                    | Rust crate configured for `wasm-pack`.                                     |
+| `napi`                    | Rust crate configured for `napi-rs`.                                       |
+| `ffi`                     | Rust crate configured for `cdylib`.                                        |
+| `bench`                   | Add Criterion benchmark target.                                            |
+| `xtask`                   | Generate an `xtask` helper crate.                                          |
 | `policy` / `check` preset | Generate deterministic check/policy crates useful for Anvil-style systems. |
 
 ### Generator behaviour
@@ -531,17 +531,17 @@ release.
 
 ### Required capabilities
 
-| Capability | Requirement |
-|---|---|
-| Version bump | Update `package.version` in `Cargo.toml`. |
+| Capability                  | Requirement                                          |
+| --------------------------- | ---------------------------------------------------- |
+| Version bump                | Update `package.version` in `Cargo.toml`.            |
 | Internal dependency updates | Update workspace dependency versions where required. |
-| Dry-run publish | Support `cargo publish --dry-run`. |
-| Package validation | Support `cargo package`. |
-| Changelog support | Integrate with Nx release changelog flow. |
-| Independent versions | Allow crates to version independently. |
-| Fixed version mode | Allow workspace-wide fixed versioning. |
-| crates.io publish | Support default registry publishing. |
-| Private registry publish | Support `--registry`. |
+| Dry-run publish             | Support `cargo publish --dry-run`.                   |
+| Package validation          | Support `cargo package`.                             |
+| Changelog support           | Integrate with Nx release changelog flow.            |
+| Independent versions        | Allow crates to version independently.               |
+| Fixed version mode          | Allow workspace-wide fixed versioning.               |
+| crates.io publish           | Support default registry publishing.                 |
+| Private registry publish    | Support `--registry`.                                |
 
 ### Recommended modes
 
@@ -567,14 +567,14 @@ Anvil's broader deterministic governance story.
 
 ### Recommended targets
 
-| Target | Tool |
-|---|---|
-| `audit` | `cargo audit` |
-| `deny` | `cargo deny check` |
-| `outdated` | `cargo outdated` |
-| `vet` | `cargo vet` |
-| `sbom` | `cargo auditable`, `cargo cyclonedx`, or configurable tool. |
-| `licenses` | `cargo deny` licence checks. |
+| Target     | Tool                                                        |
+| ---------- | ----------------------------------------------------------- |
+| `audit`    | `cargo audit`                                               |
+| `deny`     | `cargo deny check`                                          |
+| `outdated` | `cargo outdated`                                            |
+| `vet`      | `cargo vet`                                                 |
+| `sbom`     | `cargo auditable`, `cargo cyclonedx`, or configurable tool. |
+| `licenses` | `cargo deny` licence checks.                                |
 
 ### Design guidance
 
@@ -711,16 +711,16 @@ appropriate affected projects.
 
 ### Expected behaviour
 
-| Change | Affected result |
-|---|---|
-| `crates/foo/src/lib.rs` | `foo` and dependants. |
-| `crates/foo/Cargo.toml` | `foo` and dependants. |
-| root `Cargo.lock` | All Rust crates initially; refined later where safe. |
-| root `Cargo.toml` workspace dependencies | All Rust crates or resolved affected subset. |
-| `rust-toolchain.toml` | All Rust crates. |
-| `.cargo/config.toml` | All Rust crates. |
-| `build.rs` | Owning crate and dependants. |
-| feature changes | Feature-dependent graph where possible. |
+| Change                                   | Affected result                                      |
+| ---------------------------------------- | ---------------------------------------------------- |
+| `crates/foo/src/lib.rs`                  | `foo` and dependants.                                |
+| `crates/foo/Cargo.toml`                  | `foo` and dependants.                                |
+| root `Cargo.lock`                        | All Rust crates initially; refined later where safe. |
+| root `Cargo.toml` workspace dependencies | All Rust crates or resolved affected subset.         |
+| `rust-toolchain.toml`                    | All Rust crates.                                     |
+| `.cargo/config.toml`                     | All Rust crates.                                     |
+| `build.rs`                               | Owning crate and dependants.                         |
+| feature changes                          | Feature-dependent graph where possible.              |
 
 ### Future improvement
 
@@ -932,52 +932,52 @@ Focus: stable public contract.
 
 ## P0 — Core correctness
 
-| Item | Description |
-|---|---|
-| Cargo metadata graph | Use `cargo metadata` as authoritative graph source. |
-| Project inference | Infer crate projects without `project.json`. |
-| Target inference | Infer build/check/test/lint/fmt/fmt-check/run/release-publish. |
-| Cache inputs | Hash source, manifests, lockfile, toolchain, selected env. |
-| Feature options | Support features, all-features, no-default-features. |
-| Toolchain support | Read and hash Rust toolchain details. |
-| Error messages | Replace raw shell failures with actionable diagnostics. |
+| Item                 | Description                                                    |
+| -------------------- | -------------------------------------------------------------- |
+| Cargo metadata graph | Use `cargo metadata` as authoritative graph source.            |
+| Project inference    | Infer crate projects without `project.json`.                   |
+| Target inference     | Infer build/check/test/lint/fmt/fmt-check/run/release-publish. |
+| Cache inputs         | Hash source, manifests, lockfile, toolchain, selected env.     |
+| Feature options      | Support features, all-features, no-default-features.           |
+| Toolchain support    | Read and hash Rust toolchain details.                          |
+| Error messages       | Replace raw shell failures with actionable diagnostics.        |
 
 ## P1 — Serious Rust workflow
 
-| Item | Description |
-|---|---|
-| nextest | Add `cargo nextest` support. |
-| audit | Add `cargo audit` executor. |
-| deny | Add `cargo deny` executor. |
-| doc | Add `cargo doc` executor. |
-| bench | Add Criterion/cargo bench support. |
-| workspace project | Add synthetic root workspace project. |
-| release modes | Support fixed and independent crate versions. |
+| Item              | Description                                   |
+| ----------------- | --------------------------------------------- |
+| nextest           | Add `cargo nextest` support.                  |
+| audit             | Add `cargo audit` executor.                   |
+| deny              | Add `cargo deny` executor.                    |
+| doc               | Add `cargo doc` executor.                     |
+| bench             | Add Criterion/cargo bench support.            |
+| workspace project | Add synthetic root workspace project.         |
+| release modes     | Support fixed and independent crate versions. |
 
 ## P2 — Adoption and ecosystem
 
-| Item | Description |
-|---|---|
-| Monodon migration | Add migration generator. |
-| WASM | Add `wasm-pack` support. |
-| NAPI | Add `napi-rs` support. |
-| Preset | Add create-nx-workspace preset. |
-| Examples | Add example workspaces. |
-| Docs | Build public documentation and compatibility matrix. |
+| Item              | Description                                          |
+| ----------------- | ---------------------------------------------------- |
+| Monodon migration | Add migration generator.                             |
+| WASM              | Add `wasm-pack` support.                             |
+| NAPI              | Add `napi-rs` support.                               |
+| Preset            | Add create-nx-workspace preset.                      |
+| Examples          | Add example workspaces.                              |
+| Docs              | Build public documentation and compatibility matrix. |
 
 ---
 
 ## 10. Risks and Mitigations
 
-| Risk | Impact | Mitigation |
-|---|---|---|
-| Nx plugin API drift | Medium | Keep API surface small; add compatibility tests. |
-| Incorrect cache hits | High | Conservative inputs/outputs; hash toolchain and target details. |
-| Cargo metadata performance | Medium | Cache metadata results and invalidate deliberately. |
-| Lockfile over-triggering | Medium | Start conservative; refine later. |
-| Monodon compatibility expectations | Medium | Provide aliases and migration generator. |
-| Too much Anvil-specific behaviour | Medium | Keep Anvil presets optional. |
-| WASM/NAPI scope creep | Medium | Treat as optional capability packs, not core flow. |
+| Risk                               | Impact | Mitigation                                                      |
+| ---------------------------------- | ------ | --------------------------------------------------------------- |
+| Nx plugin API drift                | Medium | Keep API surface small; add compatibility tests.                |
+| Incorrect cache hits               | High   | Conservative inputs/outputs; hash toolchain and target details. |
+| Cargo metadata performance         | Medium | Cache metadata results and invalidate deliberately.             |
+| Lockfile over-triggering           | Medium | Start conservative; refine later.                               |
+| Monodon compatibility expectations | Medium | Provide aliases and migration generator.                        |
+| Too much Anvil-specific behaviour  | Medium | Keep Anvil presets optional.                                    |
+| WASM/NAPI scope creep              | Medium | Treat as optional capability packs, not core flow.              |
 
 ---
 

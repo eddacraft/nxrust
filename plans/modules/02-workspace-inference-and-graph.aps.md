@@ -6,8 +6,8 @@
 Make `cargo metadata` the authoritative source for Nx projects and edges,
 beyond the canonical-layout cases v0.1 already handles.
 
-| ID | Owner | Status |
-|----|-------|--------|
+| ID    | Owner     | Status                              |
+| ----- | --------- | ----------------------------------- |
 | GRAPH | eddacraft | Proposed (GRAPH-001 released 0.2.0) |
 
 ## Purpose
@@ -152,16 +152,16 @@ tag `v0.2.0`).
   target-override keys are parsed-but-ignored here and stay Proposed for
   modules 03 / 05. **Implementation note:** the table is read from the
   `package.metadata` field that `cargo metadata` already surfaces in its JSON
-  output — *not* a separate TOML read of the manifest. This is stronger than
+  output — _not_ a separate TOML read of the manifest. This is stronger than
   the planned "direct TOML read" (D-G1 caveat): `cargo metadata` stays the
   single authoritative source, no parallel manifest parse exists. A malformed
   `tags` value (not an array of strings) warns and is ignored rather than
   throwing, so one bad manifest never breaks graph construction for the whole
-  workspace. **Deferred:** warning on *unknown* sibling keys routes "via
+  workspace. **Deferred:** warning on _unknown_ sibling keys routes "via
   [14-diagnostics](./14-diagnostics.aps.md)" — that module is Proposed/unbuilt
   and the known-key set is still being finalised by modules 03/05, so the
   unknown-key warning is deferred to 14-diagnostics rather than guessed at
-  here. No graph *edge* changes (additive).
+  here. No graph _edge_ changes (additive).
 - **Validation:** Unit tests in `src/graph.spec.ts` (`inferred project tags`)
   assert lift, de-dup, omit-when-absent, empty-array omit, coexistence with
   reserved keys, and warn-and-ignore on malformed `tags`. E2e
@@ -170,30 +170,30 @@ tag `v0.2.0`).
   entry (D-008), since the project `tags` set changes for adopters already
   writing the metadata key.
 
-*Further items (nested globs, excludes, single-crate-at-root, name
+_Further items (nested globs, excludes, single-crate-at-root, name
 normalisation, content-hash lockfile keying, dep-kind/feature edge metadata)
-stay Proposed and promote individually on real-consumer asks per D-007.*
+stay Proposed and promote individually on real-consumer asks per D-007._
 
 ## Risks & Mitigations
 
-| Risk | Impact | Likelihood | Mitigation |
-|------|--------|------------|------------|
-| Widened glob support changes graph shape for existing consumers | high | medium | D-008: minor bump + CHANGELOG; verify against v0.1 consumer before publish |
-| Content-hash lockfile keying is slower than mtime on huge workspaces | medium | low | Keep mtime as the fast path; content-hash only on mtime change or on cold cache |
-| `package.metadata.nxrust` ambiguity (key collision with target options) | medium | medium | Document namespace clearly; reject unknown keys with a warning |
-| Project-key/cargo-name divergence support invites generator/executor confusion | medium | medium | Single source of truth: `cargo metadata` package name is always passed to `cargo -p`; Nx key is presentation-only |
-| Feature-metadata-on-edges balloons graph size | low | medium | Make it opt-in or strip in production graph view; preserve in raw graph for affected use |
+| Risk                                                                           | Impact | Likelihood | Mitigation                                                                                                        |
+| ------------------------------------------------------------------------------ | ------ | ---------- | ----------------------------------------------------------------------------------------------------------------- |
+| Widened glob support changes graph shape for existing consumers                | high   | medium     | D-008: minor bump + CHANGELOG; verify against v0.1 consumer before publish                                        |
+| Content-hash lockfile keying is slower than mtime on huge workspaces           | medium | low        | Keep mtime as the fast path; content-hash only on mtime change or on cold cache                                   |
+| `package.metadata.nxrust` ambiguity (key collision with target options)        | medium | medium     | Document namespace clearly; reject unknown keys with a warning                                                    |
+| Project-key/cargo-name divergence support invites generator/executor confusion | medium | medium     | Single source of truth: `cargo metadata` package name is always passed to `cargo -p`; Nx key is presentation-only |
+| Feature-metadata-on-edges balloons graph size                                  | low    | medium     | Make it opt-in or strip in production graph view; preserve in raw graph for affected use                          |
 
 ## Decisions
 
 - **D-G1:** `cargo metadata` stays the authoritative graph source.
-  Inherits from index D-001's broader principle. *Accepted.*
+  Inherits from index D-001's broader principle. _Accepted._
 - **D-G2:** Project-key/cargo-name divergence supported only via explicit
   opt-in (plugin option or `package.metadata.nxrust.project`). Implicit
   divergence is rejected with a clear error message — produced by
-  [14-diagnostics](./14-diagnostics.aps.md). *Accepted.*
+  [14-diagnostics](./14-diagnostics.aps.md). _Accepted._
 - **D-G3:** Graph-shape changes bump the minor version. Inherits index
-  D-008. *Accepted.*
+  D-008. _Accepted._
 - **D-G4:** `package.metadata.nxrust.tags = [...]` in `Cargo.toml` is
   the canonical Rust-side tag convention. The planned
   `package.metadata.nxrust` parser lifts values into the Nx project's
@@ -203,7 +203,7 @@ stay Proposed and promote individually on real-consumer asks per D-007.*
   safe from rework. Ratified by Anvil 2026-05-20 as the inaugural
   downstream-consumer convention. Full detail in the **Tag convention**
   bullet under § In Scope above.
-  *Accepted 2026-05-22.*
+  _Accepted 2026-05-22._
 
 ## Open Questions
 

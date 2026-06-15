@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased
+
+- Add the Anvil Plan Spec support files used to track project planning,
+  validation rules, and execution checklists in-repo.
+- Move APS tooling into the `.aps/` layout, including the `aps` CLI wrapper,
+  shell hooks, lint/orchestration helpers, and scaffold templates.
+- Initialise repository-wide formatting with `oxfmt` and apply the resulting
+  formatting updates across source, tests, docs, and fixtures.
+
 ## 0.3.0 — 2026-06-14
 
 - Per-crate target option defaults via `[package.metadata.nxrust.targets.<name>]`

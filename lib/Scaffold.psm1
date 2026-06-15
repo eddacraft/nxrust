@@ -14,7 +14,7 @@ $script:PlanFiles = @(
     "scaffold/plans/modules/.module.template.md"
     "scaffold/plans/modules/.simple.template.md"
     "scaffold/plans/modules/.index-monorepo.template.md"
-    "scaffold/plans/execution/.steps.template.md"
+    "scaffold/plans/execution/.actions.template.md"
 )
 
 # Files to download for the planning skill
@@ -23,12 +23,6 @@ $script:SkillFiles = @(
     "scaffold/aps-planning/reference.md"
     "scaffold/aps-planning/examples.md"
     "scaffold/aps-planning/hooks.md"
-    "scaffold/aps-planning/scripts/install-hooks.sh"
-    "scaffold/aps-planning/scripts/init-session.sh"
-    "scaffold/aps-planning/scripts/check-complete.sh"
-    "scaffold/aps-planning/scripts/pre-tool-check.sh"
-    "scaffold/aps-planning/scripts/post-tool-nudge.sh"
-    "scaffold/aps-planning/scripts/enforce-plan-update.sh"
     "scaffold/aps-planning/scripts/install-hooks.ps1"
     "scaffold/aps-planning/scripts/init-session.ps1"
     "scaffold/aps-planning/scripts/check-complete.ps1"
@@ -41,20 +35,6 @@ $script:SkillFiles = @(
 $script:CommandFiles = @(
     "scaffold/commands/plan.md"
     "scaffold/commands/plan-status.md"
-)
-
-# CLI files — bash (bin/ and lib/)
-$script:CliFilesBash = @(
-    "bin/aps"
-    "lib/output.sh"
-    "lib/lint.sh"
-    "lib/scaffold.sh"
-    "lib/rules/common.sh"
-    "lib/rules/module.sh"
-    "lib/rules/index.sh"
-    "lib/rules/workitem.sh"
-    "lib/rules/issues.sh"
-    "lib/rules/design.sh"
 )
 
 # CLI files — PowerShell (bin/ and lib/)
@@ -144,16 +124,22 @@ function Request-ApsYesNo {
 function Test-ApsHooksConfigured {
     <#
     .SYNOPSIS
-        Check if APS hooks are already configured in settings.local.json.
+        Check if APS hooks are already configured in settings.local.json or settings.json.
     #>
     param(
         [string]$Target = "."
     )
-    $settings = Join-Path (Join-Path $Target ".claude") "settings.local.json"
-    if (-not (Test-Path -LiteralPath $settings)) { return $false }
-    $content = Get-Content -LiteralPath $settings -Raw -ErrorAction SilentlyContinue
-    if (-not $content) { return $false }
-    return ($content -cmatch 'aps-planning/scripts' -or $content -cmatch '\[APS\]')
+    $claudeDir = Join-Path $Target ".claude"
+    foreach ($name in @("settings.local.json", "settings.json")) {
+        $settings = Join-Path $claudeDir $name
+        if (-not (Test-Path -LiteralPath $settings)) { continue }
+        $content = Get-Content -LiteralPath $settings -Raw -ErrorAction SilentlyContinue
+        if (-not $content) { continue }
+        if ($content -cmatch 'aps-planning/scripts' -or $content -cmatch '\.aps/scripts' -or $content -cmatch '\[APS\]') {
+            return $true
+        }
+    }
+    return $false
 }
 
 # --- Install functions ---
@@ -217,12 +203,9 @@ function Install-ApsCommands {
 function Install-ApsCli {
     <#
     .SYNOPSIS
-        Download CLI files (both bash and PowerShell) to the target directory.
+        Download CLI files (PowerShell runtime) to the target directory.
     #>
     param([string]$Target)
-    foreach ($f in $script:CliFilesBash) {
-        Invoke-ApsDownloadRoot -Source $f -Destination (Join-Path $Target $f)
-    }
     foreach ($f in $script:CliFilesPowerShell) {
         Invoke-ApsDownloadRoot -Source $f -Destination (Join-Path $Target $f)
     }
@@ -320,9 +303,9 @@ function Invoke-ApsInit {
     Write-ApsInfo "Initialising APS in $target"
     Write-Host ""
 
-    # CLI (bin/aps + lib/)
+    # CLI (bin/aps.ps1 + lib/)
     Install-ApsCli -Target $target
-    Write-ApsInfo "bin/aps + lib/ (CLI)"
+    Write-ApsInfo "bin/aps.ps1 + lib/ (CLI)"
 
     # Templates and rules
     Install-ApsPlans -Target $target
@@ -339,7 +322,7 @@ function Invoke-ApsInit {
 
     Write-Host ""
     Write-Host "  bin/"
-    Write-Host "  +-- aps                              <- CLI (lint, init, update)"
+    Write-Host "  +-- aps.ps1                          <- CLI (lint, init, update)"
     Write-Host ""
     Write-Host "  plans/"
     Write-Host "  +-- aps-rules.md                     <- Agent guidance (READ THIS)"
@@ -349,7 +332,7 @@ function Invoke-ApsInit {
     Write-Host "  |   +-- .simple.template.md          <- Template for small features"
     Write-Host "  |   +-- .index-monorepo.template.md  <- Index for monorepos"
     Write-Host "  +-- execution/"
-    Write-Host "  |   +-- .steps.template.md           <- Template for steps"
+    Write-Host "  |   +-- .actions.template.md         <- Template for action plans"
     Write-Host "  +-- decisions/"
     Write-Host ""
     Write-Host "  aps-planning/"
@@ -360,8 +343,8 @@ function Invoke-ApsInit {
     Write-Host "  +-- scripts/                         <- Hook install + session scripts"
     Write-Host ""
     Write-Host "  .claude/commands/"
-    Write-Host "  +-- plan.md                          <- /plan command"
-    Write-Host "  +-- plan-status.md                   <- /plan-status command"
+    Write-Host "  +-- plan.md                          <- legacy Claude command"
+    Write-Host "  +-- plan-status.md                   <- legacy Claude command"
 
     # Hooks
     Invoke-ApsHookPrompt -Target $target
@@ -373,7 +356,7 @@ function Invoke-ApsInit {
     Write-ApsInfo "Next steps:"
     Write-Host "  1. Edit plans/index.aps.md to define your plan"
     Write-Host "  2. Copy templates to create modules (remove leading dot)"
-    Write-Host "  3. Use /plan in Claude Code to start planning"
+    Write-Host "  3. Point your AI agent at plans\aps-rules.md, or run aps next"
     Write-Host ""
 }
 
@@ -441,7 +424,7 @@ function Invoke-ApsUpdate {
 
     # CLI (always update -- this is how users get new features)
     Install-ApsCli -Target $target
-    Write-ApsInfo "bin/aps + lib/ (CLI)"
+    Write-ApsInfo "bin/aps.ps1 + lib/ (CLI)"
 
     # Templates and rules (preserves user specs)
     Install-ApsPlans -Target $target
@@ -490,16 +473,13 @@ function Update-ApsGlobal {
     Write-ApsInfo "Updating global APS CLI at $ApsHome"
     Write-Host ""
 
-    foreach ($f in $script:CliFilesBash) {
-        Invoke-ApsDownloadRoot -Source $f -Destination (Join-Path $ApsHome $f)
-    }
     foreach ($f in $script:CliFilesPowerShell) {
         Invoke-ApsDownloadRoot -Source $f -Destination (Join-Path $ApsHome $f)
     }
 
     Write-Host ""
     Write-ApsInfo "Global update complete"
-    Write-ApsInfo "bin/aps + lib/ updated at $ApsHome"
+    Write-ApsInfo "bin/aps.ps1 + lib/ updated at $ApsHome"
     Write-Host ""
 }
 

@@ -1,0 +1,31 @@
+{
+  "$schema": "http://json-schema.org/schema",
+  "$id": "NxRustAddRustReference",
+  "title": "@eddacraft/nxrust:add-rust-reference",
+  "description": "Wire a JS/TS project to a sibling Rust crate with the D-009 cross-language test-seam contract: explicitly override the JS `test.dependsOn` so a JS test never triggers a transitive cargo build (ISS-001). The kind-agnostic core that `add-napi` / `add-wasm-reference` wrap.",
+  "type": "object",
+  "properties": {
+    "project": {
+      "type": "string",
+      "description": "The JS/TS project that consumes the Rust crate.",
+      "$default": { "$source": "argv", "index": 0 },
+      "x-prompt": "Which JS/TS project consumes the Rust crate?"
+    },
+    "crate": {
+      "type": "string",
+      "description": "The Rust crate being consumed.",
+      "x-prompt": "Which Rust crate does it consume?"
+    },
+    "consumesArtifactAtBuildTime": {
+      "type": "boolean",
+      "default": false,
+      "description": "Retain the inherited `^build` on the JS `test` target. Only correct when the JS build imports the Rust artefact at TS build time (e.g. a WASM module bundled into webpack/Vite). A NAPI `.node` is loaded at require time, so leave this false."
+    },
+    "skipFormat": {
+      "type": "boolean",
+      "default": false,
+      "description": "Skip the post-generation `nx format`."
+    }
+  },
+  "required": ["project", "crate"]
+}

@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+- New `@eddacraft/nxrust:add-rust-reference` generator — wires a JS/TS project
+  to a sibling Rust crate with the D-009 cross-language test-seam contract.
+  It explicitly overrides the JS project's `test.dependsOn` to sever the
+  inherited workspace `^build` (so a JS test never triggers a transitive cargo
+  build and serialises on the workspace `target/` lock, ISS-001), preserving any
+  sibling deps. Pass `--consumesArtifactAtBuildTime` to retain `^build` for the
+  legitimate case where the JS build imports the Rust artefact at TS build time
+  (e.g. a WASM module bundled into webpack/Vite); a NAPI `.node`, loaded at
+  require time, should leave it off. Idempotent. This is the kind-agnostic seam
+  core that future `add-napi` / `add-wasm-reference` generators wrap, so the
+  D-009 contract has a single implementation. Anvil's #3 upstream ask.
 - New `@eddacraft/nxrust:doctor` generator — a read-only workspace diagnostic.
   Its first check finds cross-language `^build` test seams: a JS project whose
   `test` target inherits the workspace-default `^build` across a dependency edge

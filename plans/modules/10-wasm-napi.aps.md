@@ -6,9 +6,9 @@
 `wasm-pack` and `napi-rs` executors and generators. Closes the
 Monodon-parity surface for Node-native and browser-targeted Rust crates.
 
-| ID        | Owner     | Status                                                                  |
-| --------- | --------- | ----------------------------------------------------------------------- |
-| WASM-NAPI | eddacraft | Proposed (WN-001 shipped 0.2.0; seam generators Ready — Anvil #3, D-011) |
+| ID        | Owner     | Status                                                                       |
+| --------- | --------- | ---------------------------------------------------------------------------- |
+| WASM-NAPI | eddacraft | In Progress (WN-001 shipped 0.2.0; WN-002 seam generator done 2026-06-21, unreleased — Anvil #3) |
 
 ## Purpose
 
@@ -202,10 +202,43 @@ pushed). Full gate green at release (build · 152 tests · e2e).
   idempotency. `pnpm typecheck` green. Ships as a **minor** bump with a
   CHANGELOG entry (new exported utility; no graph-shape change, additive).
 
-_Further items (the `napi` / `wasm-pack` executors and the `add-_`
-generators) stay Proposed and promote individually on real-consumer asks
-per D-007 — same gate as the original 02-monodon-parity module before
-refactor.\*
+### WN-002: `add-rust-reference` seam generator (D-009 / D-WN4)
+
+**Status: Done** (2026-06-21, unreleased — Anvil's #3 upstream ask. First
+slice under D-011.)
+
+The kind-agnostic generator that applies the cross-language test-seam
+contract to a JS/TS project consuming a Rust crate, turning the WN-001
+_helper_ into an invokable `nx g @eddacraft/nxrust:add-rust-reference
+--project <js> --crate <rust>`. It reads the JS project config, applies
+`severCrossLanguageTestEdge` (severing the workspace-default `^build` by
+default; retaining it under `--consumesArtifactAtBuildTime`), writes back an
+explicit `test.dependsOn`, and warns if `--crate` is not an nxrust crate.
+Idempotent; `skipFormat` supported.
+
+- **Scope / non-scope.** This is _only_ the `test.dependsOn` seam — the part
+  every cross-language edge needs and that Nx gets wrong by default (ISS-001).
+  The binding-specific scaffolding of `add-napi` (manifest `crate-type =
+["cdylib"]`, `napi-derive`, npm dirs) and `add-wasm-reference` (bundler glue,
+  `pkg/` wiring) stays **Proposed** — those promote per D-007 against a
+  consumer's actual napi-rs / wasm-pack version with a borrow-vs-rewrite
+  decision, and will _wrap_ this generator rather than re-derive the seam. The
+  `napi` / `wasm-pack` executors likewise stay Proposed.
+- **Why a kind-agnostic name.** Resolves the module Open Question (merge vs
+  split) in favour of a shared seam core: `add-napi` / `add-wasm-reference`
+  become thin binding-specific wrappers over `add-rust-reference`, so the
+  D-009 contract has exactly one implementation. Adding it to `generators.json`
+  is the promotion D-WN2 anticipates (it is the seam core, not napi/wasm
+  tooling).
+- **Validation.** `pnpm test` — severs `^build` by default, preserves sibling
+  deps, retains under the opt-in, materialises a severed `test` when the JS
+  project has none, idempotent, warns on a non-Rust `--crate`, and surfaces a
+  clear error for a missing project. New generator → **minor** bump (D-008).
+
+_Further items (the `napi` / `wasm-pack` executors and the `add-napi` /
+`add-wasm` / `add-wasm-reference` scaffolding generators) stay Proposed and
+promote individually on real-consumer asks per D-007 — same gate as the
+original 02-monodon-parity module before refactor._
 
 ## Risks & Mitigations
 

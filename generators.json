@@ -40,6 +40,12 @@
       "factory": "./dist/generators/doctor/generator",
       "schema": "./dist/generators/doctor/schema.json",
       "description": "Diagnose nxrust workspace issues (read-only): cross-language `^build` test seams (ISS-001)."
+    },
+    "add-rust-reference": {
+      "factory": "./dist/generators/add-rust-reference/generator",
+      "schema": "./dist/generators/add-rust-reference/schema.json",
+      "description": "Wire a JS/TS project to a sibling Rust crate with the D-009 cross-language test-seam contract (overrides JS `test.dependsOn` so JS tests never trigger a transitive cargo build).",
+      "aliases": ["add-rust-ref"]
     }
   }
 }

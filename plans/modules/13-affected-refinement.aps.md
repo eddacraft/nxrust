@@ -139,8 +139,27 @@ Promote individual Work Items to Ready when:
 
 ## Work Items
 
-_No work items yet — module is Proposed. Items promote individually on
-real-consumer asks per D-007._
+### AFFECTED-001 — `nxrust explain affected <crate>` (ISS-004 #4)
+
+**Status: Ready** (promoted 2026-06-21 under D-012 — Anvil's #4 upstream ask;
+not yet built.)
+
+A read-only generator that, for a given crate, reports its cargo path/workspace
+dependency edges and the lockfile/manifest inputs that would mark it affected —
+explaining Nx's affected verdict. Mirrors the read-only generator pattern of
+`doctor` (DIAG-001) and `cache-report` (CACHE-OBS-001), reading edges/inputs
+straight off the project graph rather than recomputing inference.
+
+### WN-003 — First-class "Rust crate backing a JS package" + NAPI test defect (ISS-004 #6)
+
+**Status: Ready** (promoted 2026-06-21 under D-012 — Anvil's #6 upstream ask;
+not yet built. Spans modules 10/13; investigate alongside WN-002/the seam work.)
+
+Model a Rust crate that backs a JS package as a first-class relationship, and
+fix the inference **defect** Anvil's audit found: a NAPI package's Nx `test`
+target invoking `@eddacraft/nxrust:test` instead of the package's own scripts.
+
+_Further items promote individually per D-007 / D-010._
 
 ## Risks & Mitigations
 

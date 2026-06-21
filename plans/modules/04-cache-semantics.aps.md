@@ -206,6 +206,13 @@ artefact **restoration** at the relocated path (a plain miss-then-hit would pass
 even on the old behaviour) plus a no-false-hit check across two target-dirs.
 New decision D-C7.
 
+**Update 2026-06-21 (CACHE-OBS-001, module 14).** `resolveEnvTargetDirRoot` was
+lifted out of `graph.ts` into `src/utils/target-dir.ts` (behaviour-preserving —
+`graph.ts` now imports it) so the read-only `cache-report` generator can describe
+the same `CARGO_TARGET_DIR` resolution rule without duplicating it. The
+companion `resolveTargetDirRoot` adds the default-`target/` fallback for the
+report's human-facing output. No change to inference behaviour or D-C7.
+
 **Known boundary.** The env relocation is read at **graph-computation time**,
 because it feeds inferred outputs and Nx does not track env vars as project-graph
 inputs. A stable per-worktree relocation (e.g. via direnv, present before the

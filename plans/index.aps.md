@@ -308,3 +308,10 @@ items only ship when a real consumer ask promotes them.
   top three. This is the first multi-item promotion under D-010 and keeps
   its discipline — items still ship one Ready slice at a time, smallest
   coherent first. _Accepted 2026-06-21 (consumer-driven via Anvil)._
+  **Update 2026-06-21:** all three top items landed (unreleased) as
+  successive slices — CACHE-004 (relocation caching), DIAG-001 (`nxrust
+  doctor`, ISS-001 seam check), and WN-002 (`add-rust-reference` seam
+  generator). Each ships only its smallest coherent core: `doctor` carries
+  the ISS-001 check (not the full §6.14 catalogue), and WN-002 carries the
+  D-009 `test.dependsOn` seam (not the napi/wasm scaffolding, which stays
+  Proposed). ISS-004 items 4-7 remain the next candidates.

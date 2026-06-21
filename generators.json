@@ -46,6 +46,12 @@
       "schema": "./dist/generators/add-rust-reference/schema.json",
       "description": "Wire a JS/TS project to a sibling Rust crate with the D-009 cross-language test-seam contract (overrides JS `test.dependsOn` so JS tests never trigger a transitive cargo build).",
       "aliases": ["add-rust-ref"]
+    },
+    "cache-report": {
+      "factory": "./dist/generators/cache-report/generator",
+      "schema": "./dist/generators/cache-report/schema.json",
+      "description": "Report the effective cache contract per inferred Rust target (read-only): inputs, outputs, env allowlist, and resolved target-dir (honours CARGO_TARGET_DIR).",
+      "aliases": ["cache-info"]
     }
   }
 }

@@ -45,7 +45,7 @@ const INHERITED_BUILD = "^build";
  * edge — both are left alone. `'dependencies'` is only Nx's sentinel as a bare
  * string, never inside an array, so no array branch is needed.
  */
-function isInheritedBuildDep(entry: DependsOnEntry): boolean {
+export function isInheritedBuildDep(entry: DependsOnEntry): boolean {
   if (typeof entry === "string") return entry === INHERITED_BUILD;
   if (entry.target !== "build") return false;
   return entry.dependencies === true || entry.projects === "dependencies";

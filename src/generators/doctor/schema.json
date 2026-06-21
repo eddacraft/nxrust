@@ -1,0 +1,9 @@
+{
+  "$schema": "http://json-schema.org/schema",
+  "$id": "NxRustDoctor",
+  "title": "@eddacraft/nxrust:doctor",
+  "description": "Diagnose nxrust workspace issues (read-only). Reports cross-language `^build` test seams that serialise JS tests on the cargo `target/` lock (ISS-001).",
+  "type": "object",
+  "properties": {},
+  "required": []
+}

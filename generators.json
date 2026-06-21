@@ -35,6 +35,11 @@
       "schema": "./dist/generators/release-version/schema.json",
       "description": "Bump a Cargo crate's version. Invoked by `nx release version`, not directly.",
       "hidden": true
+    },
+    "doctor": {
+      "factory": "./dist/generators/doctor/generator",
+      "schema": "./dist/generators/doctor/schema.json",
+      "description": "Diagnose nxrust workspace issues (read-only): cross-language `^build` test seams (ISS-001)."
     }
   }
 }

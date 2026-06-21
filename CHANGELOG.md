@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+- New `@eddacraft/nxrust:doctor` generator — a read-only workspace diagnostic.
+  Its first check finds cross-language `^build` test seams: a JS project whose
+  `test` target inherits the workspace-default `^build` across a dependency edge
+  to a Rust crate, which silently routes every JS test through a transitive
+  cargo build and serialises on the workspace `target/` lock (ISS-001;
+  anvil-001#1729 measured 40m03s → ~52s once severed). `doctor` reports each
+  seam with a structured diagnostic and the fix; it makes no edits, so it is
+  safe to run in CI. Backed by a shared `formatDiagnostic` helper (with secret
+  redaction). Anvil's #2 upstream ask (unblocks Anvil ADR-049).
 - Relocation-aware build output caching: when the cargo target directory is
   relocated via a `--target-dir` option, the `CARGO_TARGET_DIR` env var, or
   (per-target) option, inferred `build` outputs now follow it with the same

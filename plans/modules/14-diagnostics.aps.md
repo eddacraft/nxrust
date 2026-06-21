@@ -1,5 +1,5 @@
 <!-- APS Module: 14-diagnostics -->
-<!-- Status: Proposed -->
+<!-- Status: In Progress -->
 
 # Diagnostics
 
@@ -7,9 +7,9 @@ Actionable error messages for cargo, toolchain, and tool-missing
 failures. Every error names what failed, why it matters, the exact
 command attempted, and the suggested fix.
 
-| ID   | Owner     | Status                                              |
-| ---- | --------- | --------------------------------------------------- |
-| DIAG | eddacraft | Proposed (`nxrust doctor` Ready — Anvil #2, D-011)  |
+| ID   | Owner     | Status                                                        |
+| ---- | --------- | ------------------------------------------------------------- |
+| DIAG | eddacraft | In Progress (DIAG-001 done 2026-06-21, unreleased — Anvil #2) |
 
 ## Purpose
 
@@ -140,10 +140,34 @@ Promote individual Work Items to Ready when:
 
 ## Work Items
 
-_No work items yet — module is Proposed. Items promote individually on
-real-consumer asks per D-007. Diagnostics may also be added as part of
-other modules' Work Items where the diagnostic is integral to the
-feature — note in the Work Item which diagnostic codes it introduces._
+### DIAG-001 — `formatDiagnostic` helper + `nxrust doctor` (ISS-001 seam check)
+
+**Status: Done** (2026-06-21, unreleased — Anvil's #2 upstream ask; Anvil
+ADR-049 waits on `doctor`. First slice under D-011.)
+
+- `src/utils/diagnostics.ts` — the shared `formatDiagnostic({ what, why,
+  command?, fix, severity? })` helper (spec §6.14 envelope) with secret
+  redaction (`redactSecrets` strips `TOKEN`/`SECRET`/`KEY`/`PASSWORD` values
+  from the `command:` field, D-D / module constraint).
+- `@eddacraft/nxrust:doctor` generator (`src/generators/doctor/`) — read-only;
+  resolves the project graph and reports the **ISS-001 cross-language `^build`
+  test seam**: a JS project whose merged `test` target still inherits `^build`
+  across a dependency edge to a Rust crate. Pure detection
+  (`findCrossLanguageBuildSeams`) is split from the generator for unit testing
+  and reuses the exact `isInheritedBuildDep` matcher that the WN-001 seam
+  helpers use, so detection and fix never diverge. Ships as a generator because
+  that is the Nx entry point with graph access and there is no synthetic
+  `rust-workspace` project to host an executor yet (module 12, Proposed).
+
+**Deferred to later DIAG slices** (not in DIAG-001): the rest of the §6.14
+catalogue (cargo/toolchain/tool-missing pre-flight checks), the cache-config
+warnings (`CARGO_TARGET_DIR` / lockfile / toolchain surprises), `--json-diagnostics`
+for Nx Console, `explain affected` (ISS-004 #4, module 13), and routing
+existing executor errors through `formatDiagnostic`.
+
+_Further items promote individually per D-007 / D-010. Diagnostics may also be
+added as part of other modules' Work Items where the diagnostic is integral to
+the feature — note which codes it introduces._
 
 ## Risks & Mitigations
 

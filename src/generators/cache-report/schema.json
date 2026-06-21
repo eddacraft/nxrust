@@ -1,0 +1,23 @@
+{
+  "$schema": "http://json-schema.org/schema",
+  "$id": "NxRustCacheReport",
+  "title": "@eddacraft/nxrust:cache-report",
+  "description": "Report the effective cache contract per inferred Rust target (read-only): inputs, outputs, the env allowlist pinned into the cache key, and the resolved target-dir (honours CARGO_TARGET_DIR).",
+  "type": "object",
+  "properties": {
+    "project": {
+      "type": "string",
+      "description": "Restrict the report to a single project by name.",
+      "$default": {
+        "$source": "argv",
+        "index": 0
+      }
+    },
+    "json": {
+      "type": "boolean",
+      "description": "Emit the report as structured JSON instead of the human-readable layout.",
+      "default": false
+    }
+  },
+  "required": []
+}

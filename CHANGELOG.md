@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+- New `@eddacraft/nxrust:cache-report` generator (alias `cache-info`) — a
+  read-only cache-observability report. For each inferred Rust crate it prints,
+  per nxrust target, the effective `inputs`, `outputs`, the environment-variable
+  allowlist that participates in the cache key, and the resolved target-dir root
+  (honouring a relocated `CARGO_TARGET_DIR` via the same rule the inference path
+  uses). Pass `--project <name>` to scope it to one project, or `--json` for
+  structured output. It reads the contract straight off the project graph that
+  nxrust already inferred and makes no edits, so it is safe to run in CI. Unlike
+  `doctor` (which warns about problems), this just answers "what is in my cache
+  key and where do artefacts land?". New generator → **minor** bump (D-008).
+  Anvil's #7 upstream ask.
 - New `@eddacraft/nxrust:add-rust-reference` generator — wires a JS/TS project
   to a sibling Rust crate with the D-009 cross-language test-seam contract.
   It explicitly overrides the JS project's `test.dependsOn` to sever the

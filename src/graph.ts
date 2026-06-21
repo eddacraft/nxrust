@@ -12,10 +12,11 @@ import {
 } from "@nx/devkit";
 import { DependencyType, type ProjectGraphExternalNode } from "nx/src/config/project-graph";
 import { statSync } from "node:fs";
-import { dirname, isAbsolute, join, relative } from "node:path";
+import { dirname, join, relative } from "node:path";
 import type { CargoMetadata, CargoPackage } from "./models/cargo-metadata";
 import { cargoMetadata, isExternal } from "./utils/cargo";
 import { resolveToolchain, validateChannelLiteral } from "./utils/rust-toolchain";
+import { resolveEnvTargetDirRoot } from "./utils/target-dir";
 import {
   buildTargetConfig,
   checkTargetConfig,
@@ -67,29 +68,6 @@ function metadataCacheKey(workspaceRoot: string, options: NxRustPluginOptions): 
     `${workspaceRoot}|narrowBuildOutputs:${options.narrowBuildOutputs !== false}` +
     `|targetDir:${process.env.CARGO_TARGET_DIR ?? ""}`
   );
-}
-
-/**
- * Resolve the Nx output-token root cargo writes build artefacts under when a
- * `CARGO_TARGET_DIR` relocation is in effect. cargo's `--target-dir` option
- * takes precedence and is handled per-target in `target-configs.ts`; here we
- * cover the env var, which the plugin reads at inference time. A dir inside the
- * workspace is expressed workspace-relative so the token stays portable across
- * machines; an external dir uses its absolute path. Returns `undefined` for the
- * default `target/`, so callers fall back to `{workspaceRoot}/target`. See D-C7.
- */
-function resolveEnvTargetDirRoot(
-  workspaceRoot: string,
-  env: NodeJS.ProcessEnv = process.env,
-): string | undefined {
-  const raw = env.CARGO_TARGET_DIR?.trim();
-  if (!raw) return undefined;
-  const absRoot = isAbsolute(raw) ? raw : join(workspaceRoot, raw);
-  const rel = relative(workspaceRoot, absRoot);
-  if (rel && !rel.startsWith("..") && !isAbsolute(rel)) {
-    return `{workspaceRoot}/${normalizePath(rel)}`;
-  }
-  return normalizePath(absRoot);
 }
 
 function fileFingerprint(path: string): string {

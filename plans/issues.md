@@ -106,7 +106,7 @@ creates no `.tgz`.
 
 | Field           | Value                                          |
 | --------------- | ---------------------------------------------- |
-| Status          | Open — top-3 promoted to Ready (D-011)         |
+| Status          | Open — all 7 promoted to Ready (D-011, D-012)  |
 | Discovered      | 2026-06-21                                     |
 | Severity        | n/a (demand intake, not a defect)              |
 | Source          | Anvil (eddacraft/anvil), downstream consumer   |
@@ -138,19 +138,35 @@ Anvil-prioritised items are promoted to Ready per D-011.
    that apply it are the next slice. **Promoted → Ready (D-011).**
 4. `nxrust explain affected <crate>` → module 13. Show cargo path deps,
    workspace deps, lockfile impact, and why Nx marked a crate/project
-   affected. Recorded; promotes after the top three.
+   affected. **Promoted → AFFECTED-001 (Ready, D-012); not yet built.**
+   Scope: a read-only generator that, for a given crate, reports its cargo
+   path/workspace dependency edges and the lockfile/manifest inputs that
+   would mark it affected — explaining Nx's affected verdict.
 5. `nxrust list` / metadata target → module 12. First-class crate / package
    / target / workspace-membership reporting, instead of Anvil shelling
-   `nx show projects --withTarget=check`. Recorded.
+   `nx show projects --withTarget=check`. **Promoted → LIST-001 (Ready,
+   D-012); not yet built.** Scope: a read-only crate/package/target/
+   workspace-membership listing surface (human + `--json`) so consumers stop
+   shelling `nx show projects --withTarget=check`.
 6. First-class "Rust crate backing a JS package" → modules 10/13. Partly a
    **defect**: Anvil's audit found an Nx test target invoking
    `@eddacraft/nxrust:test` for a NAPI package instead of the package's own
-   scripts. Recorded; investigate alongside #3.
+   scripts. **Promoted → WN-003 (Ready, D-012); not yet built.** Scope:
+   model a Rust crate that backs a JS package as a first-class relationship,
+   and fix the inference defect so a NAPI package's `test` runs the package's
+   own scripts, not `@eddacraft/nxrust:test`; investigate alongside #3.
 7. Cache observability — print the effective inputs, outputs, env allowlist,
-   and target-dir per Rust target → modules 04/14. A natural sub-feature of
-   `nxrust doctor` (#2). Recorded.
+   and target-dir per Rust target → modules 04/14. A natural sibling of
+   `nxrust doctor` (#2). **Promoted → CACHE-OBS-001 (Ready, D-012); BUILT
+   (unreleased) as the first slice of items 4-7.** Scope: a read-only
+   `cache-report` generator that prints each inferred Rust target's effective
+   `inputs`, `outputs`, the `CACHE_ENV_ALLOWLIST` entries pinned into the key,
+   and the resolved target-dir (honouring `CARGO_TARGET_DIR` via the shared
+   `resolveTargetDirRoot` rule), reading inference straight off the graph
+   nodes. Separate from `doctor` (problems) — this is observability.
 
-Anvil's stated top three: #1, #2, #3.
+Anvil's stated top three: #1, #2, #3. Items 4-7 promoted under D-012; #7
+(cache observability) built first as the smallest, lowest-risk slice.
 
 ## Questions
 

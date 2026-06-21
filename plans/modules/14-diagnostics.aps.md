@@ -9,7 +9,7 @@ command attempted, and the suggested fix.
 
 | ID   | Owner     | Status                                                        |
 | ---- | --------- | ------------------------------------------------------------- |
-| DIAG | eddacraft | In Progress (DIAG-001 done 2026-06-21, unreleased — Anvil #2) |
+| DIAG | eddacraft | In Progress (DIAG-001 done — Anvil #2; CACHE-OBS-001 done — Anvil #7; both unreleased) |
 
 ## Purpose
 
@@ -164,6 +164,34 @@ catalogue (cargo/toolchain/tool-missing pre-flight checks), the cache-config
 warnings (`CARGO_TARGET_DIR` / lockfile / toolchain surprises), `--json-diagnostics`
 for Nx Console, `explain affected` (ISS-004 #4, module 13), and routing
 existing executor errors through `formatDiagnostic`.
+
+### CACHE-OBS-001 — `nxrust cache-report` cache-observability generator (ISS-004 #7)
+
+**Status: Done** (2026-06-21, unreleased — Anvil's #7 upstream ask; first slice
+of ISS-004 items 4-7 under D-012. Spans modules 04/14.)
+
+- `@eddacraft/nxrust:cache-report` generator (`src/generators/cache-report/`,
+  alias `cache-info`) — read-only; resolves the project graph and prints, per
+  inferred Rust crate, each nxrust target's effective `inputs`, `outputs`, the
+  `CACHE_ENV_ALLOWLIST` entries pinned into the cache key, and the resolved
+  target-dir root. Accepts `--project <name>` to filter and `--json` for
+  structured output. Pure collection (`collectCacheReport`) is split from the
+  generator for unit testing, mirroring `doctor`'s `diagnose.ts`.
+- Reads inputs/outputs **straight off the graph nodes' target configs** — it
+  never recomputes inference (`graph.ts`/CACHE-004 already did). The only
+  derivation is the target-dir root, via `resolveTargetDirRoot`
+  (`src/utils/target-dir.ts`), where `resolveEnvTargetDirRoot` was lifted out of
+  `graph.ts` (behaviour-preserving — `graph.ts` now imports it) so the report
+  and the real cache key share one `CARGO_TARGET_DIR` resolution rule (D-C7).
+- Distinct from `doctor`: `doctor` warns about problems; `cache-report` is
+  observability — it answers "what is in my cache key and where do artefacts
+  land?" without judging it. Ships as a generator for the same reason `doctor`
+  does (no synthetic `rust-workspace` executor host yet, module 12).
+
+**Deferred** (not in CACHE-OBS-001, still Ready under D-012, not yet built):
+AFFECTED-001 (`explain affected`, module 13), LIST-001 (`nxrust list`, module
+12), WN-003 (first-class JS-backing-crate + NAPI test-target defect, modules
+10/13).
 
 _Further items promote individually per D-007 / D-010. Diagnostics may also be
 added as part of other modules' Work Items where the diagnostic is integral to

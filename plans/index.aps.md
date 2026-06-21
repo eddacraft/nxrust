@@ -315,3 +315,19 @@ items only ship when a real consumer ask promotes them.
   the ISS-001 check (not the full §6.14 catalogue), and WN-002 carries the
   D-009 `test.dependsOn` seam (not the napi/wasm scaffolding, which stays
   Proposed). ISS-004 items 4-7 remain the next candidates.
+- **D-012:** Anvil wishlist items 4-7 promoted (2026-06-21). With the
+  D-011 top three landed, the remaining four ISS-004 asks promote to Ready
+  under D-010, each recorded against its module: AFFECTED-001 (`explain
+  affected`, module 13), LIST-001 (`nxrust list`/metadata, module 12),
+  WN-003 (first-class JS-backing-crate + the NAPI test-target defect,
+  modules 10/13), and CACHE-OBS-001 (cache observability, modules 04/14).
+  Honouring D-010 discipline (one smallest-coherent slice at a time), the
+  **first slice built is CACHE-OBS-001 — a read-only `cache-report`
+  generator** that prints each inferred Rust target's effective inputs,
+  outputs, env allowlist, and resolved target-dir. It builds directly on the
+  just-merged `doctor` (read-only generator pattern) and CACHE-004
+  (`resolveEnvTargetDirRoot`, lifted to `src/utils/target-dir.ts` and reused
+  unchanged), is self-contained, and reads inference straight off the graph
+  nodes rather than recomputing it. AFFECTED-001, LIST-001, and WN-003 are
+  Ready-but-not-yet-built and remain the next candidates. _Accepted
+  2026-06-21 (consumer-driven via Anvil)._

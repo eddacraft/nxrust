@@ -3,6 +3,7 @@ dist/
 coverage/
 .nx/
 target/
+.cargo-target-*/
 Cargo.lock
 .e2e-pack/
 .cache-matrix-pack/

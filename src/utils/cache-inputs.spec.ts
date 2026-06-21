@@ -65,6 +65,22 @@ describe("cache input contract", () => {
     ]);
   });
 
+  it("roots narrow outputs at a relocated targetDirRoot (D-C7)", () => {
+    expect(
+      buildCacheOutputs({
+        target: "build",
+        binaries: ["cli"],
+        libraries: ["my-crate"],
+        targetDirRoot: "{workspaceRoot}/.cargo-target",
+      }),
+    ).toEqual([
+      "{workspaceRoot}/.cargo-target/debug/cli",
+      "{workspaceRoot}/.cargo-target/debug/libmy_crate.rlib",
+      "{workspaceRoot}/.cargo-target/release/cli",
+      "{workspaceRoot}/.cargo-target/release/libmy_crate.rlib",
+    ]);
+  });
+
   it("keeps the wide v0.1 build outputs when narrowBuildOutputs is false", () => {
     expect(
       buildCacheOutputs({

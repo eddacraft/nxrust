@@ -428,6 +428,51 @@ describe("inferred project targets", () => {
     ]);
   });
 
+  it("roots narrow build outputs at a relocated CARGO_TARGET_DIR (D-C7)", async () => {
+    await setMetadata(
+      md([
+        pkg({
+          name: "relocated-cli",
+          targets: [
+            { kind: ["lib"], crate_types: ["lib"], name: "relocated-cli", src_path: "" },
+            { kind: ["bin"], crate_types: ["bin"], name: "reloc", src_path: "" },
+          ],
+        }),
+      ]),
+    );
+
+    const { createNodesV2 } = await load();
+    const fn = createNodesV2[1] as (
+      paths: readonly string[],
+      opts: unknown,
+      ctx: { workspaceRoot: string; nxJsonConfiguration: object },
+    ) => Promise<
+      Array<
+        [string, { projects: Record<string, { targets: Record<string, { outputs?: string[] }> }> }]
+      >
+    >;
+
+    const prev = process.env.CARGO_TARGET_DIR;
+    process.env.CARGO_TARGET_DIR = ".cargo-target";
+    try {
+      const result = await fn(
+        ["crates/relocated-cli/Cargo.toml"],
+        {},
+        { workspaceRoot: ws, nxJsonConfiguration: {} },
+      );
+      const [, payload] = result[0];
+      expect(payload.projects["crates/relocated-cli"].targets.build.outputs).toEqual([
+        "{workspaceRoot}/.cargo-target/debug/reloc",
+        "{workspaceRoot}/.cargo-target/debug/librelocated_cli.rlib",
+        "{workspaceRoot}/.cargo-target/release/reloc",
+        "{workspaceRoot}/.cargo-target/release/librelocated_cli.rlib",
+      ]);
+    } finally {
+      if (prev === undefined) delete process.env.CARGO_TARGET_DIR;
+      else process.env.CARGO_TARGET_DIR = prev;
+    }
+  });
+
   it("keeps narrow outputs for crates with build.rs, examples, tests, and benches", async () => {
     // `cargo metadata` reports these auxiliary targets with a non-`bin` kind
     // but `crate_types: ['bin']`. They must NOT trip the unsupported-library

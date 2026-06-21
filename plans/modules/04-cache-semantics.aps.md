@@ -1,5 +1,5 @@
 <!-- APS Module: 04-cache-semantics -->
-<!-- Status: In Progress -->
+<!-- Status: Complete -->
 
 # Cache Semantics
 
@@ -8,7 +8,7 @@ conservative output narrowing.
 
 | ID    | Owner     | Status                                            |
 | ----- | --------- | ------------------------------------------------- |
-| CACHE | eddacraft | In Progress (CACHE-001..003 shipped; CACHE-004 Ready — Anvil #1) |
+| CACHE | eddacraft | Complete (CACHE-001..003 shipped; CACHE-004 Done 2026-06-21, unreleased) |
 
 ## Purpose
 
@@ -189,8 +189,32 @@ any regression. Wired into CI as a parallel `cache-matrix` job and the
 
 ### CACHE-004 — Relocation-aware build output caching (`CARGO_TARGET_DIR`)
 
-**Status: Ready** (promoted 2026-06-21 on Anvil consumer demand — their #1
-upstream ask; tracks Anvil DEVENV-003. First build slice under D-011.)
+**Status: Done** (2026-06-21, unreleased — Anvil's #1 upstream ask; tracks
+Anvil DEVENV-003. First build slice under D-011.)
+
+`buildCacheOutputs` (`src/utils/cache-inputs.ts`) now roots narrow per-binary /
+per-rlib outputs at a `targetDirRoot` token (default `{workspaceRoot}/target`).
+`buildTargetConfig` (`src/utils/target-configs.ts`) roots them at
+`{options.target-dir}` when a `--target-dir` option is set, and `graph.ts`
+resolves a `CARGO_TARGET_DIR` env relocation at inference time
+(`resolveEnvTargetDirRoot`) — workspace-relative when inside the workspace,
+absolute otherwise. A custom target triple or custom profile still reshapes the
+path and falls back to the wide escape hatch. `CARGO_TARGET_DIR` was already in
+the env cache-key allowlist and now also keys the in-process graph cache. Proven
+end-to-end by a new relocation shape in `tools/cache-matrix.mjs` that asserts
+artefact **restoration** at the relocated path (a plain miss-then-hit would pass
+even on the old behaviour) plus a no-false-hit check across two target-dirs.
+New decision D-C7.
+
+**Known boundary.** The env relocation is read at **graph-computation time**,
+because it feeds inferred outputs and Nx does not track env vars as project-graph
+inputs. A stable per-worktree relocation (e.g. via direnv, present before the
+graph is first built — the Anvil case) is fully cache-correct; a relocation that
+*changes* mid-session needs an `nx reset` to recompute the graph. The
+`--target-dir` *option* path has no such caveat (it is interpolated from static
+target options). Documented for consumers; a follow-up could fold
+`CARGO_TARGET_DIR` into a graph-invalidation signal if a consumer needs
+mid-session switching.
 
 **Problem.** `buildCacheOutputs` (`src/utils/cache-inputs.ts`) emits narrow
 per-binary / per-rlib paths only under the default `{workspaceRoot}/target`.

@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+- Relocation-aware build output caching: when the cargo target directory is
+  relocated via a `--target-dir` option, the `CARGO_TARGET_DIR` env var, or
+  (per-target) option, inferred `build` outputs now follow it with the same
+  narrow per-binary/per-rlib paths used for the default `target/`, instead of
+  falling back to the wide whole-`target/` escape hatch. Relocated worktrees
+  (e.g. a per-worktree `CARGO_TARGET_DIR` set via direnv) therefore get real
+  Nx cache **reuse** rather than safe-but-empty cache misses. A custom target
+  triple or custom profile still uses the wide escape hatch, since those
+  reshape the artefact path. The env var is read when the project graph is
+  computed; a relocation that changes mid-session needs `nx reset` to
+  recompute the graph. Cache-rule change → **minor** bump (D-008). Anvil's #1
+  upstream ask (tracks Anvil DEVENV-003).
 - Add the Anvil Plan Spec support files used to track project planning,
   validation rules, and execution checklists in-repo.
 - Move APS tooling into the `.aps/` layout, including the `aps` CLI wrapper,

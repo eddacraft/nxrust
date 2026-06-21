@@ -20,7 +20,7 @@
 // and needs no registry/network access — a cache miss must never become a
 // failure (module 04 constraint).
 
-import { readFileSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { spawnSync } from "node:child_process";
 
@@ -67,7 +67,7 @@ function run(command, args, options = {}) {
 
 // Run an Nx target and report whether the run was served from cache. Output is
 // captured (not inherited) so we can inspect the cache markers Nx prints.
-function runTarget(project, target) {
+function runTarget(project, target, extraEnv = {}) {
   const result = spawnSync(
     "pnpm",
     ["exec", "nx", "run", `${project}:${target}`, "--output-style=stream"],
@@ -75,7 +75,7 @@ function runTarget(project, target) {
       cwd: fixtureDir,
       encoding: "utf8",
       shell: process.platform === "win32",
-      env: childEnv,
+      env: { ...childEnv, ...extraEnv },
     },
   );
   const output = `${result.stdout ?? ""}${result.stderr ?? ""}`;
@@ -93,6 +93,8 @@ function runTarget(project, target) {
 rmSync(packDir, { recursive: true, force: true });
 rmSync(join(fixtureDir, ".nx"), { recursive: true, force: true });
 rmSync(join(fixtureDir, "target"), { recursive: true, force: true });
+rmSync(join(fixtureDir, ".cargo-target-A"), { recursive: true, force: true });
+rmSync(join(fixtureDir, ".cargo-target-B"), { recursive: true, force: true });
 rmSync(join(fixtureDir, "ts-app", "dist"), { recursive: true, force: true });
 rmSync(join(fixtureDir, "node_modules", "@eddacraft", "nxrust"), {
   recursive: true,
@@ -143,6 +145,62 @@ try {
     }
   }
 
+  // CACHE-004 / D-C7: a relocated CARGO_TARGET_DIR must still cache *and
+  // restore* build artefacts, not merely report a task-level hit. A pure
+  // miss-then-hit check would pass even on the pre-D-C7 behaviour, because the
+  // task result is keyed on inputs and hits regardless of where the artefacts
+  // landed. The decisive check is restoration: build into a relocated dir,
+  // delete it (keeping the Nx cache), rebuild — the binary must reappear at the
+  // relocated path. Pre-D-C7 the declared outputs pointed at the default
+  // `{workspaceRoot}/target`, so nothing was captured from the relocated dir
+  // and the rebuild restores no artefact.
+  //
+  // The env var is read at graph-computation time (it feeds inferred outputs),
+  // so the project graph must be recomputed with it set — Nx does not track env
+  // as a graph input and would otherwise reuse the non-relocated graph from the
+  // matrix loop above. Clearing `.nx` forces that recompute and also makes the
+  // first relocated run a guaranteed miss. This mirrors the supported real-world
+  // case: a stable per-worktree relocation (e.g. via direnv) present before the
+  // graph is first built. A relocation that *changes* mid-session needs an
+  // `nx reset`; see CACHE-004.
+  const relocA = join(fixtureDir, ".cargo-target-A");
+  const relocB = join(fixtureDir, ".cargo-target-B");
+  const relocBin = join(relocA, "debug", "app");
+  rmSync(relocA, { recursive: true, force: true });
+  rmSync(relocB, { recursive: true, force: true });
+  rmSync(join(fixtureDir, ".nx"), { recursive: true, force: true });
+
+  const relocFirst = runTarget("app", "build", { CARGO_TARGET_DIR: relocA });
+  if (relocFirst.fromCache) {
+    misses.push("app:build@reloc (unexpected cache hit on first relocated run)");
+  } else if (!existsSync(relocBin)) {
+    misses.push("app:build@reloc (binary not produced at the relocated target-dir)");
+  } else {
+    // Drop the artefacts but keep the Nx cache, then rebuild.
+    rmSync(relocA, { recursive: true, force: true });
+    const relocSecond = runTarget("app", "build", { CARGO_TARGET_DIR: relocA });
+    checked.push("app:build@reloc");
+    if (!relocSecond.fromCache) {
+      misses.push("app:build@reloc (cache MISS on second relocated run)");
+      process.stdout.write(relocSecond.output);
+    } else if (!existsSync(relocBin)) {
+      misses.push(
+        "app:build@reloc (cache hit did NOT restore the binary to the relocated target-dir)",
+      );
+    } else {
+      console.log("  cache hit + artefact restored: app:build@reloc");
+    }
+
+    // A different target-dir must NOT serve the relocated cache — CARGO_TARGET_DIR
+    // participates in the task cache key, so this run must miss (no false hit).
+    const relocOther = runTarget("app", "build", { CARGO_TARGET_DIR: relocB });
+    if (relocOther.fromCache) {
+      misses.push("app:build@reloc (false cache hit across two different target-dirs)");
+    } else {
+      console.log("  correct miss on a different target-dir: app:build@reloc");
+    }
+  }
+
   if (misses.length > 0) {
     console.error("\nCache-correctness regression — the following targets did");
     console.error("not behave as cacheable on unchanged inputs:\n");
@@ -162,5 +220,7 @@ try {
   rmSync(fixtureToolchain, { force: true });
   rmSync(join(fixtureDir, ".nx"), { recursive: true, force: true });
   rmSync(join(fixtureDir, "target"), { recursive: true, force: true });
+  rmSync(join(fixtureDir, ".cargo-target-A"), { recursive: true, force: true });
+  rmSync(join(fixtureDir, ".cargo-target-B"), { recursive: true, force: true });
   rmSync(join(fixtureDir, "ts-app", "dist"), { recursive: true, force: true });
 }

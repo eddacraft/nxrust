@@ -1,14 +1,14 @@
 <!-- APS Module: 04-cache-semantics -->
-<!-- Status: Complete -->
+<!-- Status: In Progress -->
 
 # Cache Semantics
 
 Cache-correctness for Rust tasks: named inputs, environment hashing, and
 conservative output narrowing.
 
-| ID    | Owner     | Status   |
-| ----- | --------- | -------- |
-| CACHE | eddacraft | Complete |
+| ID    | Owner     | Status                                            |
+| ----- | --------- | ------------------------------------------------- |
+| CACHE | eddacraft | In Progress (CACHE-001..003 shipped; CACHE-004 Ready — Anvil #1) |
 
 ## Purpose
 
@@ -187,7 +187,55 @@ any regression. Wired into CI as a parallel `cache-matrix` job and the
 `pnpm cache-matrix` script. All path-dependencies keep the matrix hermetic
 (no registry/network access). Satisfies spec §8.1 "add CI fixture matrix".
 
-_Further items promote individually on real-consumer asks per D-007._
+### CACHE-004 — Relocation-aware build output caching (`CARGO_TARGET_DIR`)
+
+**Status: Ready** (promoted 2026-06-21 on Anvil consumer demand — their #1
+upstream ask; tracks Anvil DEVENV-003. First build slice under D-011.)
+
+**Problem.** `buildCacheOutputs` (`src/utils/cache-inputs.ts`) emits narrow
+per-binary / per-rlib paths only under the default `{workspaceRoot}/target`.
+When the effective target directory is relocated — via the `--target-dir`
+option, the `CARGO_TARGET_DIR` env var, or `.cargo/config.toml`
+`build.target-dir` — `target-configs.ts` forces `narrowBuildOutputs: false`,
+so `buildCacheOutputs` returns the wide escape hatch
+`["{options.target-dir}", "{workspaceRoot}/target"]`. For **env-var**
+relocation nxrust never learns the path, so outputs point at an empty
+`{workspaceRoot}/target` and the cache captures nothing → safe miss, no
+reuse. Anvil's relocated worktrees therefore get correctness without cache
+reuse — the failure DEVENV-003 tracks.
+
+**In scope.**
+
+- Resolve the effective target directory once, with cargo's precedence:
+  `--target-dir` option > `CARGO_TARGET_DIR` env > `.cargo/config.toml`
+  `build.target-dir` > default `{workspaceRoot}/target`. (Config/toolchain
+  resolution overlaps [06-toolchain-awareness](./06-toolchain-awareness.aps.md);
+  keep a minimal resolver here and converge later.)
+- When the resolved dir differs from the default, still emit **narrow**
+  per-binary / per-rlib outputs rooted at the resolved dir (relative to
+  `{workspaceRoot}` where the dir is inside it, else an absolute /
+  `{options.target-dir}` token Nx can capture), instead of the wide escape
+  hatch.
+- Keep the wide escape hatch only for the genuinely unsafe cases CACHE-002 /
+  D-C6 carve out (custom target triple, crate types beyond `lib`/`rlib`/`bin`,
+  explicit `narrowBuildOutputs: false`). **Relocation alone is no longer
+  "unsafe".**
+- `CARGO_TARGET_DIR` already participates in the cache key (env allowlist);
+  confirm the target triple / resolved target-dir likewise differentiate so a
+  relocated narrow output can never alias a default-dir hit.
+- Extend `tools/cache-matrix.mjs` with a relocated-target-dir shape (both
+  `CARGO_TARGET_DIR` env and `.cargo/config.toml`) asserting miss-then-hit on
+  the second run, mirroring CACHE-003.
+
+**Acceptance.**
+
+- A crate built with a relocated target-dir misses on first run and **hits**
+  on the second with unchanged inputs (today it misses both).
+- No false hit across two different target-dirs for otherwise-identical inputs.
+- Default-dir behaviour is byte-for-byte unchanged (regression-safe vs
+  CACHE-002).
+
+_Further items promote individually on real-consumer asks per D-007 / D-010._
 
 ## Risks & Mitigations
 
@@ -228,6 +276,15 @@ target` tree — answering the build-output open question in favour of the
   target-dir, custom target triple, crate types beyond `lib`/`rlib`/`bin`)
   and is also reachable via `narrowBuildOutputs: false`. _Accepted
   (CACHE-002)._
+- **D-C7:** Relocation is cache-safe, not an escape-hatch trigger. A
+  relocated effective target directory (`--target-dir` / `CARGO_TARGET_DIR` /
+  `.cargo/config.toml` `build.target-dir`) gets the same narrow per-binary /
+  per-rlib outputs as the default `target/`, rooted at the resolved dir.
+  The wide-output escape hatch is reserved for cases narrow paths cannot
+  express (custom target triple, non-`lib`/`rlib`/`bin` crate types, explicit
+  `narrowBuildOutputs: false`). Supersedes the part of D-C6 that auto-selected
+  the wide hatch on a custom target-dir. Cache-rule change → **minor** bump
+  (D-008). _Accepted 2026-06-21 (CACHE-004, Anvil-driven)._
 
 ## Open Questions
 

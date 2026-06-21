@@ -6,9 +6,9 @@
 `wasm-pack` and `napi-rs` executors and generators. Closes the
 Monodon-parity surface for Node-native and browser-targeted Rust crates.
 
-| ID        | Owner     | Status   |
-| --------- | --------- | -------- |
-| WASM-NAPI | eddacraft | Proposed |
+| ID        | Owner     | Status                                                                  |
+| --------- | --------- | ----------------------------------------------------------------------- |
+| WASM-NAPI | eddacraft | Proposed (WN-001 shipped 0.2.0; seam generators Ready — Anvil #3, D-011) |
 
 ## Purpose
 

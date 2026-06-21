@@ -29,6 +29,16 @@ export function buildTargetConfig(
   cache: CacheOpts = {},
   outputs: BuildOutputOpts = {},
 ): TargetConfiguration {
+  // A custom target triple (`<root>/<triple>/<profile>/…`) or custom profile
+  // (`<root>/<profile-name>/…`) reshapes the artefact path, which the narrow
+  // `<root>/{debug,release}/<artefact>` rule cannot express — those fall back
+  // to the wide escape hatch. A relocated target *dir* only moves the root, so
+  // it stays narrowable (D-C7): root the narrow outputs at `{options.target-dir}`
+  // (Nx interpolates the option value), overriding any env-derived root.
+  const structureChanged = Boolean(options.target || options.profile);
+  const targetDirRoot = options["target-dir"]
+    ? "{options.target-dir}"
+    : outputs.targetDirRoot;
   return {
     executor: "@eddacraft/nxrust:build",
     cache: true,
@@ -36,10 +46,8 @@ export function buildTargetConfig(
     outputs: buildCacheOutputs({
       target: "build",
       ...outputs,
-      narrowBuildOutputs:
-        options.target || options["target-dir"] || options.profile
-          ? false
-          : outputs.narrowBuildOutputs,
+      targetDirRoot,
+      narrowBuildOutputs: structureChanged ? false : outputs.narrowBuildOutputs,
     }),
     options,
     configurations: {

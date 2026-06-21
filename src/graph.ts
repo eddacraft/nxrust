@@ -12,7 +12,7 @@ import {
 } from "@nx/devkit";
 import { DependencyType, type ProjectGraphExternalNode } from "nx/src/config/project-graph";
 import { statSync } from "node:fs";
-import { dirname, join, relative } from "node:path";
+import { dirname, isAbsolute, join, relative } from "node:path";
 import type { CargoMetadata, CargoPackage } from "./models/cargo-metadata";
 import { cargoMetadata, isExternal } from "./utils/cargo";
 import { resolveToolchain, validateChannelLiteral } from "./utils/rust-toolchain";
@@ -60,7 +60,36 @@ interface NxRustPluginOptions {
 const metadataCache = new Map<string, { fingerprint: string; result: GraphComputation }>();
 
 function metadataCacheKey(workspaceRoot: string, options: NxRustPluginOptions): string {
-  return `${workspaceRoot}|narrowBuildOutputs:${options.narrowBuildOutputs !== false}`;
+  // `CARGO_TARGET_DIR` feeds the inferred build outputs (D-C7), so a change to
+  // it must invalidate the in-process graph cache — otherwise a relocated dir
+  // would inherit outputs computed for the previous location under the daemon.
+  return (
+    `${workspaceRoot}|narrowBuildOutputs:${options.narrowBuildOutputs !== false}` +
+    `|targetDir:${process.env.CARGO_TARGET_DIR ?? ""}`
+  );
+}
+
+/**
+ * Resolve the Nx output-token root cargo writes build artefacts under when a
+ * `CARGO_TARGET_DIR` relocation is in effect. cargo's `--target-dir` option
+ * takes precedence and is handled per-target in `target-configs.ts`; here we
+ * cover the env var, which the plugin reads at inference time. A dir inside the
+ * workspace is expressed workspace-relative so the token stays portable across
+ * machines; an external dir uses its absolute path. Returns `undefined` for the
+ * default `target/`, so callers fall back to `{workspaceRoot}/target`. See D-C7.
+ */
+function resolveEnvTargetDirRoot(
+  workspaceRoot: string,
+  env: NodeJS.ProcessEnv = process.env,
+): string | undefined {
+  const raw = env.CARGO_TARGET_DIR?.trim();
+  if (!raw) return undefined;
+  const absRoot = isAbsolute(raw) ? raw : join(workspaceRoot, raw);
+  const rel = relative(workspaceRoot, absRoot);
+  if (rel && !rel.startsWith("..") && !isAbsolute(rel)) {
+    return `{workspaceRoot}/${normalizePath(rel)}`;
+  }
+  return normalizePath(absRoot);
 }
 
 function fileFingerprint(path: string): string {
@@ -273,6 +302,12 @@ function inferProjectConfig(
   // `cargo -p`, which cargo rejects.
   const pkgOpts = { package: pkg.name };
   const buildOutputs = buildOutputsForPackage(pkg);
+  // A `CARGO_TARGET_DIR` relocation moves the artefact root for every crate;
+  // narrow outputs follow it instead of falling back to a safe cache miss
+  // (D-C7). A per-target `--target-dir` option still wins over this in
+  // `target-configs.ts`.
+  const envTargetDirRoot = resolveEnvTargetDirRoot(workspaceRoot);
+  if (envTargetDirRoot) buildOutputs.targetDirRoot = envTargetDirRoot;
   if (pluginOptions.narrowBuildOutputs === false) {
     buildOutputs.narrowBuildOutputs = false;
   }
@@ -534,6 +569,7 @@ function buildOutputsForPackage(pkg: CargoPackage): {
   binaries?: string[];
   libraries?: string[];
   narrowBuildOutputs?: boolean;
+  targetDirRoot?: string;
 } {
   // Only genuine library targets gate the narrowing. `cargo metadata` also
   // reports build scripts (`custom-build`), examples, integration tests, and

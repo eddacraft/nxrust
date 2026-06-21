@@ -53,7 +53,19 @@ export interface BuildCacheOutputsOptions {
   binaries?: readonly string[];
   libraries?: readonly string[];
   narrowBuildOutputs?: boolean;
+  /**
+   * Nx output token (or path) for the root directory cargo writes artefacts
+   * under. Defaults to the workspace `target/`. A relocated target directory
+   * (`--target-dir`, `CARGO_TARGET_DIR`, or `.cargo/config.toml`
+   * `build.target-dir`) only moves this root — the
+   * `<root>/{profile}/<artefact>` layout underneath is unchanged — so it stays
+   * narrowable. Only a custom target triple or custom profile, which reshape
+   * the path itself, fall back to the wide escape hatch. See D-C7.
+   */
+  targetDirRoot?: string;
 }
+
+export const DEFAULT_TARGET_DIR_ROOT = "{workspaceRoot}/target";
 
 export function buildCacheInputs(options: BuildCacheInputsOptions = {}): CacheInput[] {
   const channel = options.resolvedToolchain ?? DEFAULT_TOOLCHAIN_SENTINEL;
@@ -74,13 +86,14 @@ export function buildCacheOutputs(options: BuildCacheOutputsOptions): string[] {
     return ["{options.target-dir}", "{workspaceRoot}/target"];
   }
 
+  const root = options.targetDirRoot ?? DEFAULT_TARGET_DIR_ROOT;
   const outputs: string[] = [];
   for (const profile of ["debug", "release"]) {
     for (const binary of options.binaries ?? []) {
-      outputs.push(`{workspaceRoot}/target/${profile}/${binary}`);
+      outputs.push(`${root}/${profile}/${binary}`);
     }
     for (const library of options.libraries ?? []) {
-      outputs.push(`{workspaceRoot}/target/${profile}/lib${cargoArtifactName(library)}.rlib`);
+      outputs.push(`${root}/${profile}/lib${cargoArtifactName(library)}.rlib`);
     }
   }
   return outputs;

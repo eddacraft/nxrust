@@ -46,10 +46,30 @@ describe("target cache inputs", () => {
     ).toEqual(["{options.target-dir}", "{workspaceRoot}/target"]);
   });
 
-  it("uses wide outputs when a static target-dir changes the cargo output directory", () => {
+  it("narrows outputs rooted at a relocated --target-dir (D-C7)", () => {
     expect(
       buildTargetConfig({ "target-dir": "tmp/target" }, {}, { binaries: ["app"] }).outputs,
-    ).toEqual(["{options.target-dir}", "{workspaceRoot}/target"]);
+    ).toEqual(["{options.target-dir}/debug/app", "{options.target-dir}/release/app"]);
+  });
+
+  it("roots narrow outputs at an env-derived targetDirRoot when no --target-dir option", () => {
+    expect(
+      buildTargetConfig({}, {}, { binaries: ["app"], targetDirRoot: "{workspaceRoot}/.cargo-target" })
+        .outputs,
+    ).toEqual([
+      "{workspaceRoot}/.cargo-target/debug/app",
+      "{workspaceRoot}/.cargo-target/release/app",
+    ]);
+  });
+
+  it("a --target-dir option overrides an env-derived targetDirRoot (cargo precedence)", () => {
+    expect(
+      buildTargetConfig(
+        { "target-dir": "tmp/target" },
+        {},
+        { binaries: ["app"], targetDirRoot: "{workspaceRoot}/.cargo-target" },
+      ).outputs,
+    ).toEqual(["{options.target-dir}/debug/app", "{options.target-dir}/release/app"]);
   });
 
   it("uses wide outputs when a static custom profile changes the output directory", () => {

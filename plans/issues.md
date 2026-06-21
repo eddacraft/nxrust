@@ -102,6 +102,56 @@ release-validation script errored out. Fixed by switching to
 and is package-manager-version-stable. Verified: lists 80 files / 40.2 kB,
 creates no `.tgz`.
 
+### ISS-004: Anvil consumer wishlist — upstream feature demand
+
+| Field           | Value                                          |
+| --------------- | ---------------------------------------------- |
+| Status          | Open — top-3 promoted to Ready (D-011)         |
+| Discovered      | 2026-06-21                                     |
+| Severity        | n/a (demand intake, not a defect)              |
+| Source          | Anvil (eddacraft/anvil), downstream consumer   |
+| Related modules | 04, 06, 10, 12, 13, 14                         |
+
+Anvil — the downstream consumer that drives nxrust's roadmap under D-010 —
+was asked "what do you wish nxrust could do for you?" and returned seven
+concrete asks. This is the D-010 consumer-demand record; the three
+Anvil-prioritised items are promoted to Ready per D-011.
+
+1. **Relocation-aware build output caching** (Anvil's #1; tracks Anvil
+   DEVENV-003) → module 04. Make narrow build outputs follow a relocated
+   `CARGO_TARGET_DIR` / `--target-dir` so local worktrees on a relocated
+   target dir get cache **reuse**, not safe misses. Today a relocated
+   target-dir forces the wide-output escape hatch (D-C6), and env-var
+   relocation isn't seen at all. **Promoted → CACHE-004 (Ready); the first
+   build slice (D-011).**
+2. **`nxrust doctor`** (Anvil's #2; Anvil ADR-049 waits on it) → module 14.
+   Checks: detect JS projects pulling Rust `^build` into `test` (ISS-001);
+   explain why a crate is affected; warn when `CARGO_TARGET_DIR`,
+   `Cargo.lock`, `rust-toolchain.toml`, or workspace metadata make cache
+   behaviour surprising; validate NAPI/WASM edge shape. **Promoted → Ready
+   (D-011).**
+3. **JS/Rust seam generators** (Anvil's #3) → module 10. `add-napi` /
+   `add-wasm-reference` encode the D-009 import-time-vs-runtime distinction
+   (WASM bundled at build time may need `^build`; NAPI loaded at runtime
+   should not force JS tests through Rust builds). Contract already ratified
+   (D-009 / D-WN4); the seam helper shipped (WN-001, 0.2.0); the generators
+   that apply it are the next slice. **Promoted → Ready (D-011).**
+4. `nxrust explain affected <crate>` → module 13. Show cargo path deps,
+   workspace deps, lockfile impact, and why Nx marked a crate/project
+   affected. Recorded; promotes after the top three.
+5. `nxrust list` / metadata target → module 12. First-class crate / package
+   / target / workspace-membership reporting, instead of Anvil shelling
+   `nx show projects --withTarget=check`. Recorded.
+6. First-class "Rust crate backing a JS package" → modules 10/13. Partly a
+   **defect**: Anvil's audit found an Nx test target invoking
+   `@eddacraft/nxrust:test` for a NAPI package instead of the package's own
+   scripts. Recorded; investigate alongside #3.
+7. Cache observability — print the effective inputs, outputs, env allowlist,
+   and target-dir per Rust target → modules 04/14. A natural sub-feature of
+   `nxrust doctor` (#2). Recorded.
+
+Anvil's stated top three: #1, #2, #3.
+
 ## Questions
 
 _(none yet)_

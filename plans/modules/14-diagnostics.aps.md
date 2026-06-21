@@ -7,9 +7,9 @@ Actionable error messages for cargo, toolchain, and tool-missing
 failures. Every error names what failed, why it matters, the exact
 command attempted, and the suggested fix.
 
-| ID   | Owner     | Status   |
-| ---- | --------- | -------- |
-| DIAG | eddacraft | Proposed |
+| ID   | Owner     | Status                                              |
+| ---- | --------- | --------------------------------------------------- |
+| DIAG | eddacraft | Proposed (`nxrust doctor` Ready — Anvil #2, D-011)  |
 
 ## Purpose
 

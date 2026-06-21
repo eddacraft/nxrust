@@ -108,18 +108,18 @@ historical reference; full detail in
 | --- | ---------------------------------------------------------------------------------- | -------- | ---------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------- | ------------ |
 | 01  | [v0.1-shakedown](./modules/01-v0.1-shakedown.aps.md)                               | 3.1      | Prove the plugin end-to-end on a consumer workspace, ship first npm release                                | Complete                                                   | —            |
 | 02  | [workspace-inference-and-graph](./modules/02-workspace-inference-and-graph.aps.md) | 6.1, 6.2 | Cargo workspace + project graph inference (members, globs, excludes, edges, external nodes, kind metadata) | Proposed (GRAPH-001 released 0.2.0)                        | 01           |
-| 03  | [target-inference](./modules/03-target-inference.aps.md)                           | 6.3      | Auto-inferred Nx targets per crate; zero `project.json`; `fmt` / `fmt-check` split                         | Proposed (TARGETS-001 + 002 merged 2026-06-11, unreleased) | 02           |
-| 04  | [cache-semantics](./modules/04-cache-semantics.aps.md)                             | 6.4      | Named inputs, output narrowing, env-var hashing, per-target cache rules                                    | Complete                                                   | 03           |
+| 03  | [target-inference](./modules/03-target-inference.aps.md)                           | 6.3      | Auto-inferred Nx targets per crate; zero `project.json`; `fmt` / `fmt-check` split                         | Proposed (TARGETS-001 + 002 released 0.3.0)                | 02           |
+| 04  | [cache-semantics](./modules/04-cache-semantics.aps.md)                             | 6.4      | Named inputs, output narrowing, env-var hashing, per-target cache rules                                    | In Progress (CACHE-004 Ready — Anvil #1)                  | 03           |
 | 05  | [cargo-features](./modules/05-cargo-features.aps.md)                               | 6.5      | Feature/profile/target options across executors; inferred configurations                                   | Proposed                                                   | 03           |
 | 06  | [toolchain-awareness](./modules/06-toolchain-awareness.aps.md)                     | 6.6      | `rust-toolchain.toml`, `cargo +toolchain`, `rustc -Vv`/`cargo -V` hashing                                  | Proposed                                                   | 04           |
 | 07  | [generators](./modules/07-generators.aps.md)                                       | 6.7      | Generator inventory: CLI, service, TUI, ffi, bench, xtask, policy preset                                   | Proposed                                                   | 03           |
 | 08  | [release-support](./modules/08-release-support.aps.md)                             | 6.8      | Cargo-aware Nx release: version, internal deps, dry-run, registries, fixed/independent modes               | Proposed                                                   | 03           |
 | 09  | [supply-chain](./modules/09-supply-chain.aps.md)                                   | 6.9      | `audit`, `deny`, `outdated`, `vet`, `sbom`, `licenses`                                                     | Proposed                                                   | 03           |
-| 10  | [wasm-napi](./modules/10-wasm-napi.aps.md)                                         | 6.10     | `napi`, `wasm-pack` executors and generators (Monodon-parity surface)                                      | Proposed (WN-001 released 0.2.0)                           | 03, 07       |
+| 10  | [wasm-napi](./modules/10-wasm-napi.aps.md)                                         | 6.10     | `napi`, `wasm-pack` executors and generators (Monodon-parity surface)                                      | Proposed (WN-001 released 0.2.0; seam generators Ready — Anvil #3) | 03, 07       |
 | 11  | [nextest](./modules/11-nextest.aps.md)                                             | 6.11     | `cargo nextest` executor with profiles, partitions, archive-file                                           | Proposed                                                   | 03           |
 | 12  | [workspace-synthetic-project](./modules/12-workspace-synthetic-project.aps.md)     | 6.12     | Synthetic `rust-workspace` project for workspace-level targets                                             | Proposed                                                   | 02           |
 | 13  | [affected-refinement](./modules/13-affected-refinement.aps.md)                     | 6.13     | Lockfile / toolchain / manifest / feature-aware affected behaviour                                         | Proposed                                                   | 02, 04       |
-| 14  | [diagnostics](./modules/14-diagnostics.aps.md)                                     | 6.14     | Actionable error messages for cargo / toolchain / tool-missing failures                                    | Proposed                                                   | —            |
+| 14  | [diagnostics](./modules/14-diagnostics.aps.md)                                     | 6.14     | Actionable error messages for cargo / toolchain / tool-missing failures                                    | Proposed (`nxrust doctor` Ready — Anvil #2)               | —            |
 | 15  | [monodon-migration](./modules/15-monodon-migration.aps.md)                         | 6.15     | `migrate-from-monodon` generator + compatibility aliases                                                   | Proposed                                                   | 03, 07       |
 | 16  | [adoption-and-docs](./modules/16-adoption-and-docs.aps.md)                         | 8.3, 8.4 | `create-nx-workspace` preset, docs site, examples, Nx Console schemas, v1.0 stable contract                | Proposed                                                   | most         |
 
@@ -294,3 +294,17 @@ items only ship when a real consumer ask promotes them.
   zero-`project.json` DX core, whose stated dependencies (GRAPH-001
   parser, released 0.2.0; module 04 named inputs, Complete) have all
   shipped. _Accepted 2026-06-10._
+- **D-011:** Anvil consumer-demand intake (2026-06-21). The downstream
+  consumer (Anvil) supplied a seven-item wishlist, recorded as ISS-004 in
+  [`plans/issues.md`](./issues.md). Under D-010 this is concrete demand:
+  the three Anvil-prioritised items promote to Ready — relocation-aware
+  caching (CACHE-004, module 04), `nxrust doctor` (module 14), and the
+  JS/Rust seam generators `add-napi`/`add-wasm-reference` (module 10).
+  Build order honours the consumer's stated #1: **CACHE-004
+  (`CARGO_TARGET_DIR` relocation caching) is the next Ready slice** to
+  implement and ship; doctor and seam generators follow. ISS-004 items
+  4-7 (`explain affected`, `nxrust list`, NAPI package-seam defect, cache
+  observability) are recorded against their modules and promote after the
+  top three. This is the first multi-item promotion under D-010 and keeps
+  its discipline — items still ship one Ready slice at a time, smallest
+  coherent first. _Accepted 2026-06-21 (consumer-driven via Anvil)._

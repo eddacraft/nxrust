@@ -8,7 +8,7 @@ per-crate `project.json` files for the canonical case.
 
 | ID      | Owner     | Status                                                                                                |
 | ------- | --------- | ----------------------------------------------------------------------------------------------------- |
-| TARGETS | eddacraft | Proposed (TARGETS-001 + TARGETS-002 Complete 2026-06-11, unreleased; further items promote per D-010) |
+| TARGETS | eddacraft | Proposed (TARGETS-001 + TARGETS-002 Complete 2026-06-11, released 0.3.0; further items promote per D-010) |
 
 ## Purpose
 

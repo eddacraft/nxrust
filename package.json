@@ -58,6 +58,13 @@
   "peerDependencies": {
     "@nx/devkit": "^22.6.5"
   },
+  "pnpm": {
+    "overrides": {
+      "form-data": "^4.0.6",
+      "tmp": "^0.2.7",
+      "esbuild": "^0.28.1"
+    }
+  },
   "engines": {
     "node": ">=20.0.0"
   },

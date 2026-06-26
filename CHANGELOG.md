@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+- Cargo/toolchain failures now surface as structured nxrust diagnostics
+  (DIAG-002). A missing `cargo`, an uninstalled toolchain channel or target, a
+  nightly-only invocation, or an unsafe `rust-toolchain` literal are classified
+  from the cargo/rustup spawn outcome and rendered through the `formatDiagnostic`
+  envelope with a stable slug code (`nxrust:cargo-not-found`,
+  `nxrust:toolchain-not-installed`, `nxrust:target-not-installed`,
+  `nxrust:nightly-required`, `nxrust:invalid-toolchain-literal`) and an
+  actionable `rustup ...` fix, instead of a bare shell error. Unknown cargo
+  output (rustc compile errors) still passes through untouched. `command:`
+  redaction now also covers `--token`-style flags. Codes are part of the public
+  contract (D-D5) → **minor** bump (D-008). See `docs/diagnostics.md`.
 - New `@eddacraft/nxrust:cache-report` generator (alias `cache-info`) — a
   read-only cache-observability report. For each inferred Rust crate it prints,
   per nxrust target, the effective `inputs`, `outputs`, the environment-variable

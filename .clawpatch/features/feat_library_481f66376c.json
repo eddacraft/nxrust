@@ -1,0 +1,162 @@
+{
+  "schemaVersion": 1,
+  "featureId": "feat_library_481f66376c",
+  "title": "Node source src/utils",
+  "summary": "Node/TypeScript source group src/utils with 11 files.",
+  "kind": "library",
+  "source": "node-source-group",
+  "confidence": "medium",
+  "entrypoints": [
+    {
+      "path": "package.json",
+      "symbol": "src/utils",
+      "route": null,
+      "command": null
+    }
+  ],
+  "ownedFiles": [
+    {
+      "path": "src/utils/add-to-workspace.ts",
+      "reason": "source group src/utils"
+    },
+    {
+      "path": "src/utils/build-command.ts",
+      "reason": "source group src/utils"
+    },
+    {
+      "path": "src/utils/cache-inputs.ts",
+      "reason": "source group src/utils"
+    },
+    {
+      "path": "src/utils/cargo.ts",
+      "reason": "source group src/utils"
+    },
+    {
+      "path": "src/utils/cross-language-edges.ts",
+      "reason": "source group src/utils"
+    },
+    {
+      "path": "src/utils/normalize-options.ts",
+      "reason": "source group src/utils"
+    },
+    {
+      "path": "src/utils/run-process.ts",
+      "reason": "source group src/utils"
+    },
+    {
+      "path": "src/utils/rust-toolchain.ts",
+      "reason": "source group src/utils"
+    },
+    {
+      "path": "src/utils/snake-case.ts",
+      "reason": "source group src/utils"
+    },
+    {
+      "path": "src/utils/target-configs.ts",
+      "reason": "source group src/utils"
+    },
+    {
+      "path": "src/utils/toml.ts",
+      "reason": "source group src/utils"
+    }
+  ],
+  "contextFiles": [
+    {
+      "path": "package.json",
+      "reason": "package manifest"
+    },
+    {
+      "path": "src/utils/add-to-workspace.spec.ts",
+      "reason": "associated test"
+    },
+    {
+      "path": "src/utils/build-command.spec.ts",
+      "reason": "associated test"
+    },
+    {
+      "path": "src/utils/cache-inputs.spec.ts",
+      "reason": "associated test"
+    },
+    {
+      "path": "src/utils/cargo.spec.ts",
+      "reason": "associated test"
+    },
+    {
+      "path": "src/utils/cross-language-edges.spec.ts",
+      "reason": "associated test"
+    },
+    {
+      "path": "src/utils/normalize-options.spec.ts",
+      "reason": "associated test"
+    },
+    {
+      "path": "src/utils/rust-toolchain.spec.ts",
+      "reason": "associated test"
+    },
+    {
+      "path": "src/utils/snake-case.spec.ts",
+      "reason": "associated test"
+    }
+  ],
+  "tests": [
+    {
+      "path": "src/utils/add-to-workspace.spec.ts",
+      "command": "pnpm test"
+    },
+    {
+      "path": "src/utils/build-command.spec.ts",
+      "command": "pnpm test"
+    },
+    {
+      "path": "src/utils/cache-inputs.spec.ts",
+      "command": "pnpm test"
+    },
+    {
+      "path": "src/utils/cargo.spec.ts",
+      "command": "pnpm test"
+    },
+    {
+      "path": "src/utils/cross-language-edges.spec.ts",
+      "command": "pnpm test"
+    },
+    {
+      "path": "src/utils/normalize-options.spec.ts",
+      "command": "pnpm test"
+    },
+    {
+      "path": "src/utils/rust-toolchain.spec.ts",
+      "command": "pnpm test"
+    },
+    {
+      "path": "src/utils/snake-case.spec.ts",
+      "command": "pnpm test"
+    }
+  ],
+  "tags": [
+    "node",
+    "typescript",
+    "source-group",
+    "project:@eddacraft/nxrust",
+    "project-root:."
+  ],
+  "trustBoundaries": [],
+  "status": "needs-fix",
+  "lock": null,
+  "findingIds": [
+    "fnd_sig-feat-library-481f66376c-355f_38e49eb8bf"
+  ],
+  "patchAttemptIds": [],
+  "analysisHistory": [
+    {
+      "runId": "20260618T172901-c44ab3",
+      "kind": "review",
+      "summary": "1 finding(s)",
+      "provider": "codex",
+      "model": null,
+      "reasoningEffort": null,
+      "createdAt": "2026-06-18T17:29:30.407Z"
+    }
+  ],
+  "createdAt": "2026-06-18T17:28:58.670Z",
+  "updatedAt": "2026-06-18T17:29:30.407Z"
+}

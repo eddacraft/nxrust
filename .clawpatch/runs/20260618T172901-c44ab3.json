@@ -1,0 +1,42 @@
+{
+  "schemaVersion": 1,
+  "runId": "20260618T172901-c44ab3",
+  "command": "review",
+  "args": [
+    "review",
+    "--limit",
+    "999",
+    "--jobs",
+    "20"
+  ],
+  "rootPath": "/home/aneki/Projects/src/nxrust",
+  "headSha": "0a410b6ed8ce2dbfbf0028c1f9386780e1993d9d",
+  "startedAt": "2026-06-18T17:29:01.851Z",
+  "finishedAt": "2026-06-18T17:30:56.923Z",
+  "status": "completed",
+  "claimedFeatureIds": [
+    "feat_config_0c1c23856a",
+    "feat_config_57f59ddd1e",
+    "feat_config_7528cb5b98",
+    "feat_library_481f66376c",
+    "feat_library_4a2c94069d",
+    "feat_library_74845c6b39",
+    "feat_library_7beccade79",
+    "feat_library_86aef4e321",
+    "feat_library_f8bf0b65a1",
+    "feat_release_51170e0f9c",
+    "feat_release_a235aa99b1",
+    "feat_test-suite_84ae84a25a"
+  ],
+  "findingIds": [
+    "fnd_sig-feat-library-481f66376c-355f_38e49eb8bf",
+    "fnd_sig-feat-library-4a2c94069d-2bd0_bab97828ee",
+    "fnd_sig-feat-release-51170e0f9c-df39_1a8a2ee2f9",
+    "fnd_sig-feat-library-7beccade79-4d06_b6ca7c7abb",
+    "fnd_sig-feat-library-86aef4e321-7a05_9e6fe44432",
+    "fnd_sig-feat-library-86aef4e321-86a2_37193f51b0",
+    "fnd_sig-feat-library-f8bf0b65a1-3ae2_cc7a9f0c09"
+  ],
+  "patchAttemptIds": [],
+  "errors": []
+}

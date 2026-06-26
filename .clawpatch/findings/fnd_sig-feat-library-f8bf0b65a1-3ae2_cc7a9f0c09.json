@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-f8bf0b65a1-3ae2_cc7a9f0c09",
+  "featureId": "feat_library_f8bf0b65a1",
+  "title": "External crate dependencies can be misclassified as internal project edges when names collide",
+  "category": "bug",
+  "severity": "medium",
+  "confidence": "high",
+  "triage": "confirmed-bug",
+  "evidence": [
+    {
+      "path": "src/graph.ts",
+      "startLine": 197,
+      "endLine": 207,
+      "symbol": "createDependencies",
+      "quote": "if (projects[dep.name]) {\n        out.push(makeDependency(pkg, dep.name, workspaceRoot));\n        continue;\n      }\n      const externalName = `cargo:${dep.name}`;"
+    },
+    {
+      "path": "src/graph.spec.ts",
+      "startLine": 169,
+      "endLine": 207,
+      "symbol": "createDependencies external dep test",
+      "quote": "it(\"emits external edges for registry deps\", async () => {"
+    },
+    {
+      "path": "src/graph.spec.ts",
+      "startLine": 224,
+      "endLine": 270,
+      "symbol": "createDependencies collision-adjacent test",
+      "quote": "it(\"does not emit edges from a registry package that shares a workspace name\", async () => {"
+    }
+  ],
+  "reasoning": "createDependencies checks projects[dep.name] before checking whether the dependency itself is external. In a workspace with project `util`, if another workspace package depends on a registry or git crate also named `util`, the dependency is emitted as `app -> util` instead of `app -> cargo:util`. That corrupts the Nx graph by adding a false internal workspace dependency and hiding the real external dependency edge. The included tests cover normal path dependencies, normal registry dependencies, and registry package entries that share a workspace package name, but not the direct dependency-name collision path that triggers this branch order bug.",
+  "reproduction": "Mock cargo metadata with workspace packages `app` and `util`; make `app.dependencies` contain `{ name: \"util\", source: \"registry+https://crates.io\", kind: null }`; pass ctx.projects containing both `app` and `util` plus ctx.externalNodes containing `cargo:util`. createDependencies currently emits target `util` because the project-name lookup runs before external classification.",
+  "recommendation": "In createDependencies, classify the dependency before the project-name lookup. Only emit an internal project edge when `!isExternal(dep, workspaceRoot)` and `projects[dep.name]` exists; for external dependencies, build `cargo:${dep.name}` and use ctx.externalNodes. Add the collision regression before changing the branch order.",
+  "whyTestsDoNotAlreadyCoverThis": "The registry dependency test has only `app` in ctx.projects, so projects[dep.name] is false. The collision-adjacent test covers an external package entry that shares a workspace package name, not an external direct dependency whose name collides with a workspace project.",
+  "suggestedRegressionTest": "Add a createDependencies test where `app` depends on registry `util` while a workspace project named `util` also exists; assert the edge target is `cargo:util` and not `util`.",
+  "minimumFixScope": "Update createDependencies dependency classification and add one focused graph.spec.ts regression.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-f8bf0b65a1_3ae2099006",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260618T172901-c44ab3",
+  "createdAt": "2026-06-18T17:30:56.922Z",
+  "updatedAt": "2026-06-18T17:30:56.922Z"
+}

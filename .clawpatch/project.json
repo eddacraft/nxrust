@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "projectId": "prj_https-github-com-eddacraft-nxrus_5a4f867616",
+  "name": "@eddacraft/nxrust",
+  "rootPath": "/home/aneki/Projects/src/nxrust",
+  "git": {
+    "remoteUrl": "https://github.com/eddacraft/nxrust.git",
+    "defaultBranch": "main",
+    "currentBranch": "main",
+    "headSha": "0a410b6ed8ce2dbfbf0028c1f9386780e1993d9d"
+  },
+  "detected": {
+    "languages": [
+      "typescript",
+      "javascript"
+    ],
+    "frameworks": [
+      "vitest"
+    ],
+    "packageManagers": [
+      "pnpm"
+    ],
+    "commands": {
+      "typecheck": "pnpm typecheck",
+      "lint": null,
+      "format": null,
+      "test": "pnpm test"
+    }
+  },
+  "createdAt": "2026-06-18T17:28:56.213Z",
+  "updatedAt": "2026-06-18T17:28:56.213Z"
+}

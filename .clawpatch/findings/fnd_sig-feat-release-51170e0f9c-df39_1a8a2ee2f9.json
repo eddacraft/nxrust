@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-release-51170e0f9c-df39_1a8a2ee2f9",
+  "featureId": "feat_release_51170e0f9c",
+  "title": "Release build can publish stale dist artifacts",
+  "category": "build-release",
+  "severity": "medium",
+  "confidence": "medium",
+  "triage": "risk",
+  "evidence": [
+    {
+      "path": "package.json",
+      "startLine": 20,
+      "endLine": 24,
+      "symbol": "files",
+      "quote": "\"dist/**/*.js\""
+    },
+    {
+      "path": "package.json",
+      "startLine": 37,
+      "endLine": 38,
+      "symbol": "scripts.build",
+      "quote": "\"build\": \"tsc -p tsconfig.json && node ./tools/copy-assets.mjs\""
+    },
+    {
+      "path": "package.json",
+      "startLine": 41,
+      "endLine": 42,
+      "symbol": "scripts.prepublishOnly",
+      "quote": "\"prepublishOnly\": \"node ./tools/assert-release-branch.mjs && pnpm build && pnpm test && pnpm e2e\""
+    }
+  ],
+  "reasoning": "The package publishes broad dist globs, but the build script runs tsc and asset copying without first removing dist. TypeScript does not remove outputs for deleted or renamed source files, so a release run after such a change can leave obsolete JavaScript, declaration, JSON, or copied file assets under dist and include them in npm publish or npm pack. A separate clean script exists, but neither the build script nor the release scripts invoke it.",
+  "reproduction": "Build once with a source or copied asset present, remove or rename that source/asset, then run pnpm build followed by npm pack --dry-run. The stale dist output can remain and be selected by the package files globs.",
+  "recommendation": "Make the release build start from a clean output directory, for example by changing build to run the clean step before tsc and copy-assets, or by adding a prebuild script that removes dist. Ensure prepublishOnly and release:dry-run use that clean build path.",
+  "whyTestsDoNotAlreadyCoverThis": "No linked tests were provided for this feature, and the package scripts only run vitest after build; they do not assert package contents are free of stale dist files.",
+  "suggestedRegressionTest": "Add a packaging smoke test that creates a stale file in dist, runs the release build path, then verifies npm pack --dry-run or the generated package file list does not include the stale artifact.",
+  "minimumFixScope": "Update package.json build/release scripting so dist is cleaned before artifacts are generated, and add a focused packaging-content regression test.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-release-51170e0f9c_df39f516bd",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260618T172901-c44ab3",
+  "createdAt": "2026-06-18T17:29:38.984Z",
+  "updatedAt": "2026-06-18T17:29:38.984Z"
+}

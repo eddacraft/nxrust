@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-86aef4e321-7a05_9e6fe44432",
+  "featureId": "feat_library_86aef4e321",
+  "title": "release-publish accepts registry tokens in process arguments",
+  "category": "security",
+  "severity": "medium",
+  "confidence": "high",
+  "triage": "confirmed-bug",
+  "evidence": [
+    {
+      "path": "src/executors/release-publish/executor.ts",
+      "startLine": 8,
+      "endLine": 8,
+      "symbol": "ReleasePublishExecutorSchema.token",
+      "quote": "token?: string;"
+    },
+    {
+      "path": "src/executors/release-publish/executor.ts",
+      "startLine": 35,
+      "endLine": 42,
+      "symbol": "releasePublishExecutor",
+      "quote": "logger.warn(\n      \"release-publish: using inline `token` option leaks the secret into process listings; \" +\n        \"prefer the CARGO_REGISTRY_TOKEN environment variable.\",\n    );\n    argv.push(\"--token\", options.token);"
+    },
+    {
+      "path": "src/utils/cargo.ts",
+      "startLine": 22,
+      "endLine": 28,
+      "symbol": "cargoCommand",
+      "quote": "console.log(chalk.dim(`> cargo ${redactArgs(ordered).join(\" \")}`));\n  return runProcess(\"cargo\", ...ordered);"
+    }
+  ],
+  "reasoning": "The executor exposes a `token` option and, despite warning that it leaks, still passes the secret as `cargo publish --token <value>`. Redacting the console log only protects nxrust's own output; the token remains visible in process command-line inspection, CI process snapshots, shell/task telemetry, and any wrapper that records argv. A release executor should not provide a footgun for publishing credentials when Cargo already supports `CARGO_REGISTRY_TOKEN`.",
+  "reproduction": "Configure or invoke `@eddacraft/nxrust:release-publish` with `{ \"token\": \"secret\" }`; while the process is running, inspect the cargo child command line and the token is present as the value following `--token`.",
+  "recommendation": "Remove or reject the `token` option, or translate it into a child-process environment variable before spawning Cargo so the token is never placed on argv. Prefer documenting `CARGO_REGISTRY_TOKEN` as the only supported credential path.",
+  "whyTestsDoNotAlreadyCoverThis": "No included release-publish tests are listed, and the available cargo argument tests focus on general argument construction rather than secret handling for the publish executor.",
+  "suggestedRegressionTest": "Add a release-publish executor test that passes `token` and asserts the spawned cargo argv never contains the token value; either expect an error or expect the token to be supplied via environment only.",
+  "minimumFixScope": "Update `src/executors/release-publish/executor.ts` and, if environment injection is chosen, the cargo process helper API used by `src/utils/cargo.ts`/`src/utils/run-process.ts`.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-86aef4e321_7a053d83fa",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260618T172901-c44ab3",
+  "createdAt": "2026-06-18T17:29:46.862Z",
+  "updatedAt": "2026-06-18T17:29:46.862Z"
+}

@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-86aef4e321-86a2_37193f51b0",
+  "featureId": "feat_library_86aef4e321",
+  "title": "TypeScript build excludes generator template files that npm expects under dist",
+  "category": "build-release",
+  "severity": "medium",
+  "confidence": "medium",
+  "triage": "risk",
+  "evidence": [
+    {
+      "path": "tsconfig.json",
+      "startLine": 19,
+      "endLine": 20,
+      "symbol": null,
+      "quote": "\"exclude\": [\"node_modules\", \"dist\", \"e2e\", \"**/*.test.ts\", \"**/*.spec.ts\", \"**/files/**\"]"
+    },
+    {
+      "path": "package.json",
+      "startLine": 17,
+      "endLine": 18,
+      "symbol": "files",
+      "quote": "\"dist/**/*.json\",\n    \"dist/**/files/**\","
+    },
+    {
+      "path": "src/generators/crate/generator.ts",
+      "startLine": 73,
+      "endLine": 77,
+      "symbol": "crateGenerator",
+      "quote": "const templateDir = options.bin\n    ? path.join(__dirname, \"files\", \"bin\")\n    : path.join(__dirname, \"files\", \"lib\");\n\n  generateFiles(tree, templateDir, normalized.projectRoot, {"
+    }
+  ],
+  "reasoning": "The crate generator resolves templates from `__dirname/files/...`, which at runtime is `dist/generators/crate/files/...`. The TypeScript compiler explicitly excludes every `**/files/**` path, so those templates are not emitted by `tsc`; the package manifest only publishes `dist/**/files/**`, so a publish/build that does not copy templates into dist produces a package where `@eddacraft/nxrust:crate`, `:binary`, and `:library` fail at runtime when `generateFiles` cannot find the template directory. The `package.json` build script does run `tools/copy-assets.mjs`, but that script is outside the included evidence; the release-critical contract is split between an exclusion and an unverified custom copy step.",
+  "reproduction": "Build or pack the package without a successful `tools/copy-assets.mjs` template copy, then run the crate generator from the packed package; `generateFiles` will look for `dist/generators/crate/files/bin` or `dist/generators/crate/files/lib` and those files are not produced by `tsc`.",
+  "recommendation": "Make the template-copy contract explicit and tested: ensure `tools/copy-assets.mjs` copies `src/generators/**/files/**` into the matching `dist/generators/**/files/**` paths, and add a pack/build assertion that those directories exist. Alternatively, avoid relying on a separate untyped copy step by placing templates where the build/package pipeline includes them deterministically.",
+  "whyTestsDoNotAlreadyCoverThis": "The listed generator tests run against source in the repository and do not demonstrate that the built npm artifact contains the runtime template directories under `dist`.",
+  "suggestedRegressionTest": "Add a release/pack test that runs `pnpm build`, inspects `dist/generators/crate/files/bin` and `dist/generators/crate/files/lib`, and invokes the crate/binary/library generators through the built entrypoints rather than source files.",
+  "minimumFixScope": "Validate or adjust `package.json`, `tsconfig.json`, and the asset-copy/build test path that owns generator templates.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-86aef4e321_86a2c44de8",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260618T172901-c44ab3",
+  "createdAt": "2026-06-18T17:29:46.862Z",
+  "updatedAt": "2026-06-18T17:29:46.862Z"
+}

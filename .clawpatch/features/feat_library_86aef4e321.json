@@ -1,0 +1,213 @@
+{
+  "schemaVersion": 1,
+  "featureId": "feat_library_86aef4e321",
+  "title": "Node package @eddacraft/nxrust",
+  "summary": "Node package @eddacraft/nxrust with package metadata and review context rooted at ..",
+  "kind": "library",
+  "source": "node-package",
+  "confidence": "medium",
+  "entrypoints": [
+    {
+      "path": "package.json",
+      "symbol": "@eddacraft/nxrust",
+      "route": null,
+      "command": null
+    }
+  ],
+  "ownedFiles": [
+    {
+      "path": "package.json",
+      "reason": "package manifest"
+    },
+    {
+      "path": "tsconfig.json",
+      "reason": "typescript configuration"
+    },
+    {
+      "path": "vitest.config.ts",
+      "reason": "test configuration"
+    }
+  ],
+  "contextFiles": [
+    {
+      "path": "README.md",
+      "reason": "package context"
+    },
+    {
+      "path": "CHANGELOG.md",
+      "reason": "package changelog"
+    },
+    {
+      "path": "src/index.ts",
+      "reason": "package entrypoint"
+    },
+    {
+      "path": "src/executors/check/executor.ts",
+      "reason": "package source overview"
+    },
+    {
+      "path": "src/executors/clippy/executor.ts",
+      "reason": "package source overview"
+    },
+    {
+      "path": "src/executors/fmt/executor.ts",
+      "reason": "package source overview"
+    },
+    {
+      "path": "src/executors/release-publish/executor.ts",
+      "reason": "package source overview"
+    },
+    {
+      "path": "src/executors/run/executor.ts",
+      "reason": "package source overview"
+    },
+    {
+      "path": "src/executors/test/executor.ts",
+      "reason": "package source overview"
+    },
+    {
+      "path": "src/generators/binary/generator.ts",
+      "reason": "package source overview"
+    },
+    {
+      "path": "src/generators/crate/generator.ts",
+      "reason": "package source overview"
+    },
+    {
+      "path": "src/generators/crate/schema.ts",
+      "reason": "package source overview"
+    },
+    {
+      "path": "src/generators/init/generator.ts",
+      "reason": "package source overview"
+    },
+    {
+      "path": "src/generators/library/generator.ts",
+      "reason": "package source overview"
+    },
+    {
+      "path": "src/generators/release-version/generator.ts",
+      "reason": "package source overview"
+    },
+    {
+      "path": "src/graph.ts",
+      "reason": "package source overview"
+    },
+    {
+      "path": "src/models/base-options.ts",
+      "reason": "package source overview"
+    },
+    {
+      "path": "src/models/cargo-metadata.ts",
+      "reason": "package source overview"
+    },
+    {
+      "path": "src/models/cargo-toml.ts",
+      "reason": "package source overview"
+    },
+    {
+      "path": "src/utils/add-to-workspace.ts",
+      "reason": "package source overview"
+    },
+    {
+      "path": "src/utils/build-command.ts",
+      "reason": "package source overview"
+    },
+    {
+      "path": "src/utils/cache-inputs.ts",
+      "reason": "package source overview"
+    },
+    {
+      "path": "src/utils/cargo.ts",
+      "reason": "package source overview"
+    },
+    {
+      "path": "src/utils/cross-language-edges.ts",
+      "reason": "package source overview"
+    },
+    {
+      "path": "src/utils/normalize-options.ts",
+      "reason": "package source overview"
+    },
+    {
+      "path": "src/utils/run-process.ts",
+      "reason": "package source overview"
+    },
+    {
+      "path": "src/generators/init/generator.spec.ts",
+      "reason": "package test"
+    },
+    {
+      "path": "src/graph.spec.ts",
+      "reason": "package test"
+    },
+    {
+      "path": "src/utils/add-to-workspace.spec.ts",
+      "reason": "package test"
+    },
+    {
+      "path": "src/utils/build-command.spec.ts",
+      "reason": "package test"
+    },
+    {
+      "path": "src/utils/cache-inputs.spec.ts",
+      "reason": "package test"
+    },
+    {
+      "path": "src/utils/cargo.spec.ts",
+      "reason": "package test"
+    },
+    {
+      "path": "src/utils/cross-language-edges.spec.ts",
+      "reason": "package test"
+    },
+    {
+      "path": "src/utils/normalize-options.spec.ts",
+      "reason": "package test"
+    },
+    {
+      "path": "src/utils/rust-toolchain.spec.ts",
+      "reason": "package test"
+    },
+    {
+      "path": "src/utils/snake-case.spec.ts",
+      "reason": "package test"
+    },
+    {
+      "path": "src/utils/target-configs.spec.ts",
+      "reason": "package test"
+    },
+    {
+      "path": "src/utils/toml.spec.ts",
+      "reason": "package test"
+    }
+  ],
+  "tests": [],
+  "tags": [
+    "node",
+    "package",
+    "project:@eddacraft/nxrust",
+    "project-root:."
+  ],
+  "trustBoundaries": [],
+  "status": "needs-fix",
+  "lock": null,
+  "findingIds": [
+    "fnd_sig-feat-library-86aef4e321-7a05_9e6fe44432",
+    "fnd_sig-feat-library-86aef4e321-86a2_37193f51b0"
+  ],
+  "patchAttemptIds": [],
+  "analysisHistory": [
+    {
+      "runId": "20260618T172901-c44ab3",
+      "kind": "review",
+      "summary": "2 finding(s)",
+      "provider": "codex",
+      "model": null,
+      "reasoningEffort": null,
+      "createdAt": "2026-06-18T17:29:46.863Z"
+    }
+  ],
+  "createdAt": "2026-06-18T17:28:58.670Z",
+  "updatedAt": "2026-06-18T17:29:46.863Z"
+}

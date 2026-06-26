@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-7beccade79-4d06_b6ca7c7abb",
+  "featureId": "feat_library_7beccade79",
+  "title": "Inline publish token is passed through process argv",
+  "category": "security",
+  "severity": "medium",
+  "confidence": "high",
+  "triage": "confirmed-bug",
+  "evidence": [
+    {
+      "path": "src/executors/release-publish/executor.ts",
+      "startLine": 36,
+      "endLine": 41,
+      "symbol": "releasePublishExecutor",
+      "quote": "if (options.token) {\n    logger.warn(\n      \"release-publish: using inline `token` option leaks the secret into process listings; \" +\n        \"prefer the CARGO_REGISTRY_TOKEN environment variable.\",\n    );\n    argv.push(\"--token\", options.token);"
+    }
+  ],
+  "reasoning": "The executor explicitly accepts an inline registry token and forwards it as a cargo command-line argument. The warning acknowledges that this leaks the secret into process listings, but the executor still performs the unsafe action, so a caller can expose a publish credential on shared CI runners or local multi-user systems.",
+  "reproduction": "Invoke the release-publish executor with a token option; the resulting cargo publish command receives --token <secret> in argv.",
+  "recommendation": "Remove the token option from the executor contract, or reject it at runtime with a clear error and require CARGO_REGISTRY_TOKEN or another non-argv secret channel.",
+  "whyTestsDoNotAlreadyCoverThis": "No linked tests were included for this feature, and the current code path intentionally appends the token to argv rather than asserting that token-based configuration is rejected.",
+  "suggestedRegressionTest": "Add a release-publish executor test that passes token and asserts the executor fails before calling cargoCommand, while a CARGO_REGISTRY_TOKEN environment-based path remains supported.",
+  "minimumFixScope": "Update src/executors/release-publish/executor.ts to stop forwarding options.token, and update any executor schema/docs/tests that advertise inline token support.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-7beccade79_4d0632563b",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260618T172901-c44ab3",
+  "createdAt": "2026-06-18T17:29:40.914Z",
+  "updatedAt": "2026-06-18T17:29:40.914Z"
+}

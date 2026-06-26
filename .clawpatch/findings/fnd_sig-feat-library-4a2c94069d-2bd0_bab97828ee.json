@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-4a2c94069d-2bd0_bab97828ee",
+  "featureId": "feat_library_4a2c94069d",
+  "title": "Valid object-valued named input arrays are skipped instead of extended",
+  "category": "bug",
+  "severity": "medium",
+  "confidence": "medium",
+  "triage": "risk",
+  "evidence": [
+    {
+      "path": "src/generators/init/generator.ts",
+      "startLine": 73,
+      "endLine": 83,
+      "symbol": "mergeNamedInput",
+      "quote": "if (Array.isArray(existing) && existing.every((item) => typeof item === \"string\")) {\n    let changed = false;\n    for (const pattern of patterns) {\n      if (!existing.includes(pattern)) {\n        existing.push(pattern);\n        changed = true;\n      }\n    }\n    return changed;\n  }"
+    },
+    {
+      "path": "src/generators/init/generator.spec.ts",
+      "startLine": 30,
+      "endLine": 45,
+      "symbol": "initGenerator cache named inputs",
+      "quote": "it(\"upgrades older array-valued named inputs with missing canonical patterns\", async () => {\n    const tree = createTree();\n    tree.write(\n      \"nx.json\",\n      JSON.stringify({ namedInputs: { rustSources: [\"{projectRoot}/src/**/*.rs\"] } }),\n    );"
+    }
+  ],
+  "reasoning": "Nx namedInputs arrays can contain non-string input definitions as well as strings. The generator currently only appends nxrust's canonical Rust cache patterns when every existing item is a string; if a consumer has a valid array containing an object input, initGenerator logs a divergence warning and leaves the array unchanged. That means a valid cache input configuration can fail to receive required Rust patterns, causing generated Rust projects to miss source/workspace files in Nx cache invalidation. The included tests cover string arrays and non-array values, but not mixed valid arrays, so this regression path is not protected.",
+  "reproduction": "Create nx.json with {\"namedInputs\":{\"rustSources\":[\"{projectRoot}/src/**/*.rs\",{\"env\":\"RUSTFLAGS\"}]}} and run initGenerator({skipFormat:true}); the generator will not append missing RUST_SOURCES_PATTERNS entries and will warn instead.",
+  "recommendation": "Treat any array-valued named input as mergeable, append missing string patterns while preserving existing object entries, and only warn for non-array or otherwise unsupported namedInputs values.",
+  "whyTestsDoNotAlreadyCoverThis": "The tests only exercise all-string arrays and a scalar string divergence case; they do not include a valid namedInputs array containing object entries.",
+  "suggestedRegressionTest": "Add a test where namedInputs.rustSources contains both a string and an object input, then assert missing Rust source patterns are appended and the existing object is preserved without a divergence warning.",
+  "minimumFixScope": "Update mergeNamedInput in src/generators/init/generator.ts and add a focused initGenerator spec for mixed array named inputs.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-4a2c94069d_2bd01d06e8",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260618T172901-c44ab3",
+  "createdAt": "2026-06-18T17:29:33.093Z",
+  "updatedAt": "2026-06-18T17:29:33.093Z"
+}

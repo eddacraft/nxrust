@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-481f66376c-355f_38e49eb8bf",
+  "featureId": "feat_library_481f66376c",
+  "title": "Cargo token redaction misses --token=<value> form",
+  "category": "security",
+  "severity": "medium",
+  "confidence": "medium",
+  "triage": "risk",
+  "evidence": [
+    {
+      "path": "src/utils/cargo.ts",
+      "startLine": 17,
+      "endLine": 20,
+      "symbol": "cargoCommand",
+      "quote": "console.log(chalk.dim(`> cargo ${redactArgs(ordered).join(\" \")}`));"
+    },
+    {
+      "path": "src/utils/cargo.ts",
+      "startLine": 27,
+      "endLine": 38,
+      "symbol": "redactArgs",
+      "quote": "const SECRET_FLAGS = new Set<string>([\"--token\"]);"
+    }
+  ],
+  "reasoning": "The command logger redacts only the split argv shape `--token <value>`. Cargo/clap-style flags also commonly accept `--token=<value>`, and that entire token is currently pushed to the log unchanged. A publish or login invocation using the equals form can therefore leak the secret into CI logs even though this helper explicitly tries to keep token values out of command output.",
+  "reproduction": "Call `cargoCommand(\"publish\", \"--token=secret-value\")`; the logged command includes `--token=secret-value` because `redactArgs` only matches an exact `--token` token followed by a separate value.",
+  "recommendation": "Extend redaction to recognise `--token=<value>` and emit `--token=***`; consider centralising secret flag handling for both split and equals forms.",
+  "whyTestsDoNotAlreadyCoverThis": "The included tests cover cargo path classification only; there are no tests for `cargoCommand` logging or `redactArgs` secret handling.",
+  "suggestedRegressionTest": "Add a cargo utility test that exercises the redaction helper or a captured `cargoCommand` log for both `[\"--token\", \"secret\"]` and `[\"--token=secret\"]`, asserting the secret string is absent.",
+  "minimumFixScope": "Update `redactArgs` in `src/utils/cargo.ts` and add focused coverage for both supported token flag shapes.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-481f66376c_355fd9efbd",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260618T172901-c44ab3",
+  "createdAt": "2026-06-18T17:29:30.407Z",
+  "updatedAt": "2026-06-18T17:29:30.407Z"
+}

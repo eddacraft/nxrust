@@ -42,6 +42,7 @@ V2_CLI_FILES=(
   "lib/output.sh"
   "lib/lint.sh"
   "lib/orchestrate.sh"
+  "lib/audit.sh"
   "lib/scaffold.sh"
   "lib/rules/common.sh"
   "lib/rules/module.sh"
@@ -91,6 +92,7 @@ CLI_FILES=(
   "lib/output.sh"
   "lib/lint.sh"
   "lib/orchestrate.sh"
+  "lib/audit.sh"
   "lib/scaffold.sh"
   "lib/rules/common.sh"
   "lib/rules/module.sh"
@@ -1274,7 +1276,7 @@ cmd_migrate() {
   fi
   # Remove only known APS files from lib/, then remove dir if empty
   if [[ -d "$target/lib" ]] && [[ -f "$target/lib/output.sh" ]]; then
-    local aps_lib_files=(output.sh Output.psm1 lint.sh Lint.psm1 orchestrate.sh scaffold.sh Scaffold.psm1)
+    local aps_lib_files=(output.sh Output.psm1 lint.sh Lint.psm1 orchestrate.sh audit.sh scaffold.sh Scaffold.psm1)
     local aps_rule_files=(common.sh Common.psm1 module.sh Module.psm1 index.sh Index.psm1
                           workitem.sh WorkItem.psm1 issues.sh Issues.psm1 design.sh Design.psm1)
     for f in "${aps_lib_files[@]}"; do rm -f "$target/lib/$f"; done

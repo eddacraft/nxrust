@@ -1,14 +1,29 @@
 <!-- APS Module: 06-toolchain-awareness -->
-<!-- Status: Proposed -->
+<!-- Status: Complete -->
 
 # Toolchain Awareness
 
 Read `rust-toolchain.toml`, respect `cargo +toolchain`, and hash the actual
 Rust toolchain into the cache key.
 
-| ID        | Owner     | Status   |
-| --------- | --------- | -------- |
-| TOOLCHAIN | eddacraft | Proposed |
+| ID        | Owner     | Status                       |
+| --------- | --------- | ---------------------------- |
+| TOOLCHAIN | eddacraft | Complete (2026-06-19, D-010) |
+
+> **Completion note (2026-06-19).** The module's substantive scope shipped:
+> `rust-toolchain.toml` parsing and the full D-TC2 override hierarchy
+> (TOOLCHAIN-001 + TOOLCHAIN-002, both Complete), plus toolchain cache-key
+> participation — `rustc -Vv` / `cargo -V` runtime inputs with a
+> channel-aware `rustup run <channel>` prefix, `RUSTUP_TOOLCHAIN` env
+> hashing, and `rust-toolchain.toml` file fingerprints — landed via module
+> 04's CACHE-001 (`src/utils/cache-inputs.ts`, `src/graph.ts`), and
+> per-invocation `--toolchain` → `cargo +<channel>` emission lives in
+> `src/utils/build-command.ts`. The one remaining in-scope surface —
+> **toolchain validation diagnostics** (`cargo` not on PATH, channel not
+> installed, target not installed, nightly required) — is owned by the
+> module 14 diagnostic envelope and is tracked as **DIAG-001** in
+> [14-diagnostics](./14-diagnostics.aps.md), which also adopts
+> TOOLCHAIN-001's placeholder `nxrust:invalid-toolchain-literal` code.
 
 ## Purpose
 

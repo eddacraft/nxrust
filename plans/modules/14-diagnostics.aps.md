@@ -7,9 +7,9 @@ Actionable error messages for cargo, toolchain, and tool-missing
 failures. Every error names what failed, why it matters, the exact
 command attempted, and the suggested fix.
 
-| ID   | Owner     | Status                                                        |
-| ---- | --------- | ------------------------------------------------------------- |
-| DIAG | eddacraft | In Progress (DIAG-001 done — Anvil #2; CACHE-OBS-001 done — Anvil #7; both unreleased) |
+| ID   | Owner     | Status                                                                                |
+| ---- | --------- | ------------------------------------------------------------------------------------- |
+| DIAG | eddacraft | In Progress (DIAG-001 + DIAG-002 done; CACHE-OBS-001 done — Anvil #7; all unreleased) |
 
 ## Purpose
 
@@ -146,7 +146,7 @@ Promote individual Work Items to Ready when:
 ADR-049 waits on `doctor`. First slice under D-011.)
 
 - `src/utils/diagnostics.ts` — the shared `formatDiagnostic({ what, why,
-  command?, fix, severity? })` helper (spec §6.14 envelope) with secret
+command?, fix, severity? })` helper (spec §6.14 envelope) with secret
   redaction (`redactSecrets` strips `TOKEN`/`SECRET`/`KEY`/`PASSWORD` values
   from the `command:` field, D-D / module constraint).
 - `@eddacraft/nxrust:doctor` generator (`src/generators/doctor/`) — read-only;
@@ -159,11 +159,49 @@ ADR-049 waits on `doctor`. First slice under D-011.)
   that is the Nx entry point with graph access and there is no synthetic
   `rust-workspace` project to host an executor yet (module 12, Proposed).
 
-**Deferred to later DIAG slices** (not in DIAG-001): the rest of the §6.14
-catalogue (cargo/toolchain/tool-missing pre-flight checks), the cache-config
-warnings (`CARGO_TARGET_DIR` / lockfile / toolchain surprises), `--json-diagnostics`
-for Nx Console, `explain affected` (ISS-004 #4, module 13), and routing
-existing executor errors through `formatDiagnostic`.
+**Deferred to later DIAG slices** (not in DIAG-001): the cache-config warnings
+(`CARGO_TARGET_DIR` / lockfile / toolchain surprises), `--json-diagnostics` for
+Nx Console, `explain affected` (ISS-004 #4, module 13), and the tool-missing
+checks for the supply-chain/wasm tools (promote with modules 09/10). The
+cargo/toolchain pre-flight family is now **DIAG-002** (below).
+
+### DIAG-002 — Cargo/toolchain pre-flight diagnostic family
+
+**Status: Done** (2026-06-24, unreleased — the next slice after DIAG-001, built
+on its `formatDiagnostic` envelope. Routes cargo/rustup failures through the
+structured envelope so a missing toolchain/target surfaces as an actionable
+nxrust error instead of a raw shell failure.)
+
+- `src/utils/diagnostics.ts` — extends the envelope with **slug-based diagnostic
+  codes** (`DIAGNOSTIC_CODES`, `DiagnosticCode`, D-D5), a `code` field on
+  `Diagnostic` plus a `CataloguedDiagnostic` type, and an
+  `NxrustDiagnosticError` that carries the code so callers branch on `.code`.
+  Builders for the family: `cargo-not-found`, `toolchain-not-installed`,
+  `target-not-installed`, `nightly-required`, `invalid-toolchain-literal`, and a
+  generic `spawn-failed`. Secret redaction extended to `--token`-style flags
+  (both `--token x` and `--token=x`).
+- `runWithDiagnostic` classifier — maps spawn `ENOENT` on cargo/rustup to
+  `cargo-not-found` and classifies rustup/cargo stderr (toolchain/target
+  missing, nightly-only). Unknown cargo output passes through unchanged (module
+  14 Out-of-Scope — no translation of arbitrary cargo output).
+- `src/utils/run-process.ts` — stderr is teed (live passthrough + 64 KB tail
+  capture) so the single cargo-invocation chokepoint can classify failures;
+  replaces the bare `console.error` (constraint: no `console.*` outside the
+  envelope). Settles once across `error`/`close`.
+- `src/utils/rust-toolchain.ts` — `validateChannelLiteral` now throws
+  `NxrustDiagnosticError(invalidToolchainLiteral(...))` instead of a bare
+  `Error`, joining the catalogue while preserving the legacy wording.
+- `docs/diagnostics.md` — catalogue stub documenting the six codes, triggers,
+  and fixes (seeds the consumer/Nx-Console reference).
+- Tests: `diagnostics.spec.ts` (builders, codes, error, classifier, redaction),
+  `run-process.spec.ts` (integration: ENOENT, classified stderr, unknown
+  pass-through, success). Full suite 225 green; e2e confirms cargo's live
+  colourised output still surfaces through the teed-stderr path.
+
+**Still deferred** (not in DIAG-002): the tool-missing checks for
+`nextest`/`audit`/`deny`/`napi`/`wasm-pack` (promote with modules 09/10), the
+workspace-shape / `cargo metadata` / duplicate-package pre-flight rows,
+`--json-diagnostics`, and the `verboseDiagnostics` Info tier.
 
 ### CACHE-OBS-001 — `nxrust cache-report` cache-observability generator (ISS-004 #7)
 
@@ -217,13 +255,17 @@ the feature — note which codes it introduces._
 - **D-D3:** UK English in plan and README, locale-neutral in user-facing
   CLI output. _Accepted (inherits index constraint)._
 - **D-D4:** No localisation in v0.x. _Accepted._
+- **D-D5:** Diagnostic codes are **slug-based with an `nxrust:` prefix**
+  (`nxrust:cargo-not-found`), not numeric. Slugs are more discoverable in
+  logs and IDE output; the "do not rename" rule (D-D2: rename = major bump,
+  add = minor bump) supplies the stability numeric codes would otherwise
+  give. _Accepted 2026-06-24 — resolved via DIAG-002._
 
 ## Open Questions
 
-- [ ] Should diagnostic codes be numeric (`NXRUST001`) or slug-based
-      (`cargo-not-found`)? Slug is more discoverable; numeric is more
-      stable across renames. Probably slug with a documented "do not
-      rename" rule.
+- [x] Should diagnostic codes be numeric (`NXRUST001`) or slug-based
+      (`cargo-not-found`)? **Resolved (D-D5):** slug-based with an
+      `nxrust:` prefix and a documented "do not rename" rule.
 - [ ] Should the catalogue live in `docs/diagnostics.md` or be generated
       from code annotations? Generated is DRY but adds tooling; manual
       Markdown is simpler. Manual for v0.2, generated later.

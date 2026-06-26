@@ -1,6 +1,7 @@
 import { existsSync, readFileSync } from "node:fs";
 import { isAbsolute, join, relative, resolve, sep } from "node:path";
 import TOML from "@ltd/j-toml";
+import { NxrustDiagnosticError, invalidToolchainLiteral } from "./diagnostics";
 
 /**
  * Sentinel returned when no `rust-toolchain.toml` or legacy `rust-toolchain`
@@ -75,9 +76,8 @@ export interface ResolveToolchainOptions {
  */
 export function validateChannelLiteral(channel: string, origin?: string): void {
   if (!CHANNEL_LITERAL_PATTERN.test(channel)) {
-    const source = origin === undefined ? "" : ` from ${origin}`;
-    throw new Error(
-      `invalid toolchain literal${source}: ${JSON.stringify(channel)} — channel must match ${CHANNEL_LITERAL_PATTERN}`,
+    throw new NxrustDiagnosticError(
+      invalidToolchainLiteral(channel, origin, CHANNEL_LITERAL_PATTERN),
     );
   }
 }

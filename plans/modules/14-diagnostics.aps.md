@@ -146,7 +146,7 @@ Promote individual Work Items to Ready when:
 ADR-049 waits on `doctor`. First slice under D-011.)
 
 - `src/utils/diagnostics.ts` — the shared `formatDiagnostic({ what, why,
-command?, fix, severity? })` helper (spec §6.14 envelope) with secret
+  command?, fix, severity? })` helper (spec §6.14 envelope) with secret
   redaction (`redactSecrets` strips `TOKEN`/`SECRET`/`KEY`/`PASSWORD` values
   from the `command:` field, D-D / module constraint).
 - `@eddacraft/nxrust:doctor` generator (`src/generators/doctor/`) — read-only;

@@ -44,11 +44,13 @@ section_has_content() {
   echo "$content" | grep -vE '^[[:space:]]*$|^[[:space:]]*<!--.*-->$|^<!--' | grep -q .
 }
 
-# Extract all work item headers (### PREFIX-NNN: ...)
+# Extract all work item headers (### PREFIX-NNN: title  OR  ### PREFIX-NNN — title)
 # Usage: get_work_items "file"
 get_work_items() {
   local file="$1"
-  grep -nE '^### [A-Za-z]+-[0-9]+:' "$file" 2>/dev/null || true
+  # Accept colon or em/en dash after the ID (both styles exist in plans/)
+  # PREFIX may contain hyphens (e.g. CACHE-OBS-001)
+  grep -nE '^### [A-Z][A-Za-z0-9]*(-[A-Za-z0-9]+)*-[0-9]+(:|[[:space:]]+[—–-])' "$file" 2>/dev/null || true
 }
 
 # Extract module ID from metadata table

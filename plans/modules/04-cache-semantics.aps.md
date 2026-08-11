@@ -8,7 +8,7 @@ conservative output narrowing.
 
 | ID    | Owner     | Status                                            |
 | ----- | --------- | ------------------------------------------------- |
-| CACHE | eddacraft | Complete (CACHE-001..003 shipped; CACHE-004 Done 2026-06-21, unreleased) |
+| CACHE | eddacraft | Complete (CACHE-001..003 released 0.2.0+; CACHE-004 Complete on main — pending next minor) |
 
 ## Purpose
 
@@ -141,7 +141,8 @@ Promote individual Work Items to Ready when:
 
 ### CACHE-001 — Rust cache input wiring
 
-**Status: Done** (PR #15 merged 2026-05-29).
+- **Status:** Released (PR #15 merged 2026-05-29; present in
+  `@eddacraft/nxrust@0.2.0`+).
 
 New `src/utils/cache-inputs.ts` (named-input refs + env allowlist +
 per-target `rustup run <channel>` runtime entries via `resolveToolchain`)
@@ -157,7 +158,8 @@ Review-round fixes (2026-05-29):
 
 ### CACHE-002 — Narrow rust build outputs
 
-**Status: Done** (rebased onto main; landing via the cache-completion PR).
+- **Status:** Released (landed via the cache-completion PR; present in
+  `@eddacraft/nxrust@0.2.0`+).
 
 `build` targets now declare narrow per-binary (`{workspaceRoot}/target/
 {profile}/<bin>`) and per-rlib (`lib<crate>.rlib`) outputs instead of the
@@ -173,7 +175,8 @@ target triple, and crate types beyond `lib`/`rlib`/`bin` (e.g. `cdylib`,
 
 ### CACHE-003 — Cache-correctness CI fixture matrix
 
-**Status: Done** (landing via the cache-completion PR).
+- **Status:** Released (landed via the cache-completion PR; present in
+  `@eddacraft/nxrust@0.2.0`+).
 
 `tools/cache-matrix.mjs` + the `e2e/cache-matrix/` fixture exercise the
 inferred cacheable targets (`check`, `fmt-check`, `clippy`, `test`, `build`)
@@ -189,8 +192,9 @@ any regression. Wired into CI as a parallel `cache-matrix` job and the
 
 ### CACHE-004 — Relocation-aware build output caching (`CARGO_TARGET_DIR`)
 
-**Status: Done** (2026-06-21, unreleased — Anvil's #1 upstream ask; tracks
-Anvil DEVENV-003. First build slice under D-011.)
+- **Status:** Complete (2026-06-21, on main — pending next minor release;
+  Anvil's #1 upstream ask; tracks Anvil DEVENV-003. First build slice under
+  D-011. Reconciled 2026-08-10.)
 
 `buildCacheOutputs` (`src/utils/cache-inputs.ts`) now roots narrow per-binary /
 per-rlib outputs at a `targetDirRoot` token (default `{workspaceRoot}/target`).

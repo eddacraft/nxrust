@@ -57,11 +57,11 @@ check_w001_id_format() {
 
   # Extract the ID from "### AUTH-001: title"
   local item_id
-  item_id=$(echo "$item_header" | sed 's/^### \([A-Za-z0-9-]*\):.*/\1/')
+  item_id=$(echo "$item_header" | sed -E 's/^### ([A-Z][A-Za-z0-9]*(-[A-Za-z0-9]+)*-[0-9]+)([:]|[[:space:]]+[—–-]).*/\1/')
 
   # Check if it matches the expected pattern [A-Z]+-[0-9]{3}
-  if ! echo "$item_id" | grep -qE '^[A-Z]+-[0-9]{3}$'; then
-    add_result "$file" "warning" "W001" "Work item ID '$item_id' should match pattern PREFIX-NNN (e.g., AUTH-001)" "$item_line"
+  if ! echo "$item_id" | grep -qE '^[A-Z][A-Za-z0-9]*(-[A-Za-z0-9]+)*-[0-9]{3}$'; then
+    add_result "$file" "warning" "W001" "Work item ID '$item_id' should match pattern PREFIX-NNN (e.g., AUTH-001, CACHE-OBS-001)" "$item_line"
   fi
 }
 
@@ -81,7 +81,7 @@ check_w003_dependencies() {
   if [[ -n "$deps_line" ]]; then
     # Extract task IDs from the line (e.g., "AUTH-001, AUTH-002" or just "AUTH-001")
     local dep_ids
-    dep_ids=$(echo "$deps_line" | grep -oE '[A-Z]+-[0-9]{3}' || true)
+    dep_ids=$(echo "$deps_line" | grep -oE '[A-Z][A-Za-z0-9]*(-[A-Za-z0-9]+)*-[0-9]{3}' || true)
 
     for dep_id in $dep_ids; do
       # Resolve in-file first, then against the plan-tree index (cross-module
@@ -147,7 +147,7 @@ lint_work_items() {
 
   # Collect all work item IDs in the file first (for dependency checking)
   local all_ids
-  all_ids=$(grep -oE '^### [A-Z]+-[0-9]+:' "$file" | sed 's/^### \([A-Z]*-[0-9]*\):.*/\1/' | tr '\n' ' ')
+  all_ids=$(grep -oE '^### [A-Z][A-Za-z0-9]*(-[A-Za-z0-9]+)*-[0-9]+' "$file" | sed -E 's/^### //' | tr '\n' ' ')
 
   # Module status gates W018 (terminal modules are exempt archives)
   local module_status

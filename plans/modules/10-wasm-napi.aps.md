@@ -1,5 +1,5 @@
 <!-- APS Module: 10-wasm-napi -->
-<!-- Status: Proposed -->
+<!-- Status: In Progress -->
 
 # WASM and NAPI
 
@@ -8,7 +8,7 @@ Monodon-parity surface for Node-native and browser-targeted Rust crates.
 
 | ID        | Owner     | Status                                                                       |
 | --------- | --------- | ---------------------------------------------------------------------------- |
-| WASM-NAPI | eddacraft | In Progress (WN-001 shipped 0.2.0; WN-002 seam generator done 2026-06-21, unreleased — Anvil #3) |
+| WASM-NAPI | eddacraft | In Progress (WN-001 Released 0.2.0; WN-002 Complete on main — pending next minor; Anvil #3) |
 
 ## Purpose
 
@@ -165,12 +165,12 @@ Promote individual Work Items to Ready when:
 
 ### WN-001: Cross-language test-seam contract helper (D-WN4)
 
-**Status: Released** — implementation + 19 unit tests complete; PR
-[#21](https://github.com/eddacraft/nxrust/pull/21) squash-merged to `main`
-(`67bd4f1`) on 2026-06-09. Helper shipped at `src/utils/cross-language-edges.ts`
-and exported from `src/index.ts`. Released in **`@eddacraft/nxrust@0.2.0`**
-on 2026-06-10 (npm `latest` → `0.2.0`; release commit `b8d7f4b`, tag `v0.2.0`
-pushed). Full gate green at release (build · 152 tests · e2e).
+- **Status:** Released (implementation + 19 unit tests complete; PR
+  [#21](https://github.com/eddacraft/nxrust/pull/21) squash-merged to `main`
+  (`67bd4f1`) on 2026-06-09. Helper shipped at `src/utils/cross-language-edges.ts`
+  and exported from `src/index.ts`. Released in `@eddacraft/nxrust@0.2.0`
+  on 2026-06-10; release commit `b8d7f4b`, tag `v0.2.0`. Full gate green at
+  release (build · 152 tests · e2e).)
 
 - **Intent:** Provide the reusable utility that enforces D-WN4 — given a JS
   project that depends on a Rust crate, sever the workspace-default
@@ -204,8 +204,16 @@ pushed). Full gate green at release (build · 152 tests · e2e).
 
 ### WN-002: `add-rust-reference` seam generator (D-009 / D-WN4)
 
-**Status: Done** (2026-06-21, unreleased — Anvil's #3 upstream ask. First
-slice under D-011.)
+- **Status:** Complete (2026-06-21, on main — pending next minor release;
+  Anvil's #3 upstream ask. First slice under D-011. Reconciled 2026-08-10.)
+- **Intent:** Kind-agnostic generator that applies the WN-001 cross-language
+  test-seam contract to a JS/TS project consuming a Rust crate.
+- **Expected Outcome:** `nx g @eddacraft/nxrust:add-rust-reference
+  --project <js> --crate <rust>` severs inherited `^build` from the JS
+  `test` target by default (retains under `--consumesArtifactAtBuildTime`).
+- **Validation:** `pnpm test` — severs `^build` by default, preserves sibling
+  deps, retains under the opt-in, materialises a severed `test` when the JS
+  project has none, idempotent, warns on a non-Rust `--crate`.
 
 The kind-agnostic generator that applies the cross-language test-seam
 contract to a JS/TS project consuming a Rust crate, turning the WN-001

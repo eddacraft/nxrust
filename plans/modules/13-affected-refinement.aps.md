@@ -1,5 +1,5 @@
 <!-- APS Module: 13-affected-refinement -->
-<!-- Status: Proposed -->
+<!-- Status: In Progress -->
 
 # Affected Refinement
 
@@ -8,7 +8,7 @@ and toolchain changes.
 
 | ID       | Owner     | Status   |
 | -------- | --------- | -------- |
-| AFFECTED | eddacraft | Proposed |
+| AFFECTED | eddacraft | In Progress (AFFECTED-001 + WN-003 Ready — ISS-004 #4/#6) |
 
 ## Purpose
 
@@ -141,23 +141,34 @@ Promote individual Work Items to Ready when:
 
 ### AFFECTED-001 — `nxrust explain affected <crate>` (ISS-004 #4)
 
-**Status: Ready** (promoted 2026-06-21 under D-012 — Anvil's #4 upstream ask;
-not yet built.)
-
-A read-only generator that, for a given crate, reports its cargo path/workspace
-dependency edges and the lockfile/manifest inputs that would mark it affected —
-explaining Nx's affected verdict. Mirrors the read-only generator pattern of
-`doctor` (DIAG-001) and `cache-report` (CACHE-OBS-001), reading edges/inputs
-straight off the project graph rather than recomputing inference.
+- **Status:** Ready (promoted 2026-06-21 under D-012 — Anvil's #4 upstream ask;
+  not yet built. **Next Ready slice** after CACHE-OBS-001. Reconciled 2026-08-10.)
+- **Dependencies:** none
+- **Intent:** Explain Nx's affected verdict for a Rust crate — cargo path /
+  workspace dependency edges and the lockfile/manifest inputs that mark it
+  affected — so consumers stop reverse-engineering `nx affected` by hand.
+- **Expected Outcome:** A read-only generator that, for a given crate, reports
+  those edges and inputs, reading straight off the project graph rather than
+  recomputing inference. Mirrors the read-only generator pattern of `doctor`
+  (DIAG-001) and `cache-report` (CACHE-OBS-001).
+- **Validation:** `pnpm test` for the explain collector; fixture run shows
+  path-dep and lockfile inputs for a known crate; no graph mutations.
 
 ### WN-003 — First-class "Rust crate backing a JS package" + NAPI test defect (ISS-004 #6)
 
-**Status: Ready** (promoted 2026-06-21 under D-012 — Anvil's #6 upstream ask;
-not yet built. Spans modules 10/13; investigate alongside WN-002/the seam work.)
-
-Model a Rust crate that backs a JS package as a first-class relationship, and
-fix the inference **defect** Anvil's audit found: a NAPI package's Nx `test`
-target invoking `@eddacraft/nxrust:test` instead of the package's own scripts.
+- **Status:** Ready (promoted 2026-06-21 under D-012 — Anvil's #6 upstream ask;
+  not yet built. Spans modules 10/13; investigate alongside the WN-002 seam work.
+  Reconciled 2026-08-10.)
+- **Dependencies:** LIST-001 (D-012 queue order after AFFECTED-001 and LIST-001)
+- **Intent:** Model a Rust crate that backs a JS package as a first-class
+  relationship, and fix the inference **defect** Anvil's audit found: a NAPI
+  package's Nx `test` target invoking `@eddacraft/nxrust:test` instead of the
+  package's own scripts.
+- **Expected Outcome:** NAPI/JS-backed crates get correct `test` target wiring
+  (package scripts, not the cargo test executor), and the backing relationship
+  is represented so later seam/affected work can reason about it.
+- **Validation:** `pnpm test` + a fixture NAPI-shaped package whose `test` no
+  longer resolves to `@eddacraft/nxrust:test` unless explicitly intended.
 
 _Further items promote individually per D-007 / D-010._
 

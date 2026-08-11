@@ -109,17 +109,17 @@ historical reference; full detail in
 | 01  | [v0.1-shakedown](./modules/01-v0.1-shakedown.aps.md)                               | 3.1      | Prove the plugin end-to-end on a consumer workspace, ship first npm release                                | Complete                                                   | —            |
 | 02  | [workspace-inference-and-graph](./modules/02-workspace-inference-and-graph.aps.md) | 6.1, 6.2 | Cargo workspace + project graph inference (members, globs, excludes, edges, external nodes, kind metadata) | Proposed (GRAPH-001 released 0.2.0)                        | 01           |
 | 03  | [target-inference](./modules/03-target-inference.aps.md)                           | 6.3      | Auto-inferred Nx targets per crate; zero `project.json`; `fmt` / `fmt-check` split                         | Proposed (TARGETS-001 + 002 released 0.3.0)                | 02           |
-| 04  | [cache-semantics](./modules/04-cache-semantics.aps.md)                             | 6.4      | Named inputs, output narrowing, env-var hashing, per-target cache rules                                    | Complete (CACHE-004 done — Anvil #1, unreleased)          | 03           |
+| 04  | [cache-semantics](./modules/04-cache-semantics.aps.md)                             | 6.4      | Named inputs, output narrowing, env-var hashing, per-target cache rules                                    | Complete (CACHE-001..003 released; CACHE-004 pending next minor) | 03           |
 | 05  | [cargo-features](./modules/05-cargo-features.aps.md)                               | 6.5      | Feature/profile/target options across executors; inferred configurations                                   | Proposed                                                   | 03           |
-| 06  | [toolchain-awareness](./modules/06-toolchain-awareness.aps.md)                     | 6.6      | `rust-toolchain.toml`, `cargo +toolchain`, `rustc -Vv`/`cargo -V` hashing                                  | Proposed                                                   | 04           |
+| 06  | [toolchain-awareness](./modules/06-toolchain-awareness.aps.md)                     | 6.6      | `rust-toolchain.toml`, `cargo +toolchain`, `rustc -Vv`/`cargo -V` hashing                                  | Complete (TOOLCHAIN-001/002; diagnostics → module 14)      | 04           |
 | 07  | [generators](./modules/07-generators.aps.md)                                       | 6.7      | Generator inventory: CLI, service, TUI, ffi, bench, xtask, policy preset                                   | Proposed                                                   | 03           |
 | 08  | [release-support](./modules/08-release-support.aps.md)                             | 6.8      | Cargo-aware Nx release: version, internal deps, dry-run, registries, fixed/independent modes               | Proposed                                                   | 03           |
 | 09  | [supply-chain](./modules/09-supply-chain.aps.md)                                   | 6.9      | `audit`, `deny`, `outdated`, `vet`, `sbom`, `licenses`                                                     | Proposed                                                   | 03           |
-| 10  | [wasm-napi](./modules/10-wasm-napi.aps.md)                                         | 6.10     | `napi`, `wasm-pack` executors and generators (Monodon-parity surface)                                      | In Progress (WN-001 released 0.2.0; WN-002 seam generator done — Anvil #3, unreleased) | 03, 07       |
+| 10  | [wasm-napi](./modules/10-wasm-napi.aps.md)                                         | 6.10     | `napi`, `wasm-pack` executors and generators (Monodon-parity surface)                                      | In Progress (WN-001 Released 0.2.0; WN-002 Complete on main) | 03, 07       |
 | 11  | [nextest](./modules/11-nextest.aps.md)                                             | 6.11     | `cargo nextest` executor with profiles, partitions, archive-file                                           | Proposed                                                   | 03           |
-| 12  | [workspace-synthetic-project](./modules/12-workspace-synthetic-project.aps.md)     | 6.12     | Synthetic `rust-workspace` project for workspace-level targets                                             | Proposed                                                   | 02           |
-| 13  | [affected-refinement](./modules/13-affected-refinement.aps.md)                     | 6.13     | Lockfile / toolchain / manifest / feature-aware affected behaviour                                         | Proposed                                                   | 02, 04       |
-| 14  | [diagnostics](./modules/14-diagnostics.aps.md)                                     | 6.14     | Actionable error messages for cargo / toolchain / tool-missing failures                                    | In Progress (DIAG-001 `doctor` done — Anvil #2, unreleased) | —            |
+| 12  | [workspace-synthetic-project](./modules/12-workspace-synthetic-project.aps.md)     | 6.12     | Synthetic `rust-workspace` project for workspace-level targets                                             | In Progress (LIST-001 Ready — ISS-004 #5)                  | 02           |
+| 13  | [affected-refinement](./modules/13-affected-refinement.aps.md)                     | 6.13     | Lockfile / toolchain / manifest / feature-aware affected behaviour                                         | In Progress (AFFECTED-001 + WN-003 Ready — ISS-004 #4/#6)  | 02, 04       |
+| 14  | [diagnostics](./modules/14-diagnostics.aps.md)                                     | 6.14     | Actionable error messages for cargo / toolchain / tool-missing failures                                    | In Progress (DIAG-001/002 + CACHE-OBS-001 Complete on main) | —            |
 | 15  | [monodon-migration](./modules/15-monodon-migration.aps.md)                         | 6.15     | `migrate-from-monodon` generator + compatibility aliases                                                   | Proposed                                                   | 03, 07       |
 | 16  | [adoption-and-docs](./modules/16-adoption-and-docs.aps.md)                         | 8.3, 8.4 | `create-nx-workspace` preset, docs site, examples, Nx Console schemas, v1.0 stable contract                | Proposed                                                   | most         |
 
@@ -308,13 +308,13 @@ items only ship when a real consumer ask promotes them.
   top three. This is the first multi-item promotion under D-010 and keeps
   its discipline — items still ship one Ready slice at a time, smallest
   coherent first. _Accepted 2026-06-21 (consumer-driven via Anvil)._
-  **Update 2026-06-21:** all three top items landed (unreleased) as
-  successive slices — CACHE-004 (relocation caching), DIAG-001 (`nxrust
-  doctor`, ISS-001 seam check), and WN-002 (`add-rust-reference` seam
-  generator). Each ships only its smallest coherent core: `doctor` carries
-  the ISS-001 check (not the full §6.14 catalogue), and WN-002 carries the
-  D-009 `test.dependsOn` seam (not the napi/wasm scaffolding, which stays
-  Proposed). ISS-004 items 4-7 remain the next candidates.
+  **Update 2026-06-21:** all three top items landed on main (pending next
+  minor release) as successive slices — CACHE-004 (relocation caching),
+  DIAG-001 (`nxrust doctor`, ISS-001 seam check), and WN-002
+  (`add-rust-reference` seam generator). Each ships only its smallest
+  coherent core: `doctor` carries the ISS-001 check (not the full §6.14
+  catalogue), and WN-002 carries the D-009 `test.dependsOn` seam (not the
+  napi/wasm scaffolding, which stays Proposed).
 - **D-012:** Anvil wishlist items 4-7 promoted (2026-06-21). With the
   D-011 top three landed, the remaining four ISS-004 asks promote to Ready
   under D-010, each recorded against its module: AFFECTED-001 (`explain
@@ -328,6 +328,8 @@ items only ship when a real consumer ask promotes them.
   just-merged `doctor` (read-only generator pattern) and CACHE-004
   (`resolveEnvTargetDirRoot`, lifted to `src/utils/target-dir.ts` and reused
   unchanged), is self-contained, and reads inference straight off the graph
-  nodes rather than recomputing it. AFFECTED-001, LIST-001, and WN-003 are
-  Ready-but-not-yet-built and remain the next candidates. _Accepted
-  2026-06-21 (consumer-driven via Anvil)._
+  nodes rather than recomputing it. **Update 2026-08-10 (reconciliation):**
+  CACHE-OBS-001 is Complete on main; DIAG-002 also landed on main; TARGETS-001
+  and TARGETS-002 are Released in `0.3.0`. The next Ready slice is
+  **AFFECTED-001**, then LIST-001, then WN-003. _Accepted 2026-06-21
+  (consumer-driven via Anvil); next-pointer reconciled 2026-08-10._

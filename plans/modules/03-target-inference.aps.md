@@ -119,15 +119,12 @@ Promote individual Work Items to Ready when:
 
 ### TARGETS-001: Inferred default target set per crate
 
-**Status: Complete: 2026-06-11** — PR #24 squash-merged as `66a0fa2`
-(all CI checks green; 158/158 unit tests; e2e asserts the exact
-inferred target set end-to-end). Unreleased: ships in the next minor
-per D-008 (CHANGELOG § Unreleased). The Copilot review finding
-(subset assertion let unexpected extra targets pass) was fixed in the
-same PR — the e2e now requires exact set equality.
-**Packages:** `@eddacraft/nxrust`
-**Depends on:** GRAPH-001 (Released 0.2.0 — `package.metadata.nxrust`
-parser), module 04 named inputs (Complete).
+- **Status:** Released (PR #24 squash-merged as `66a0fa2` on 2026-06-11;
+  released in `@eddacraft/nxrust@0.3.0` on 2026-06-14 — CHANGELOG `lint`
+  alias / default target set entry. Reconciled 2026-08-10.)
+- **Packages:** `@eddacraft/nxrust`
+- **Depends on:** GRAPH-001 (Released 0.2.0 — `package.metadata.nxrust`
+  parser), module 04 named inputs (Complete).
 
 - **Intent:** Every inferred Rust project receives the canonical
   Cargo-backed target set automatically — `check`, `build`, `test`,
@@ -179,19 +176,17 @@ parser), module 04 named inputs (Complete).
 
 ### TARGETS-002: `package.metadata.nxrust.targets.<name>` overrides
 
-**Status: Complete: 2026-06-11** — PR #26 squash-merged as `cef81ff`
-(all CI checks green; 171/171 unit tests; e2e asserts the metadata
-default reaches the inferred test target end-to-end). Unreleased:
-ships in the next minor per D-008 (CHANGELOG § Unreleased, alongside
-TARGETS-001's `lint` alias). Implementation notes: a metadata
-`toolchain` feeds both the executor option and the cache runtime
-input via the TOOLCHAIN-002 hierarchy (D-TC2 steps 3-4) so toolchain
-updates stay cache-correct (D-TC3); guard rails — `package` pin not
-overridable, `check` stripped from `fmt-check`, `lint` follows the
-`clippy` table (D-T4), malformed/unknown entries warn and are
-ignored.
-**Packages:** `@eddacraft/nxrust`
-**Depends on:** TARGETS-001 (Complete: 2026-06-11).
+- **Status:** Released (PR #26 squash-merged as `cef81ff` on 2026-06-11;
+  released in `@eddacraft/nxrust@0.3.0` on 2026-06-14 — CHANGELOG
+  `package.metadata.nxrust.targets.<name>` entry. Reconciled 2026-08-10.)
+  Implementation notes: a metadata `toolchain` feeds both the executor
+  option and the cache runtime input via the TOOLCHAIN-002 hierarchy
+  (D-TC2 steps 3-4) so toolchain updates stay cache-correct (D-TC3);
+  guard rails — `package` pin not overridable, `check` stripped from
+  `fmt-check`, `lint` follows the `clippy` table (D-T4),
+  malformed/unknown entries warn and are ignored.
+- **Packages:** `@eddacraft/nxrust`
+- **Depends on:** TARGETS-001 (Released 0.3.0).
 
 - **Intent:** Per-crate target option defaults declared in
   `[package.metadata.nxrust.targets.<name>]` feed the inferred targets

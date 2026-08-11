@@ -1,5 +1,5 @@
 <!-- APS Module: 12-workspace-synthetic-project -->
-<!-- Status: Proposed -->
+<!-- Status: In Progress -->
 
 # Workspace Synthetic Project
 
@@ -9,7 +9,7 @@ commands as Nx targets — `cargo metadata`, workspace-wide `fmt-check`,
 
 | ID  | Owner     | Status   |
 | --- | --------- | -------- |
-| WS  | eddacraft | Proposed |
+| WS  | eddacraft | In Progress (LIST-001 Ready — ISS-004 #5) |
 
 ## Purpose
 
@@ -134,16 +134,20 @@ Promote individual Work Items to Ready when:
 
 ### LIST-001 — `nxrust list` / metadata target (ISS-004 #5)
 
-**Status: Ready** (promoted 2026-06-21 under D-012 — Anvil's #5 upstream ask;
-not yet built.)
-
-First-class crate / package / target / workspace-membership reporting so
-consumers stop shelling `nx show projects --withTarget=check`. Scope for the
-first slice: a read-only listing surface (human + `--json`) that enumerates
-inferred Rust crates, their nxrust targets, and workspace membership, reading
-straight off the project graph. Mirrors the read-only generator pattern used by
-`doctor` (DIAG-001) and `cache-report` (CACHE-OBS-001). Promoted alongside but
-sequenced after CACHE-OBS-001 (the first ISS-004 4-7 slice).
+- **Status:** Ready (promoted 2026-06-21 under D-012 — Anvil's #5 upstream ask;
+  not yet built. Reconciled 2026-08-10.)
+- **Dependencies:** AFFECTED-001 (D-012 queue order — one Ready slice at a time;
+  AFFECTED-001 is the next unbuilt Anvil ask after CACHE-OBS-001.)
+- **Intent:** First-class crate / package / target / workspace-membership
+  reporting so consumers stop shelling `nx show projects --withTarget=check`.
+- **Expected Outcome:** A read-only listing surface (human + `--json`) that
+  enumerates inferred Rust crates, their nxrust targets, and workspace
+  membership, reading straight off the project graph. Mirrors the read-only
+  generator pattern used by `doctor` (DIAG-001) and `cache-report`
+  (CACHE-OBS-001).
+- **Validation:** `pnpm test` for the listing collector; manual
+  `nx g @eddacraft/nxrust:list` (or chosen entry point) prints crates/targets
+  for the fixture workspace; `--json` parses.
 
 _Further items promote individually per D-007 / D-010._
 

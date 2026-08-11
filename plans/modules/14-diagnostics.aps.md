@@ -9,7 +9,7 @@ command attempted, and the suggested fix.
 
 | ID   | Owner     | Status                                                                                |
 | ---- | --------- | ------------------------------------------------------------------------------------- |
-| DIAG | eddacraft | In Progress (DIAG-001 + DIAG-002 done; CACHE-OBS-001 done — Anvil #7; all unreleased) |
+| DIAG | eddacraft | In Progress (DIAG-001 + DIAG-002 + CACHE-OBS-001 Complete on main — pending next minor) |
 
 ## Purpose
 
@@ -142,8 +142,12 @@ Promote individual Work Items to Ready when:
 
 ### DIAG-001 — `formatDiagnostic` helper + `nxrust doctor` (ISS-001 seam check)
 
-**Status: Done** (2026-06-21, unreleased — Anvil's #2 upstream ask; Anvil
-ADR-049 waits on `doctor`. First slice under D-011.)
+- **Status:** Complete (2026-06-21, on main — pending next minor release;
+  Anvil's #2 upstream ask; Anvil ADR-049 waits on `doctor`. First slice under
+  D-011. Reconciled 2026-08-10.)
+- **Validation:** `pnpm test` (doctor + diagnostics unit suite green on merge
+  commit `5a51ce3`); generator registered in `generators.json`; code under
+  `src/generators/doctor/` and `src/utils/diagnostics.ts`.
 
 - `src/utils/diagnostics.ts` — the shared `formatDiagnostic({ what, why,
   command?, fix, severity? })` helper (spec §6.14 envelope) with secret
@@ -167,10 +171,14 @@ cargo/toolchain pre-flight family is now **DIAG-002** (below).
 
 ### DIAG-002 — Cargo/toolchain pre-flight diagnostic family
 
-**Status: Done** (2026-06-24, unreleased — the next slice after DIAG-001, built
-on its `formatDiagnostic` envelope. Routes cargo/rustup failures through the
-structured envelope so a missing toolchain/target surfaces as an actionable
-nxrust error instead of a raw shell failure.)
+- **Status:** Complete (2026-06-24, on main — pending next minor release;
+  next slice after DIAG-001, built on its `formatDiagnostic` envelope. Routes
+  cargo/rustup failures through the structured envelope so a missing
+  toolchain/target surfaces as an actionable nxrust error instead of a raw
+  shell failure. Reconciled 2026-08-10.)
+- **Validation:** `pnpm test` (225 green on merge commit `7d0dd3e`); catalogue
+  in `docs/diagnostics.md`; classifier coverage in `diagnostics.spec.ts` /
+  `run-process.spec.ts`.
 
 - `src/utils/diagnostics.ts` — extends the envelope with **slug-based diagnostic
   codes** (`DIAGNOSTIC_CODES`, `DiagnosticCode`, D-D5), a `code` field on
@@ -205,8 +213,12 @@ workspace-shape / `cargo metadata` / duplicate-package pre-flight rows,
 
 ### CACHE-OBS-001 — `nxrust cache-report` cache-observability generator (ISS-004 #7)
 
-**Status: Done** (2026-06-21, unreleased — Anvil's #7 upstream ask; first slice
-of ISS-004 items 4-7 under D-012. Spans modules 04/14.)
+- **Status:** Complete (2026-06-21, on main — pending next minor release;
+  Anvil's #7 upstream ask; first slice of ISS-004 items 4-7 under D-012.
+  Spans modules 04/14. Reconciled 2026-08-10.)
+- **Validation:** `pnpm test` (cache-report unit suite on merge commit
+  `9a18b79`); generator registered in `generators.json`; code under
+  `src/generators/cache-report/`.
 
 - `@eddacraft/nxrust:cache-report` generator (`src/generators/cache-report/`,
   alias `cache-info`) — read-only; resolves the project graph and prints, per
@@ -226,10 +238,10 @@ of ISS-004 items 4-7 under D-012. Spans modules 04/14.)
   land?" without judging it. Ships as a generator for the same reason `doctor`
   does (no synthetic `rust-workspace` executor host yet, module 12).
 
-**Deferred** (not in CACHE-OBS-001, still Ready under D-012, not yet built):
-AFFECTED-001 (`explain affected`, module 13), LIST-001 (`nxrust list`, module
-12), WN-003 (first-class JS-backing-crate + NAPI test-target defect, modules
-10/13).
+**Deferred** (not in CACHE-OBS-001; still Ready under D-012, not yet built):
+AFFECTED-001 (`explain affected`, module 13 — **next Ready slice**), LIST-001
+(`nxrust list`, module 12), WN-003 (first-class JS-backing-crate + NAPI
+test-target defect, modules 10/13).
 
 _Further items promote individually per D-007 / D-010. Diagnostics may also be
 added as part of other modules' Work Items where the diagnostic is integral to

@@ -88,9 +88,9 @@ build_id_index() {
     FNR == 1 { fence = 0 }
     /^(```|~~~)/ { fence = !fence; next }
     fence { next }
-    # Work item headers: ### AUTH-001: title
-    match($0, /^### [A-Za-z]+-[0-9]+:/) {
-      id = substr($0, 5, RLENGTH - 5)
+    # Work item headers: ### AUTH-001: / ### CACHE-OBS-001 —
+    match($0, /^### [A-Z][A-Za-z0-9]*(-[A-Za-z0-9]+)*-[0-9]+/) {
+      id = substr($0, RSTART + 4, RLENGTH - 4)
       print id
     }
     # Decision entries: - **D-026:** text

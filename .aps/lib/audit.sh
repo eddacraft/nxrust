@@ -159,7 +159,7 @@ audit_file() {
     [[ -z "$line_num" ]] && continue
     header=$(echo "$header" | sed 's/^[[:space:]]*//')
     local item_id
-    item_id=$(echo "$header" | grep -oE '[A-Za-z]+-[0-9]+' | head -1 || true)
+    item_id=$(echo "$header" | grep -oE '[A-Z][A-Za-z0-9]*(-[A-Za-z0-9]+)*-[0-9]+' | head -1 || true)
 
     local content status
     content=$(audit_item_content "$file" "$line_num")

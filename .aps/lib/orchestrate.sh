@@ -35,8 +35,25 @@ orch_field_value() {
   local field="$2"
 
   printf '%s\n' "$content" | awk -v field="$field" '
+    # List form: - **Status:** value...
     $0 ~ "^- \\*\\*" field ":\\*\\*" {
       sub("^- \\*\\*" field ":\\*\\*[[:space:]]*", "")
+      if ($0 != "") print
+      found = 1
+      next
+    }
+    # Bold-wrapped value: **Status: value** trailing notes...
+    $0 ~ "^\\*\\*" field ":[[:space:]]*[^*]+\\*\\*" {
+      line = $0
+      sub("^\\*\\*" field ":[[:space:]]*", "", line)
+      sub("\\*\\*.*", "", line)
+      if (line != "") print line
+      found = 1
+      next
+    }
+    # Label form without list dash: **Status:** value...
+    $0 ~ "^\\*\\*" field ":\\*\\*" {
+      sub("^\\*\\*" field ":\\*\\*[[:space:]]*", "")
       if ($0 != "") print
       found = 1
       next
@@ -76,6 +93,12 @@ orch_normalize_status() {
     Ready*) echo "Ready" ;;
     Draft*) echo "Draft" ;;
     Blocked*) echo "Blocked" ;;
+    # Accepted lifecycle states (plan-doctor / ADR-0013)
+    Done*) echo "Complete" ;;
+    Released*) echo "Released" ;;
+    Merged*) echo "Merged" ;;
+    Shipped*) echo "Shipped" ;;
+    Proposed*) echo "Proposed" ;;
     *) echo "Unknown" ;;
   esac
 }
@@ -140,8 +163,8 @@ orch_load_work_items() {
 
       local id title content status deps
       header=$(orch_trim "$header")
-      id=$(printf '%s\n' "$header" | sed -E 's/^### ([A-Za-z]+-[0-9]+):.*/\1/')
-      title=$(printf '%s\n' "$header" | sed -E 's/^### [A-Za-z]+-[0-9]+:[[:space:]]*//; s/[[:space:]]+[^[:alnum:][:space:]]+[[:space:]]+Complete.*$//')
+      id=$(printf '%s\n' "$header" | sed -E 's/^### ([A-Z][A-Za-z0-9]*(-[A-Za-z0-9]+)*-[0-9]+)([:]|[[:space:]]+[—–-]).*/\1/')
+      title=$(printf '%s\n' "$header" | sed -E 's/^### [A-Z][A-Za-z0-9]*(-[A-Za-z0-9]+)*-[0-9]+([:]|[[:space:]]+[—–-])[[:space:]]*//; s/[[:space:]]+[^[:alnum:][:space:]]+[[:space:]]+Complete.*$//')
       content=$(orch_item_content "$file" "$line_num")
       status=$(orch_field_value "$content" "Status")
 
@@ -177,33 +200,43 @@ orch_item_index() {
 orch_dependency_complete() {
   local dep="$1"
 
-  if [[ "$dep" =~ ^[A-Z]+-[0-9]+$ ]]; then
+  if [[ "$dep" =~ ^[A-Z][A-Za-z0-9]*(-[A-Za-z0-9]+)*-[0-9]+$ ]]; then
     # Decision dependencies (D-NNN) are resolved in the plan text, not as work items.
     [[ "$dep" == D-* ]] && return 0
 
     local idx
     idx=$(orch_item_index "$dep" || true)
-    [[ -n "$idx" && "${ORCH_ITEM_STATUSES[$idx]}" == "Complete" ]]
-    return
+    [[ -n "$idx" ]] || return 1
+    case "${ORCH_ITEM_STATUSES[$idx]}" in
+      Complete|Released|Merged|Shipped) return 0 ;;
+      *) return 1 ;;
+    esac
   fi
 
   local module_status="${ORCH_MODULE_STATUSES[$dep]:-}"
-  [[ "$module_status" == "Complete" ]]
+  case "$module_status" in
+    Complete|Released|Merged|Shipped) return 0 ;;
+    *) return 1 ;;
+  esac
 }
 
 orch_deps_complete() {
   local deps="$1"
   local dep_ids=()
   local dep
+  local deps_norm
 
-  [[ -z "$deps" || "$deps" == "None" || "$deps" == "-" ]] && return 0
+  deps_norm=$(printf '%s' "$deps" | tr '[:upper:]' '[:lower:]')
+  [[ -z "$deps" || "$deps_norm" == "none" || "$deps" == "-" || "$deps" == "—" ]] && return 0
   [[ ! "$deps" =~ [[:alnum:]] ]] && return 0
 
   while IFS= read -r dep; do
-    [[ -n "$dep" ]] && dep_ids+=("$dep")
-  done < <(printf '%s\n' "$deps" | grep -oE '[A-Z]+-[0-9]+|[A-Z]{2,}' || true)
+    # Skip bare module-like tokens that are not work-item IDs (length-only noise)
+    [[ -n "$dep" && "$dep" =~ - ]] && dep_ids+=("$dep")
+  done < <(printf '%s\n' "$deps" | grep -oE '[A-Z][A-Za-z0-9]*(-[A-Za-z0-9]+)*-[0-9]+' || true)
 
-  [[ ${#dep_ids[@]} -eq 0 ]] && return 1
+  # Prose with no extractable work-item IDs is treated as "no deps"
+  [[ ${#dep_ids[@]} -eq 0 ]] && return 0
 
   for dep in "${dep_ids[@]}"; do
     orch_dependency_complete "$dep" || return 1
@@ -222,7 +255,7 @@ orch_deps_display() {
 orch_dep_ids() {
   local deps="$1"
 
-  printf '%s\n' "$deps" | grep -oE '[A-Z]+-[0-9]+|[A-Z]{2,}' || true
+  printf '%s\n' "$deps" | grep -oE '[A-Z][A-Za-z0-9]*(-[A-Za-z0-9]+)*-[0-9]+|[A-Z]{2,}' || true
 }
 
 orch_context_root() {
@@ -357,7 +390,8 @@ EOF
   for i in "${!ORCH_ITEM_IDS[@]}"; do
     orch_item_matches_module "$i" "$module_filter" || continue
     case "${ORCH_MODULE_STATUSES[${ORCH_ITEM_MODULES[$i]}]:-Unknown}" in
-      Ready|"In Progress") ;;
+      # D-007: modules may stay Proposed while individual items are Ready
+      Ready|"In Progress"|Proposed) ;;
       *) continue ;;
     esac
     [[ "${ORCH_ITEM_STATUSES[$i]}" == "Ready" ]] || continue
@@ -455,7 +489,7 @@ orch_rewrite_work_item() {
 
     /^### / {
       if (state == "in") flush_target()
-      if ($0 ~ "^### " target ":") {
+      if ($0 ~ "^### " target "(:|[[:space:]]+[—–-])") {
         state = "in"
         bcount = 0
         buffer[bcount++] = $0
@@ -564,9 +598,10 @@ EOF
   local already_started="false"
 
   case "$module_status" in
-    Ready|"In Progress") ;;
+    # D-007: Ready items may live in Proposed modules
+    Ready|"In Progress"|Proposed) ;;
     *)
-      error "$id belongs to module $module_id (status: $module_status) - module must be Ready or In Progress to start work items"
+      error "$id belongs to module $module_id (status: $module_status) - module must be Ready, In Progress, or Proposed to start work items"
       return 1
       ;;
   esac
@@ -576,8 +611,8 @@ EOF
     "In Progress")
       already_started="true"
       ;;
-    Complete)
-      error "$id is already Complete - cannot restart"
+    Complete|Released|Merged|Shipped)
+      error "$id is already $current - cannot restart"
       return 1
       ;;
     *)

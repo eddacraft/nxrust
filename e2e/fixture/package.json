@@ -2,13 +2,13 @@
   "name": "nxrust-e2e-fixture",
   "private": true,
   "devDependencies": {
-    "nx": "22.7.5"
+    "nx": "22.7.12"
   },
+  "packageManager": "pnpm@10.33.1",
   "pnpm": {
     "overrides": {
       "form-data": "^4.0.6",
       "tmp": "^0.2.7"
     }
-  },
-  "packageManager": "pnpm@10.33.1"
+  }
 }

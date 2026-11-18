@@ -46,6 +46,15 @@ async function setStatMtimes(mtimes: Record<string, number | "missing">) {
   });
 }
 
+// Vitest 4+ changed `vi.restoreAllMocks()` to only restore spies: `vi.fn()`
+// implementations mutated inside a test now leak into later tests. Reset the
+// module-level fs mocks to their factory behaviour before every test.
+beforeEach(async () => {
+  const fs = await import("node:fs");
+  (fs.existsSync as ReturnType<typeof vi.fn>).mockImplementation(() => false);
+  (fs.readFileSync as ReturnType<typeof vi.fn>).mockReset();
+});
+
 const ws = "/ws";
 
 function pkg(over: Partial<CargoMetadata["packages"][0]>): CargoMetadata["packages"][0] {

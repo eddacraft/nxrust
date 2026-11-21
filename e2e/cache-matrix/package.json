@@ -2,13 +2,17 @@
   "name": "nxrust-cache-matrix-fixture",
   "private": true,
   "devDependencies": {
-    "nx": "22.7.5"
+    "nx": "22.7.12"
   },
+  "packageManager": "pnpm@10.33.1",
   "pnpm": {
     "overrides": {
       "form-data": "^4.0.6",
-      "tmp": "^0.2.7"
+      "tmp": "^0.2.7",
+      "axios": "^1.20.0",
+      "follow-redirects": "^1.16.2",
+      "smol-toml": "^1.9.0",
+      "brace-expansion": "^5.0.12"
     }
-  },
-  "packageManager": "pnpm@10.33.1"
+  }
 }
